@@ -1,0 +1,84 @@
+{namespace customViewHelper=Netkyngs\Nkcadportal\ViewHelpers}
+<f:layout name="Default" />
+
+<f:section name="content">
+    <f:flashMessages />
+
+    <ul class="cad-payment-be-topnav">
+        <li><a href="#" class="active">Payments</a></li>
+        <li><f:link.action action="chargecard">Charge a Card</f:link.action></li>
+    </ul>
+
+    <!-- PAYMENTS -->
+    <table class="cad-payment-be-table table-payments datatable active" id="table-payments">
+        <caption>Payments</caption>
+        <thead>
+            <tr>
+                <th width="5%" class="sorting_disabled">Options</th>
+                <th>UID</th>
+                <th>Reference ID</th>
+                <th>Timestamp</th>
+                <th>Mode</th>
+                <th>Status</th>
+                <th class="sorting_disabled">Amount</th>
+                <th class="sorting_disabled">Description</th>
+                <th class="sorting_disabled">Invoice No.</th>
+                <th class="sorting_disabled">Card Number</th>
+                <th class="sorting_disabled">Name on Card</th>
+            </tr>
+        </thead>
+
+        <tbody>
+                <f:for each="{payments}" as="payment">
+                    <tr data-row-id="{payment.uid}" class="data">
+                        <td>
+                            <customViewHelper:be.editLink table="tx_nkregularformstorage_domain_model_formresult" uid="{payment.uid}" action="edit">
+                                <i class="fa fa-dollar"></i>
+                            </customViewHelper:be.editLink>
+                        </td>
+                         <td>
+                            <customViewHelper:be.editLink table="tx_nkregularformstorage_domain_model_formresult" uid="{payment.uid}" action="edit">
+                                {payment.uid}
+                            </customViewHelper:be.editLink>
+                        </td>
+                        <td>
+                            <customViewHelper:be.editLink table="tx_nkregularformstorage_domain_model_formresult" uid="{payment.uid}" action="edit">
+                                {payment.trxid}
+                            </customViewHelper:be.editLink>
+                        </td>
+                        <td><f:format.date format="m/d/Y h:i a">{payment.customtstamp}</f:format.date></td>
+                        <td>
+                            <f:if condition="{payment.ptype} == 1">
+                                <f:then>
+                                    Invoice
+                                </f:then>
+                                <f:else>
+                                    Credit Card
+                                </f:else>
+                            </f:if>
+                        </td>
+                        <td>
+                            <f:switch expression="{payment.pstatus}">
+                                <f:case value="-1">
+                                    ERROR
+                                </f:case>
+                                <f:case value="1">
+                                    OK
+                                </f:case>
+                                <f:defaultCase>
+                                    Pending
+                                </f:defaultCase>
+                            </f:switch>
+                        </td>
+                        <td>{payment.trxamount}</td>
+                        <td>{payment.description}</td>
+                        <td>{payment.invoiceid}</td>
+                        <td>{payment.cardno}</td>
+                        <td>{payment.name}</td>
+                    </tr>
+                </f:for>
+            </tbody>
+    </table>
+
+</f:section>
+</html>

@@ -1,0 +1,30 @@
+
+plugin.tx_nkcadportal_nkcadportalfe {
+	view {
+		# cat=plugin.tx_nkcadportal_nkcadportalfe/file; type=string; label=Path to template root (FE)
+		templateRootPath = EXT:nkcadportal/Resources/Private/Templates/
+		# cat=plugin.tx_nkcadportal_nkcadportalfe/file; type=string; label=Path to template partials (FE)
+		partialRootPath = EXT:nkcadportal/Resources/Private/Partials/
+		# cat=plugin.tx_nkcadportal_nkcadportalfe/file; type=string; label=Path to template layouts (FE)
+		layoutRootPath = EXT:nkcadportal/Resources/Private/Layouts/
+	}
+	persistence {
+		# cat=plugin.tx_nkcadportal_nkcadportalfe//a; type=string; label=Default storage PID
+		storagePid =
+	}
+}
+
+module.tx_nkcadportal_nkcadportalbe {
+	view {
+		# cat=module.tx_nkcadportal_nkcadportalbe/file; type=string; label=Path to template root (BE)
+		templateRootPath = EXT:nkcadportal/Resources/Private/Backend/Templates/
+		# cat=module.tx_nkcadportal_nkcadportalbe/file; type=string; label=Path to template partials (BE)
+		partialRootPath = EXT:nkcadportal/Resources/Private/Backend/Partials/
+		# cat=module.tx_nkcadportal_nkcadportalbe/file; type=string; label=Path to template layouts (BE)
+		layoutRootPath = EXT:nkcadportal/Resources/Private/Backend/Layouts/
+	}
+	persistence {
+		# cat=module.tx_nkcadportal_nkcadportalbe//a; type=string; label=Default storage PID
+		storagePid =
+	}
+}

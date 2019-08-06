@@ -1,0 +1,118 @@
+ul.cad-portal-be-topnav {
+	margin: 0;
+	padding: 0;
+	background: #d6d6d6;
+}
+ul.cad-portal-be-topnav li {
+	display: inline-block;
+}
+ul.cad-portal-be-topnav li a {
+	padding: 10px 20px 12px;
+	background: #ccc;
+	color: #333;	
+	display: inline-block;
+}
+ul.cad-portal-be-topnav li a.active {
+	background: #333;
+	color: #fff;
+}
+
+table.cad-portal-be-table {
+	width: 100%;
+}
+table.cad-portal-be-table > caption {
+    background: rgb(51, 51, 51);
+    padding: 14px 19px;
+    font-style: normal;
+    color: #ccc;
+}
+table.cad-portal-be-table tr {
+	
+}
+table.cad-portal-be-table th {
+	padding: 10px 5px 6px !important;
+}
+table.cad-portal-be-table td {
+	border-bottom: 1px solid #cecece;
+}
+table.cad-portal-be-table th:nth-child(1),
+table.cad-portal-be-table td:nth-child(1) {
+	width: 4%;
+}
+table.cad-portal-be-table th:nth-child(2),
+table.cad-portal-be-table td:nth-child(2) {
+	width: 8%;
+}
+table.cad-portal-be-table tr.data td {
+	padding: 5px !important;
+}
+table.cad-portal-be-table tr.search input,
+table.cad-portal-be-table tr.search select {
+    width: 100%;
+    padding: 2px 5px;
+    height: 24px;
+}
+table.cad-portal-be-table i.fa {
+	cursor: pointer;
+	font-size: 16px;
+}
+table.cad-portal-be-table i.fa:hover {
+	opacity: 0.6;
+}
+table.cad-portal-be-table i.fa.fa-user {
+	color: deepskyblue;
+}
+table.cad-portal-be-table i.fa.fa-trash {
+	color: green;
+}
+table.cad-portal-be-table i.fa.fa-bell {
+	color: gray;
+}
+table.cad-portal-be-table i.fa.fa-eye-slash {
+	color: red;
+}
+table.cad-portal-be-table i.fa.fa-plus-circle {
+	color: limegreen;
+}
+table.cad-portal-be-table i.fa.fa-pdf.fa-file {
+	color: red;
+}
+table.cad-portal-be-table i.fa.fa-pencil {
+	color: orange;
+}
+table.cad-portal-be-table td.edit-icon a:hover {
+	text-decoration: none;
+}
+.temp-dropdown-holder {
+	float: left;
+}
+.dataTables_wrapper {
+	padding-top: 6px;
+}
+.dataTables_wrapper select {
+    padding: 2px 5px;
+    height: 30px;
+}
+.dataTables_length {
+	margin-left: 10px;
+}
+.dataTables_length label {
+	font-weight: normal;
+}
+.dataTables_wrapper label {
+	font-weight: normal;
+}
+.dataTables_wrapper label input {
+	border: 1px solid #848484;
+}
+#table-memberships_wrapper,
+#table-documents_wrapper,
+#table-reminders_wrapper,
+#table-reports_wrapper,
+#table-codes_wrapper,
+#table-newsletters_wrapper {
+    display: none;
+}
+.dataTables_wrapper td span.comma-seperator:last-of-type {
+    display: none;
+}

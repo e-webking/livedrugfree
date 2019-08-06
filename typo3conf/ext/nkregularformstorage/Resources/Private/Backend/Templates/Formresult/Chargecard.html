@@ -1,0 +1,79 @@
+{namespace customViewHelper=Netkyngs\Nkcadportal\ViewHelpers}
+<f:layout name="Default" />
+
+<f:section name="content">
+    <f:flashMessages />
+
+    <ul class="cad-payment-be-topnav">
+        <li><f:link.action action="txnlist">Payments</f:link.action></li>
+        <li><a href="#" class="active">Charge a Card</a></li>
+    </ul>
+
+    <!-- CHARGE A CARD -->
+    <div id="table-chargecard">
+        <f:form action="capturepay" method="post">
+            <table class="cad-payment-be-table table-chargecard">
+                <caption>Charge a Credit Card</caption>
+                <tbody>
+                    <tr>
+                        <td>*</td>
+                        <td>Name on Card:</td>
+                        <td><f:form.textfield name="name" class="wider" /></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>Email:</td>
+                        <td><f:form.textfield name="email" class="wider" /></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>Phone:</td>
+                        <td><f:form.textfield name="phone" /></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>Description:</td>
+                        <td><f:form.textarea name="description" class="wider"></f:form.textarea></td>
+                    </tr>
+                    <tr>
+                        <td>*</td>
+                        <td>Amount:</td>
+                        <td><f:form.textfield name="amount" /></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>Billing Address:</td>
+                        <td><f:form.textfield name="address" class="wider" /></td>
+                    </tr>
+                     <tr>
+                        <td></td>
+                        <td>City/State/Zip:</td>
+                        <td><f:form.textfield name="city" />&nbsp;<f:form.textfield name="state" class="narrow" />&nbsp;<f:form.textfield name="zip" class="narrow" /></td>
+                    </tr>
+                    <tr>
+                        <td>*</td>
+                        <td>Credit Card Number:</td>
+                        <td><f:form.textfield name="cardno" class="wider" /></td>
+                    </tr>
+                    <tr>
+                        <td>*</td>
+                        <td>Expiration Date:</td>
+                        <td><f:form.textfield name="expdate" /> (mm/yy)</td>
+                    </tr>
+                    <tr>
+                        <td>*</td>
+                        <td>Security code:</td>
+                        <td><f:form.textfield name="code" class="narrow" /></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td><f:form.submit name="btnsub" value="Submit transaction" /></td>
+                    </tr>
+                </tbody>
+            </table>
+        </f:form>
+    </div>
+
+</f:section>
+</html>

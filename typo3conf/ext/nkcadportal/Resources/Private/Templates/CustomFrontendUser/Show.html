@@ -1,0 +1,341 @@
+
+<f:layout name="Default" />
+
+<f:section name="main">
+<div id="ajaxpid" data-pid="{settings.myportalpid}"></div>
+
+<f:flashMessages />
+
+<ul class="nav nav-tabs">
+	<li><a data-toggle="tab" href="#femenu1">Purchase/Renew</a></li>
+	<li class="active"><a data-toggle="tab" href="#femenu2">Profile</a></li>
+	<li><a data-toggle="tab" href="#femenu3">Contacts</a></li>
+	<li><a data-toggle="tab" href="#femenu4">Newsletters</a></li>
+	<li><a data-toggle="tab" href="#femenu5">Documents</a></li>
+	<li><a href="/portal/login/?logintype=logout">Logout</a></li>
+</ul>
+
+<div class="tab-content">
+	<!-- PURCHASE/RENEW TAB -->
+	<div id="femenu1" class="tab-pane fade">
+		<h3>Purchase/Renew</h3>
+		
+		<!-- List all memberships for this user -->
+		<f:if condition="{frontendUser.memberships}">
+			<p>Your current membership status</p>
+			<form class="membershipform" action="" method="post" name="renewexistingform" id="renewexistingform">
+				<table>
+					<thead>
+						<tr>
+							<th>Renew</th>
+							<th>Membership type</th>
+							<th>State</th>
+							<th>Expires</th>
+							<th>Award</th>
+						</tr>
+					</thead>
+					<tbody>
+						<f:for each="{frontendUser.memberships}" as="membership">
+							<f:render section="existingNembershipRow" arguments="{membership: membership, membershipTemplateUid: membership.membershiptemplate.uid}" />
+						</f:for>
+					</tbody>
+				</table>
+			</form>
+		</f:if>
+		<!-- List new membership dropdown rows -->
+		<p>We offer several levels of Drug Free Workplace (DFW) newsletter memberships as well as DOT memberships. Please choose the state(s) in which you need DFW assistance. You can select up to 6 states.</p>
+		<form action="/index.php?id={settings.paymentprocessorpid}" class="membershipform" method="post" name="purchaserenewform" id="purchaserenewform" onsubmit="return checkMembershipPaymentForm();">
+			<table>
+				<thead>
+					<tr>
+						<th>Membership</th>
+						<th>State</th>
+						<th>Cost</th>
+					</tr>
+				</thead>
+				<tbody>
+					<!-- Empty membership rows -->
+					<f:render section="newNembershipRow" arguments="{allMemberships: allMemberships, allStates: allStates, fieldNamePart: '1'}" />
+					<f:render section="newNembershipRow" arguments="{allMemberships: allMemberships, allStates: allStates, fieldNamePart: '2'}" />
+					<f:render section="newNembershipRow" arguments="{allMemberships: allMemberships, allStates: allStates, fieldNamePart: '3'}" />
+					<f:render section="newNembershipRow" arguments="{allMemberships: allMemberships, allStates: allStates, fieldNamePart: '4'}" />
+					<f:render section="newNembershipRow" arguments="{allMemberships: allMemberships, allStates: allStates, fieldNamePart: '5'}" />
+					<f:render section="newNembershipRow" arguments="{allMemberships: allMemberships, allStates: allStates, fieldNamePart: '6'}" />
+					<tr>
+						<td><label class="discount-code-label" for="discountcode">Code:</label></td>
+						<td><input type="text" name="discountcode" id="discountcode" data-discountvalue="0"/></td>
+						<td><p id="discountamount" class="hidden">Discount: &dollar;<span></span></p></td>
+					</tr>
+				</tbody>
+			</table>
+
+			<p>Would you like to add a tax-deductible donation to your membership today? The reason your donation is so important is because it will help us to continue the fight against drug use and underage drinking in our schools and communities!</p>
+			
+			<label for="donate">I would like to donate:</label>
+			<select class="auto-width" name="donate" id="donate">
+				<option value="0"></option>
+				<option value="5">&dollar;5</option>
+				<option value="10">&dollar;10</option>
+				<option value="20">&dollar;20</option>
+				<option value="30">&dollar;30</option>
+				<option value="50">&dollar;50</option>
+				<option value="75">&dollar;75</option>
+				<option value="100">&dollar;100</option>
+			</select>
+			<br/>
+			<label for="discountcode">Total:</label>
+			<input class="auto-width" type="text" name="purchasetotal" id="purchasetotal" readonly/>
+			
+			<div class="purchasenewform-paymentsection">
+				<h3>Payment</h3>
+				
+				<select name="payment-option" id="payment-option" onchange="switchPurchasenewPaymentOption();">
+					<option value="0">Please select a payment option</option>
+					<option value="creditcard">Credit card</option>
+					<option value="printinvoice">Print an invoice</option>
+				</select>
+				
+				<div class="payment-option printinvoice">
+					<p>Click "Print an invoice" button below</p>
+					<p>Upon receipt of payment we will notify you via email. You can then login to your account and download the "Documents" and "Newsletters" for the membership purchased.</p>
+					
+					<div class="payment-agreement">
+						Member Agreement: Members agree upon payment not to share their username or password with anyone outside their respective company, including consultants, attorneys, service providers and others. Thank you for your cooperation with this important policy.
+					</div>	
+					
+					<input type="submit" name="submit" value="Place order and Print an Invoice"/>
+				</div>
+				
+				<div class="payment-option creditcard">
+					<p>Enter your credit card details below:</p>
+					
+					<label for="cardname">Card type:</label>
+					<select name="paymentForm[cardtype]" id="paymentForm[cardtype]">
+						<option value="mastercard">Mastercard</option>
+						<option value="visa">Visa</option>
+						<option value="discover">Discover</option>
+					</select>
+					<label for="cardname">Name on card:</label><input type="text" name="paymentForm[Card_Name]" id="cardname" value="{frontendUser.firstName} {frontendUser.lastName}" placeholder="Name on card"/>
+					<label for="address">Address:</label><input type="text" name="paymentForm[Address]" id="address" value="{frontendUser.address}" placeholder="Address"/>
+					<label for="city">City:</label><input type="text" name="paymentForm[City]" id="city" value="{frontendUser.city}" placeholder="City"/>
+					<label for="state">State:</label><input type="text" name="paymentForm[State]" id="state" value="{frontendUser.state}" placeholder="State" class="small-field"/>
+					<label for="zip">ZIP:</label><input type="text" name="paymentForm[ZIP]" id="zip" value="{frontendUser.zip}" placeholder="ZIP" class="small-field"/>
+					<label for="cardnumber">Card number:</label><input type="text" name="paymentForm[Card_Number]" id="cardnumber" value="" placeholder="Card Number"/>
+					<label for="Card_Expiration_Month">Expiration month:</label><input type="text" name="paymentForm[Card_Expiration_Month]" id="Card_Expiration_Month" value="" placeholder="Exp. Month (MM)" class="smaller-field"/>
+					<label for="Card_Expiration_Year">Expiration year:</label><input type="text" name="paymentForm[Card_Expiration_Year]" id="Card_Expiration_Year" value="" placeholder="Exp. Year (YYYY)" class="smaller-field"/>
+					<label for="CCV_CVV_Code">CCV/CVV Code:</label><input type="text" name="paymentForm[CCV_CVV_Code]" id="CCV_CVV_Code" value="" placeholder="CCV/CVV code" class="smaller-field"/>
+					
+					<div class="payment-agreement">
+						Member Agreement: Members agree upon payment, not to share their username, password or documents with anyone outside their respective company, including consultants, insurance agents, attorneys, service providers and others. All documents are write- protected. Thank you for your cooperation with this important policy.
+					</div>					
+					
+					<input type="submit" name="submit" value="Pay now"/>
+					
+					<div class="clearfix"></div>
+
+				</div>
+			</div>
+			
+			<!-- HIDDEN Form Values -->
+			<input type="hidden" name="action" value="processForm"/>
+			<input type="hidden" name="confirmationpage" value="{settings.paymentconfirmationpid}"/>
+			<input type="hidden" name="failedReturnFullPageLink" value="{settings.myportalpid}"/>
+			<input type="hidden" name="storagepage" value="{settings.paymentspid}"/>
+			
+			<f:for each="{frontendUser.memberships}" as="membership">
+				<input type="hidden" name="renew_{membership.membershiptemplate.uid}" value="0"/>
+			</f:for>
+		</form>
+
+	</div>
+	
+	<!-- PROFILE TAB -->
+	<div id="femenu2" class="tab-pane fade in active">
+		<h3>Profile</h3>
+		<p>Edit the information of your membership <strong>{frontendUser.username}</strong>.</p>
+		<p><i>Please make sure that you fill in your details for the fields marked *<br/><br/></i></p>
+		<f:render partial="FormErrors" arguments="{object:CustomFrontendUser}" />
+		<f:form class="tinted-form" action="show" controller="CustomFrontendUser" name="FrontendUser" object="{FrontendUser}" onsubmit="return checkProfileForm();">
+		<f:render partial="CustomFrontendUser/FormFields" arguments="{frontendUser: frontendUser, formdata: formdata}" />
+			<f:form.submit value="Save" />
+			<div class="clearfix"></div>
+		</f:form>
+	</div>
+	
+	<!-- CONTACTS TAB -->
+	<div id="femenu3" class="tab-pane fade">
+		<h3>Contacts</h3>
+		<f:if condition="{frontendUser.contacts}">
+			<f:then>
+				<p>Your list of contact persons:</p>
+				<!-- List all contacts -->
+				<table class="bordered-table contact-list-table">
+					<thead>
+						<tr>
+							<th>First name</th>
+							<th>Last name</th>
+							<th>Title</th>
+							<th>Email</th>
+							<th>Phone</th>
+							<th>Contact type</th>
+							<th></th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						<f:for each="{frontendUser.contacts}" as="contact">
+							<tr data-contact-uid="{contact.uid}">
+								<td>{contact.firstname}</td>
+								<td>{contact.lastname}</td>
+								<td>{contact.title}</td>
+								<td>{contact.email}</td>
+								<td>{contact.phone}</td>
+								<td>{contact.contacttype}</td>
+								<td><i class="fa fa-pencil" title="Edit this contact" onclick="editContact('{contact.uid}');"></i></td>
+								<td><i class="fa fa-trash" title="Delete this contact" onclick="removeContact('{contact.uid}');"></i></td>
+							</tr>
+						</f:for>
+					</tbody>
+				</table>
+			</f:then>
+			<f:else>
+				You have no contacts yet...<br/>
+			</f:else>
+		</f:if>
+	
+		<!-- Create new contact form -->
+		<br/><h3>Add a new contact</h3>
+		<f:render partial="FormErrors" arguments="{object:newContact}" />
+		<f:form class="tinted-form" action="show" controller="CustomFrontendUser" enctype="multipart/form-data" name="newContact" object="{newContact}" method="post">
+		<f:render partial="Contact/FormFields" arguments="{formdata: formdata}" />
+			<f:form.submit value="Add contact" />
+			<div class="clearfix"></div>
+		</f:form>
+	</div>
+	
+	<!-- NEWSLETTERS TAB -->
+	<div id="femenu4" class="tab-pane fade">
+		<h3>Newsletters</h3>
+		<f:if condition="{frontendUser.newsletters}">
+			<f:then>
+			<!-- List all newsletters user has access to -->
+			<table class="bordered-table newsletter-table">
+				<thead>
+					<tr>
+						<th>Description</th>
+						<th>Period</th>
+						<th>Added</th>
+						<th>Download</th>
+					</tr>
+				</thead>
+				<tbody>
+					<f:for each="{frontendUser.newsletters}" as="newsletter">
+						<tr>
+							<td><a href="/index.php?id=36&action=serve-download&filepath={newsletter.file.originalResource.publicUrl}&friendlyfilename={newsletter.fileName}">{newsletter.title}</a></td>
+							<td><f:format.date format="F Y">{newsletter.forperiod}</f:format.date></td>
+							<td><f:format.date format="m/d/Y">{newsletter.tstamp}</f:format.date></td>
+							<td>
+								<a href="/index.php?id=36&action=serve-download&filepath={newsletter.file.originalResource.publicUrl}&friendlyfilename={newsletter.fileName}">
+									<i class="fa fa-pdf fa-file"></i>
+								</a>
+							</td>
+						</tr>
+					</f:for>
+				</tbody>
+			</table>
+			</f:then>
+			<f:else>
+				There are no newsletter available for you yet...
+			</f:else>
+		</f:if>
+	</div>
+	
+	<!-- DOCUMENTS TAB -->
+	<div id="femenu5" class="tab-pane fade">
+		<h3>Documents</h3>
+		<f:if condition="{frontendUser.documents}">
+			<f:then>
+			<!-- List all documents user has access to -->
+			<table class="bordered-table documents-table">
+				<thead>
+					<tr>
+						<th>Description</th>
+						<th>Updated</th>
+						<th>Download</th>
+					</tr>
+				</thead>
+				<tbody>
+					<f:for each="{frontendUser.documents}" as="document">
+						<tr>
+							<td><a href="/index.php?id=36&action=serve-download&filepath={document.file.originalResource.publicUrl}&friendlyfilename={document.fileName}">{document.title}</a></td>
+							<td><f:format.date format="m/d/Y">{document.tstamp}</f:format.date></td>
+							<td>
+								<a href="/index.php?id=36&action=serve-download&filepath={document.file.originalResource.publicUrl}&friendlyfilename={document.fileName}">
+									<i class="fa fa-pdf fa-file"></i>
+								</a>
+							</td>
+						</tr>
+					</f:for>
+				</tbody>
+			</table>
+			</f:then>
+			<f:else>
+				There are no documents available for you yet...
+			</f:else>
+		</f:if>
+	</div>
+</div>
+
+<!-- CONTENT SECTION: NEW MEMBERSHIP ROW -->
+<f:section name="newNembershipRow">
+	<tr>
+		<td>
+			<select class="purchaserenewmembership" name="newmembership-{fieldNamePart}">
+				<option value="0"></option>
+				<f:if condition="{allMemberships}">
+					<f:for each="{allMemberships}" as="asMembershipTemplate">
+						<option data-alreadyactive="no" data-price="{asMembershipTemplate.price}" value="{asMembershipTemplate.uid}">{asMembershipTemplate.description}</option>
+					</f:for>
+				</f:if>
+			</select>
+		</td>
+		<td>
+			<select class="newmembership-state" name="newmembershipstate-{fieldNamePart}">
+				<option value="0"></option>
+				<f:for each="{allStates}" as="asState">
+					<f:if condition="{membership.state.uid} == {asState.uid}">
+						<f:then>
+							<option value="{asState.uid}" data-uid="{asState.uid}" selected>{asState.state}</option>
+						</f:then>
+						<f:else>
+							<option value="{asState.uid}" data-uid="{asState.uid}">{asState.state}</option>
+						</f:else>
+					</f:if>
+				</f:for>
+			</select>
+		</td>
+		<td>&dollar;<span class="membership-cost"></span></td>
+	</tr>
+</f:section>
+
+
+<!-- CONTENT SECTION: EXISTING MEMBERSHIP ROW -->
+<f:section name="existingNembershipRow">
+	<tr>
+		<td><input type="checkbox" value="true" name="renew_{membershipTemplateUid}" id="renew_{membershipTemplateUid}"/></td>
+		<td>
+			{membership.membershiptemplate.description}
+		</td>
+		<td>
+			<span class="existing-state" data-uid="{membership.state.uid}">{membership.state.stateshort}</span>
+		</td>
+		<td>
+			<f:format.date format="m/d/Y">{membership.endtimecustom}</f:format.date>
+		</td>
+		<td>
+                    <f:link.action action="certdwn" arguments="{membership:membership.uid}"><i class="fa fa-download"></i></f:link.action>
+		</td>
+	</tr>
+</f:section>
+
+</f:section>

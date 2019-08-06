@@ -1,0 +1,75 @@
+<label for="firstname">First name <span class="required">*</span></label>
+<f:form.textfield property="firstname" value="{frontendUser.firstname}" required="rquired"/>
+
+<label for="lastname">Last name <span class="required">*</span></label>
+<f:form.textfield property="lastname" value="{frontendUser.lastname}" required="rquired"/>
+
+<label for="title">Title <span class="required">*</span></label>
+<f:form.textfield property="title" value="{frontendUser.title}" required="rquired"/>
+
+<label for="company">Company <span class="required">*</span></label>
+<f:form.textfield property="company" value="{frontendUser.company}" required="rquired"/>
+
+<label for="numberofemployees"><f:translate key="tx_nkcadportal_domain_model_customfrontenduser.numberofemployees" /></label>
+<f:form.textfield property="numberofemployees" value="{frontendUser.numberofemployees}"/>
+
+<label for="numberofcdldrivers"><f:translate key="tx_nkcadportal_domain_model_customfrontenduser.numberofcdldrivers" /></label>
+<f:form.textfield property="numberofcdldrivers" value="{frontendUser.numberofcdldrivers}"/>
+
+<label for="address">Mailing Address <span class="required">*</span></label>
+<f:form.textfield property="address" value="{frontendUser.address}" required="rquired"/>
+
+<label for="address">Billing Address </label>
+<f:form.textfield property="additionaladdress" value="{frontendUser.additionaladdress}" />
+
+<label for="city">City <span class="required">*</span></label>
+<f:form.textfield property="city" value="{frontendUser.city}" required="rquired"/>
+
+<label for="state"><f:translate key="tx_nkcadportal_domain_model_customfrontenduser.state" /> <span class="required">*</span></label>
+<f:form.textfield property="state" value="{frontendUser.state}" required="rquired"/>
+
+<label for="zip">ZIP <span class="required">*</span></label>
+<f:form.textfield property="zip" value="{frontendUser.zip}" required="rquired"/>
+
+<label for="phone">Phone <span class="required">*</span></label>
+<f:form.textfield property="phone" value="{frontendUser.telephone}" required="rquired"/>
+
+<label for="cellphone"><f:translate key="tx_nkcadportal_domain_model_customfrontenduser.cellphone" /> </label>
+<f:form.textfield property="cellphone" value="{frontendUser.cellphone}"/>
+
+<label for="fax">Fax</label>
+<f:form.textfield property="fax" value="{frontendUser.fax}"/>
+
+<label for="fein"><f:translate key="tx_nkcadportal_domain_model_customfrontenduser.fein" /> <span class="required">*</span></label>
+<f:form.textfield property="fein" value="{frontendUser.fein}" required="rquired"/>
+
+<label for="businesstype"><f:translate key="tx_nkcadportal_domain_model_customfrontenduser.businesstype" /></label>
+<f:form.textfield property="businesstype" value="{frontendUser.businesstype}"/>
+
+<label for="insurancecarrier"><f:translate key="tx_nkcadportal_domain_model_customfrontenduser.insurancecarrier" /></label>
+<f:form.textfield property="insurancecarrier" value="{frontendUser.insurancecarrier}"/>
+
+<label for="insuranceagent"><f:translate key="tx_nkcadportal_domain_model_customfrontenduser.insuranceagent" /></label>
+<f:form.textfield property="insuranceagent" value="{frontendUser.insuranceagent}"/>
+
+<label for="hearaboutus"><f:translate key="tx_nkcadportal_domain_model_customfrontenduser.hearaboutus" /></label>
+<f:form.select property="hearaboutus" options="{formdata.hearaboutusoptions}" value="{frontendUser.hearaboutus}"/>
+
+
+
+
+<label for="email">Email <span class="required">*</span></label>
+<f:form.textfield property="email" value="{frontendUser.email}"/>
+
+<label for="profile_change_pw">Change password?</label>
+<input type="checkbox" name="profile_change_pw" id="profile_change_pw" value="1"/><br/>
+
+<div class="new_passw_wrapper">
+	<label for="oldpassword">Current password <span class="required">*</span></label>
+	<input type="password" name="oldpassword" id="oldpassword" value=""/><br/>
+	<label for="password">New password <span class="required">*</span></label>
+	<f:form.password property="password" value=""/>
+</div>
+
+<!-- Hidden fields -->
+<f:form.hidden name="formaction" value="updatefrontenduser" />

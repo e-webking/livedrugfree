@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2018-09-03T11:15:14Z" product-name="nkcadportal">
+		<header/>
+		<body>
+			<trans-unit id="description.description">
+				<source>Description</source>
+			</trans-unit>
+			<trans-unit id="membershiptype.description">
+				<source>Membership Type</source>
+			</trans-unit>
+			<trans-unit id="price.description">
+				<source>Price</source>
+			</trans-unit>
+			<trans-unit id="term.description">
+				<source>Term (Years)</source>
+			</trans-unit>
+			<trans-unit id="includednewsletters.description">
+				<source>Included Newsletters</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

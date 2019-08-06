@@ -1,0 +1,28 @@
+// Outputs a menu which shows a click path to
+// the current page.
+lib.breadcrumb = HMENU
+lib.breadcrumb {
+        special = rootline
+        // Range: Syntax is "Start level|End level"
+        // Values for both:
+        // 0 stands for the root page, positive values go outwards.
+        // Negative values begin with the outermost level of the current
+        // rootline and go inwards;
+        // e.g. -1 stands for the page on the outermost level of the
+        // current rootline.
+        // Start level: 1 = The page one level below the root page.
+        // End level: -1 = The current page.
+        special.range = 0|-1
+
+        1 = TMENU
+        1 {
+
+                // We want greater-than signs between the menu items.
+                // So each item should be wrapped with "/" except for the
+                // last (= current) one.
+                NO = 1
+                NO.allWrap = |&nbsp;/&nbsp;
+                CUR = 1
+                CUR.allWrap = |
+        }
+}

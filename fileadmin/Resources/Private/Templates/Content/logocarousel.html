@@ -1,0 +1,74 @@
+<f:if condition="{data.image}">
+	<div class="owl-carousel logo-carousel">
+		<f:for each="{data.image}" as="file" iteration="iterator">
+			<div>
+				<a href="{file.link}" target="_blank">
+					<f:image src="{file.publicUrl}" alt="{file.link}" width="210c" height="100c" />
+				</a>
+			</div>
+		</f:for>
+	</div>
+	
+	<script>
+		$(document).ready(function(){
+			var option = {
+				items : 5,
+				margin : 30,
+				loop : true,
+				center : false,
+				mousedrag : true,
+				touchdrag : true,
+				pulldrag : true,
+				nav : false,
+				navtext : ["<i class='fa fa-angle-left'></i>","<i class='fa fa-angle-right'></i>"],
+				dots : false,
+				dotsdata : false,
+				autoplay : true,
+				smartspeed : 650,
+				animateout : null,
+				animatein : null,
+				xs :  2,
+				sm :  2,
+				md :  3,
+				lg :  5
+			};
+
+			$('.logo-carousel').owlCarousel({
+				margin: option.margin,
+				loop: option.loop,
+				center: option.center,
+				mouseDrag: option.mousedrag,
+				touchDrag: option.touchdrag,
+				pullDrag: option.pulldrag,
+				nav: option.nav,
+				navText: option.navtext,
+				dots: option.dots,
+				dotsData: option.dotsdata,
+				autoplay: option.autoplay,
+				smartSpeed: option.smartspeed,
+				animateIn: option.animatein,
+				animateOut: option.animateout,
+				items: option.items,
+				responsive: {
+					// breakpoint from 0 up
+					0: {
+						items: option.xs
+					},
+					// breakpoint from 480 up
+					480: {
+						items: option.sm
+					},
+					// breakpoint from 768 up
+					768: {
+						items: option.md
+					},
+					992: {
+						items: option.lg
+					}
+				}
+			});
+		});
+	</script>
+</f:if>
+
+

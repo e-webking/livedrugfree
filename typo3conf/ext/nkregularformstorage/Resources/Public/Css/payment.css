@@ -1,0 +1,109 @@
+ul.cad-payment-be-topnav {
+	margin: 0;
+	padding: 0;
+	background: #d6d6d6;
+}
+ul.cad-payment-be-topnav li {
+	display: inline-block;
+}
+ul.cad-payment-be-topnav li a {
+	padding: 10px 20px 12px;
+	background: #ccc;
+	color: #333;	
+	display: inline-block;
+}
+ul.cad-payment-be-topnav li a.active {
+	background: #333;
+	color: #fff;
+}
+
+table.cad-payment-be-table {
+	width: 100%;
+}
+table.cad-payment-be-table > caption {
+    background: rgb(51, 51, 51);
+    padding: 14px 19px;
+    font-style: normal;
+    color: #ccc;
+}
+table.cad-payment-be-table tr {
+	
+}
+table.cad-payment-be-table th {
+	padding: 10px 5px 6px !important;
+}
+table.cad-payment-be-table td {
+	border-bottom: 1px solid #cecece;
+    padding: 5px;
+}
+table.cad-payment-be-table th:nth-child(1),
+table.cad-payment-be-table td:nth-child(1) {
+	width: 4%;
+}
+table.cad-payment-be-table th:nth-child(2),
+table.cad-payment-be-table td:nth-child(2) {
+	width: 15%;
+}
+table.table-payments.cad-payment-be-table th:nth-child(2),
+table.table-payments.cad-payment-be-table td:nth-child(2) {
+    width: 4%;
+}
+table.table-payments.cad-payment-be-table th:nth-child(3),
+table.table-payments.cad-payment-be-table td:nth-child(3) {
+    width: 10%;
+}
+table.table-payments.cad-payment-be-table th:nth-child(4),
+table.table-payments.cad-payment-be-table td:nth-child(4) {
+    width: 15%;
+}
+table.table-payments.cad-payment-be-table th:nth-child(5),
+table.table-payments.cad-payment-be-table td:nth-child(5) {
+    width: 8%;
+}
+table.table-payments.cad-payment-be-table th:nth-child(9),
+table.table-payments.cad-payment-be-table td:nth-child(9) {
+    width: 8%;
+}
+table.cad-payment-be-table tr.data td {
+	padding: 5px !important;
+}
+table.cad-payment-be-table tr.search input,
+table.cad-payment-be-table tr.search select {
+    width: 100%;
+    padding: 2px 5px;
+    height: 24px;
+}
+table.cad-payment-be-table i.fa {
+	cursor: pointer;
+	font-size: 16px;
+}
+table.cad-payment-be-table i.fa:hover {
+	opacity: 0.6;
+}
+table.cad-payment-be-table i.fa.fa-user {
+	color: deepskyblue;
+}
+table.cad-payment-be-table i.fa.fa-trash {
+	color: green;
+}
+table.cad-payment-be-table i.fa.fa-bell {
+	color: gray;
+}
+table.cad-payment-be-table i.fa.fa-eye-slash {
+	color: red;
+}
+table.cad-payment-be-table i.fa.fa-plus-circle {
+	color: limegreen;
+}
+table.cad-payment-be-table i.fa.fa-pdf.fa-file {
+	color: red;
+}
+table.cad-payment-be-table i.fa.fa-pencil {
+	color: orange;
+}
+table.cad-payment-be-table td.edit-icon a:hover {
+	text-decoration: none;
+}
+input[type="text"] {border: 1px solid #999;}
+.wider {width: 400px}
+.narrow {width: 125px}

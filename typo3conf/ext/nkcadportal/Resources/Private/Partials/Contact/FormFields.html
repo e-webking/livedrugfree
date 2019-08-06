@@ -1,0 +1,21 @@
+
+<label for="firstname"><f:translate key="tx_nkcadportal_domain_model_contact.firstname" /> <span class="required">*</span></label>
+<f:form.textfield property="firstname" required="required" />
+
+<label for="lastname"><f:translate key="tx_nkcadportal_domain_model_contact.lastname" /> <span class="required">*</span></label>
+<f:form.textfield property="lastname" required="required" />
+
+<label for="title"><f:translate key="tx_nkcadportal_domain_model_contact.title" /></label>
+<f:form.textfield property="title" />
+
+<label for="email"><f:translate key="tx_nkcadportal_domain_model_contact.email" /> <span class="required">*</span></label>
+<f:form.textfield property="email" required="required" />
+
+<label for="phone"><f:translate key="tx_nkcadportal_domain_model_contact.phone" /> </label>
+<f:form.textfield property="phone"/>
+
+<label for="contacttype"><f:translate key="tx_nkcadportal_domain_model_contact.contacttype" /> <span class="required">*</span></label>
+<f:form.select property="contacttype" options="{formdata.contacttypes}"/>
+
+<!-- Hidden fields -->
+<f:form.hidden name="formaction" value="createcontact" />

@@ -1,0 +1,43 @@
+config {
+
+  no_cache = {$no_cache}
+  remove_defaultJS = 1
+  inlineStyle2TempFile = 1
+
+  # TypoScript setup: Set absRefPrefix & Disable baseURL
+  baseURL >
+  absRefPrefix = /
+
+  #xhtml_cleaning = all
+  uniqueLinkVars = 1
+  spamProtectEmailAddresses = -3
+  spamProtectEmailAddresses_atSubst = @<span style="display:none;">remove-this</span>
+  typolinkCheckRootline = 1
+  disablePrefixComment = 1
+  moveJsFromHeaderToFooter = 0
+  disableAllHeaderCode = 0
+  typolinkLinkAccessRestrictedPages = NONE;
+  
+  # CHANGE ON PRODUCTION (to 1) :
+  tx_realurl_enable = 1
+  
+  # HTML 5
+  config.doctype = html_5
+  config.xmlprologue = none
+
+  # LANGUAGE GLOBAL SETTINGS:
+  linkVars = L
+  uniqueLinkVars = 1
+  sys_language_overlay = 1
+
+  #DEFAULT LANGUAGE
+  language = en
+  locale_all = en-US.utf-8
+  htmlTag_langKey = en-US
+  sys_language_uid = 0
+
+  #Error handling:
+  contentObjectExceptionHandler = 0
+
+}
+ 

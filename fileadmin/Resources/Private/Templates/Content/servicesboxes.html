@@ -1,0 +1,42 @@
+<f:if condition="{data.tx_mask_servicebox}">
+	<section id="services" class="section bg-lightgray our-services">
+	  <div class="container">
+		<div class="row">
+			<div class="col-sm-12">
+				<div class="title-box text-center">
+					<h2>{data.header}</h2>
+					<p>{data.subheader}</p>
+				</div>
+			</div>
+		</div><!-- end row -->
+
+		<div class="row">
+		
+			<f:for each="{data.tx_mask_servicebox}" as="data_item">
+				<div class="col-md-4 col-sm-6 col-xs-12">
+					<a class="service-box-link" href="{data_item.header_link}">
+						<div class="single-service text-center effect">
+							<i class="fa {data_item.subheader} effect"></i>
+							<h4>{data_item.header}</h4>
+							<f:format.html>{data_item.bodytext}</f:format.html>
+						</div>
+					</a>
+				</div>
+			</f:for>
+
+		</div><!-- end row -->
+	  </div><!-- End container -->
+	</section>
+	
+	<!-- SCRIPTS-->
+	<script>
+		/* Optimize service box links */
+		$("a[class='service-box-link']").each(function(){
+			$linkUid = $(this).attr("href");
+			$linkUidTmp = $linkUid.split("=");
+			$linkUid = $linkUidTmp[$linkUidTmp.length - 1];
+			$(this).attr("href", "/index.php?id="+$linkUid);
+		});
+	</script>
+	
+</f:if>

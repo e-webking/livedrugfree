@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2018-09-03T11:15:14Z" product-name="nkcadportal">
+		<header/>
+		<body>
+			<trans-unit id="title.description">
+				<source>Title</source>
+			</trans-unit>
+			<trans-unit id="file.description">
+				<source>File</source>
+			</trans-unit>
+			<trans-unit id="states.description">
+				<source>States</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

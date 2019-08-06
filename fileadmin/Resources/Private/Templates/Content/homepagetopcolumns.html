@@ -1,0 +1,15 @@
+<f:for each="{data.tx_mask_topbox}" as="data_item">
+
+	<div class="col-md-4">
+		<div class="home-top-column">
+			<h2>{data_item.tx_mask_boxheader}</h2>
+			<f:format.html>{data_item.tx_mask_boxdescription}</f:format.html>
+			
+			<f:if condition="{data_item.tx_mask_boxbuttonlink}">
+				<f:link.typolink class="rd-bg" parameter="{data_item.tx_mask_boxbuttonlink}">{data_item.tx_mask_boxbuttonlabel}</f:link.typolink>
+			</f:if>
+		</div>
+	</div>
+
+</f:for>
+

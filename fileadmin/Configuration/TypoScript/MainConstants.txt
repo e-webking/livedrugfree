@@ -1,0 +1,25 @@
+no_cache = 1	#CHANGE ON PROD!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+cssPath = fileadmin/Resources/Public/Css
+jsPath = fileadmin/Resources/Public/Js
+fontPath = fileadmin/Resources/Public/fonts
+vendorPath = fileadmin/Resources/Public/Vendor
+partialRootPath = fileadmin/Resources/Private/Templates/Partials
+layoutRootPath = fileadmin/Resources/Private/Templates/Layouts
+templatePath = fileadmin/Resources/Private/Templates
+
+mainMenuEntryPid = 1
+mainMenuExcludedPid = 
+
+footerMenuAEntryPid = 13
+footerMenuAExcludedPid = 
+
+footerMenuBEntryPid = 27
+footerMenuBExcludedPid = 
+
+footerMenuCEntryPid = 14
+footerMenuCExcludedPid = 
+
+partialsPid = 3
+
+styles.content.imgtext.maxW = 1634
+styles.content.imgtext.maxWInText = 1634

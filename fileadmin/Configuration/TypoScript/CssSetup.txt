@@ -1,0 +1,29 @@
+#CSS files loaded in head tag:
+
+page.includeCSS {
+	bootstrapCss = {$cssPath}/bootstrap.min.css
+	
+	##TEMPLATE CSS##
+	iconsMinCss = {$cssPath}/icons.min.css
+	fontawesomeCss = {$cssPath}/font-awesome.min.css
+	mainCss = {$cssPath}/main.css
+	redCss = {$cssPath}/red-color.css
+	yellowCss = {$cssPath}/yellow-color.css
+	blueCss = {$cssPath}/blue-color.css
+	responsiveCss = {$cssPath}/responsive.css
+	
+	##REVOLUTION SLIDER CSS##
+	revolutionSettingsCss = {$cssPath}/revolution/settings.css
+	revolutionNavigationCss = {$cssPath}/revolution/navigation.css
+	
+	##ELEMENTS/EXTENSIONS CSS##
+	owlCarouselMainCss = {$cssPath}/owl.carousel.min.css
+	owlCarouselThemeCss = {$cssPath}/owl.theme.default.min.css
+	#delphiTestimonialsCSs = {$cssPath}/delphi-testimonials.css
+	
+	##CUSTOM CSS#
+    customCss = {$cssPath}/custom.css
+
+}
+
+

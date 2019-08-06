@@ -1,0 +1,21 @@
+
+config.tx_extbase{
+    persistence{
+        classes{
+
+            TYPO3\CMS\Extbase\Domain\Model\FrontendUser {
+                subclasses {
+                    Tx_Nkcadportal_CustomFrontendUser = Netkyngs\Nkcadportal\Domain\Model\CustomFrontendUser
+					
+          		}
+            }
+            Netkyngs\Nkcadportal\Domain\Model\CustomFrontendUser {
+                mapping {
+                    tableName = fe_users
+                    recordType = Tx_Nkcadportal_CustomFrontendUser
+                }
+            }
+            
+    	}
+    }
+}

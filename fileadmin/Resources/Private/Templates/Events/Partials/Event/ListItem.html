@@ -1,0 +1,14 @@
+<div class="col-xs-6 col-md-3 portfolio-item-con development effect">
+	<span class="event-list-item-title">{event.title}</span>
+	<div class="portfolio-item">
+		<f:image src="{event.image.0.uid}" treatIdAsReference="true" width="400c" height="300c" class="effect" alt="{event.title}"/>
+		<div class="pf-overlay effect">
+			  <a href="/index.php?id={settings.detailPid}&event={event.uid}" class="center effect">
+				<i class="fa fa-link"></i>
+			  </a>
+			  <div class="corner-top"></div>
+			  <div class="corner-bottom"></div>
+		</div>
+	</div>
+	<span class="event-list-item-startdate"><f:format.date format="m/d/Y">{event.startdate}</f:format.date></span>
+</div>

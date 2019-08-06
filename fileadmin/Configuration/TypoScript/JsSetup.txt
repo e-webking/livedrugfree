@@ -1,0 +1,44 @@
+#JavaScript files loaded in head and/or body:
+
+page.includeJS {
+	jqueryJs = {$jsPath}/jquery.min.js
+	owlCarouselJs = {$jsPath}/owl.carousel.min.js
+}
+
+page.includeJSFooter {
+	bootstrapJs = {$jsPath}/bootstrap.min.js
+	
+	##TEMPLATE JS##
+	#highchartsJs = {$jsPath}/highcharts.js
+	#exportingJs = {$jsPath}/exporting.js
+	#highchartsMoreJs = {$jsPath}/highcharts-more.js
+	pluginsJs = {$jsPath}/plugins.js
+	#chrtint1Js = {$jsPath}/chrt-int1.js
+	mainJs = {$jsPath}/main.js
+	
+	##REVOLUTION SLIDER JS##
+	revolutionToolsJs = {$jsPath}/revolution/jquery.themepunch.tools.min.js
+	revolutionJs = {$jsPath}/revolution/jquery.themepunch.revolution.min.js
+	revolutionActions = {$jsPath}/revolution/extensions/revolution.extension.actions.min.js
+	revolutionCarousel = {$jsPath}/revolution/extensions/revolution.extension.carousel.min.js
+	revolutionKenburn = {$jsPath}/revolution/extensions/revolution.extension.kenburn.min.js
+	revolutionLayeranimation = {$jsPath}/revolution/extensions/revolution.extension.layeranimation.min.js
+	revolutionMigration = {$jsPath}/revolution/extensions/revolution.extension.migration.min.js
+	revolutionNavigation = {$jsPath}/revolution/extensions/revolution.extension.navigation.min.js
+	revolutionParallax = {$jsPath}/revolution/extensions/revolution.extension.parallax.min.js
+	revolutionSlideanims = {$jsPath}/revolution/extensions/revolution.extension.slideanims.min.js
+	revolutionVideo = {$jsPath}/revolution/extensions/revolution.extension.video.min.js
+	revolutionInit = {$jsPath}/revolution/revolution.initialize2.js
+	
+	##ELEMENTS/EXTENSIONS JS##
+	#touchswipeJs = {$jsPath}/touchSwipe.min.js
+	#delphiImageSliderJs = {$jsPath}/delphi-imageslider.js
+	#parallaxJs = {$jsPath}/parallax.min.js
+	
+	
+	##CUSTOM JS##
+	customJs = {$jsPath}/custom.js
+	
+	
+}
+

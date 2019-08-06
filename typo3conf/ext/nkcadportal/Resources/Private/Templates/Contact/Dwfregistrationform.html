@@ -1,0 +1,36 @@
+
+<f:layout name="Default" />
+
+
+
+<f:section name="main">
+
+	<f:flashMessages />
+
+	<f:render partial="FormErrors" arguments="{object:Contact}" />
+
+	<f:form action="" enctype="multipart/form-data"  name="newDonation">
+		
+		<f:render partial="Contact/Registrationfields" arguments="{formValues: formValues, formErrors: formErrors}"/>
+		
+		<!-- ReCaptcha v2 part Start -->
+		<div class="form-row">
+			<div class="form-left">&nbsp;</div>
+			<div class="form-right"><div class="g-recaptcha" data-sitekey="6Ldqnn0UAAAAAFkaFfjC6dwBQKnEOTE9WArCnRHv"></div></div>
+			<div class="clearfix"></div>
+		</div>
+		<!-- ReCaptcha v2 part End -->
+		
+		<div class="form-row">
+			<div class="form-left">&nbsp;</div>
+			<div class="form-right"><input type="submit" name="submit" id="submit" value="Create account"/></div>
+			<div class="clearfix"></div>
+		</div>
+		
+		<!-- hidden fields -->
+		<input type="hidden" name="formAction" id="formAction" value="new_DFW_Registration"/>
+		<input type="hidden" name="hasCaptcha" id="hasCaptcha" value="1"/>
+		
+	</f:form>
+	
+</f:section>

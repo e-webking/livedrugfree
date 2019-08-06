@@ -1,0 +1,47 @@
+<T3DataStructure>
+    <meta>
+        <langDisable>1</langDisable>
+    </meta>
+    <sheets>
+        <sDEF>
+            <ROOT>
+                <TCEforms>
+                    <sheetTitle>LLL:EXT:nkcadportal/Resources/Private/Language/locallang_flexform.xlf:general</sheetTitle>
+                </TCEforms>
+                <type>array</type>
+                <el>
+                    <switchableControllerActions>
+                        <TCEforms>
+                            <label>Select function</label>
+                            <config>
+                                <type>select</type>
+                                <items>
+                                    <numIndex index="0">
+                                        <numIndex index="0">Show FE Portal</numIndex>
+                                        <numIndex index="1">CustomFrontendUser->show;CustomFrontendUser->certdwn</numIndex>
+                                    </numIndex>
+									<numIndex index="1">
+                                        <numIndex index="0">BE Ajax Requests</numIndex>
+                                        <numIndex index="1">CustomFrontendUser->ajaxbe</numIndex>
+                                    </numIndex>
+									<numIndex index="2">
+                                        <numIndex index="0">Show DFW Registration Form</numIndex>
+                                        <numIndex index="1">Contact->dwfregistrationform</numIndex>
+                                    </numIndex>
+									<numIndex index="3">
+                                        <numIndex index="0">Show DOT Registration Form</numIndex>
+                                        <numIndex index="1">Contact->dotregistrationform</numIndex>
+                                    </numIndex>
+									<numIndex index="4">
+                                        <numIndex index="0">Show Donation Form</numIndex>
+                                        <numIndex index="1">Contact->donationform</numIndex>
+                                    </numIndex>
+                                </items>
+                            </config>
+                        </TCEforms>
+                    </switchableControllerActions>
+                </el>
+            </ROOT>
+        </sDEF>
+    </sheets>
+</T3DataStructure>

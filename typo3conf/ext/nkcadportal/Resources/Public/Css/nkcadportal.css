@@ -1,0 +1,169 @@
+.tx-nkcadportal .hidden {
+	display: none;
+}
+.tx-nkcadportal div#ajaxpid {
+	display: none;
+}
+.tx-nkcadportal form {
+	width: 50%;
+}
+.tx-nkcadportal form label {
+	display: inline-block;
+	width: 33%;
+	vertical-align: top;
+}
+.tx-nkcadportal form input[type="text"],
+.tx-nkcadportal form input[type="password"],
+.tx-nkcadportal form select {
+	width: 67%;
+	border: 1px solid #ccc;
+    padding: 2px 4px;
+}
+.tx-nkcadportal form textarea {
+	width: 67%;
+	max-height: 200px;
+}
+.tx-nkcadportal form input[type="submit"] {
+	width: 67%;
+	float: right;
+	color: red;
+    margin-top: 8px;
+    margin-bottom: 5px;
+    padding: 10px 15px;
+}
+.tx-nkcadportal ul.typo3-messages {
+	list-style: none;
+	padding-left: 0;
+}
+
+/* Purchase/Renew form */
+.tx-nkcadportal form.membershipform {
+	width: 100%;
+	border: 1px solid #333;
+    padding: 10px;
+	margin-bottom: 10px;
+}
+.tx-nkcadportal form.membershipform table {
+	width: 100%;
+	border-spacing: 0;
+}
+.tx-nkcadportal form.membershipform table tbody tr {
+	
+}
+.tx-nkcadportal form.membershipform table tr td,
+.tx-nkcadportal form.membershipform table tr th {
+	border-spacing: 0;
+	padding: 5px;
+}
+.tx-nkcadportal form.membershipform label {
+	width: 33%;
+}
+.tx-nkcadportal form.membershipform label.discount-code-label {
+	width: 100%;
+	text-align: right;
+}
+.tx-nkcadportal form.membershipform input[type="text"].auto-width,
+.tx-nkcadportal form.membershipform select.auto-width {
+	width: auto;
+}
+.tx-nkcadportal form.membershipform select.purchaserenewmembership {
+	width: 100%;
+}
+.tx-nkcadportal form.membershipform input[type="submit"] {
+	width: auto;
+}
+.tx-nkcadportal form.membershipform#renewexistingform table tbody tr {
+	background: #f3f3f3;
+}
+form.membershipform div.purchasenewform-paymentsection {
+	width: 50%;
+	display: none;
+}
+form.membershipform div.purchasenewform-paymentsection div.payment-option {
+	display: none;
+}
+form.membershipform div.purchasenewform-paymentsection .payment-agreement {
+	color: red;
+	padding: 15px 0;
+}
+form.membershipform div.purchasenewform-paymentsection input[type="text"],
+form.membershipform div.purchasenewform-paymentsection select {
+	width: 67%;
+}
+.tx-nkcadportal .nav-tabs > li.active > a {
+	background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    padding: 10px 15px;
+    border-bottom: 1px solid #f8f8f8;
+}
+.tx-nkcadportal .nav-tabs > li:last-child > a {
+	background: red;
+	color: #fff;
+	border-bottom: 1px solid #ccc;
+}
+.tx-nkcadportal .tab-content {
+	padding: 15px 20px;
+    border-left: 1px solid #f8f8f8;
+    border-right: 1px solid #f8f8f8;
+    border-bottom: 1px solid #f8f8f8;
+    background: #f8f8f8;
+}
+.tx-nkcadportal form .payment-option {
+	display: block;
+    background: #fff;
+    padding: 12px 14px;
+    border: 1px solid #ccc;
+    margin-top: 12px;
+    margin-bottom: 5px;
+}
+.tx-nkcadportal form .payment-option.printinvoice p {
+	color: #333;
+}
+.tx-nkcadportal form .payment-option.printinvoice a {
+	color: red;
+    font-weight: bold;
+}
+.tx-nkcadportal form .payment-option.printinvoice a:hover {
+	text-decoration: underline;
+}
+.tx-nkcadportal form .payment-option input[type="submit"],
+.tx-nkcadportal .large-btn {
+	color: red;
+    float: none;
+    margin-top: 8px;
+    margin-bottom: 5px;
+    padding: 10px 15px;
+	background: #d9d9d9;
+	border: 1px solid red;
+	border-radius: 3px;
+}
+
+/* Profile form */
+form.tinted-form {
+	border: 1px solid #ccc;
+    padding: 12px 12px;
+    background: #ededed;
+}
+form div.new_passw_wrapper {
+	display: none;
+}
+
+/* Contacts Form */
+table.bordered-table {
+	border: 1px solid #333;
+    padding: 7px 12px;
+	width: 100%;
+}
+.contact-list-table i.fa {
+	cursor: pointer;
+}
+
+/* Newsletters table */
+table.newsletter-table {
+	
+}
+
+/* Documents table */
+table.documents-table {
+	
+}

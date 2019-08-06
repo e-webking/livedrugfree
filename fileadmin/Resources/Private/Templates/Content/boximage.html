@@ -1,0 +1,24 @@
+<f:if condition="{data.image}">
+	<f:for each="{data.image}" as="file">
+	  
+		<div class="{file.tx_mask_boximagesize} prtflo-bx2 hvr3 text-center">
+			<f:if condition="{data.tx_mask_boximagesize} == 'single'">
+				<f:then>
+					<f:image src="{file.publicUrl}" alt="{file.alternative}" width="480m" height="437c" />
+				</f:then>
+				<f:else>
+					<f:image src="{file.publicUrl}" alt="{file.alternative}" width="960m" height="437c" />
+				</f:else>
+			</f:if>
+			<div class="prtflo-inf">
+				<h4 itemprop="headline"><f:link.typolink parameter="{file.link}">{file.title}</f:link.typolink></h4>
+				<span class="cat"><f:link.typolink parameter="{file.link}">{file.description}</f:link.typolink></span>
+				<div class="prtflo-btns">
+					<f:link.typolink parameter="{file.link}" class="rd50 rd-bg"><i class="fa fa-chain"></i></f:link.typolink>
+				</div>
+			</div>
+		</div>
+	  
+	</f:for>
+</f:if>
+

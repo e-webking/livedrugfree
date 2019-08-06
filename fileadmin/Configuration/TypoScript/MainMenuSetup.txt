@@ -1,0 +1,180 @@
+## Menu [Begin]
+lib.mainMenu = HMENU
+lib.mainMenu.special = directory
+lib.mainMenu.includeNotInMenu = 0
+lib.mainMenu.special.value = {$mainMenuEntryPid}
+lib.mainMenu.excludeUidList = {$mainMenuExcludedPid}
+lib.mainMenu.1 = TMENU
+lib.mainMenu.1.allWrap.insertData=1
+lib.mainMenu.1.stdWrap.insertData=1
+lib.mainMenu.1.wrap = |
+lib.mainMenu.1.expAll = 1
+lib.mainMenu.1.noBlur = 1
+lib.mainMenu.1.NO {
+  wrapItemAndSub = <li class="first-item">|</li>|*|<li>|</li>|*|<li class="last-item">|</li>
+  ATagTitle.field = title
+  ATagParams = class="scroll" data-speed="1000"
+}
+lib.mainMenu.1.ACT = 1
+lib.mainMenu.1.ACT {
+  wrapItemAndSub = <li class="first-item active">|</li>|*|<li class="active">|</li>|*|<li class="last-item active">|</li>
+  ATagTitle.field = title
+  ATagParams = class="scroll active" data-speed="1000"
+}
+lib.mainMenu.1.IFSUB = 1
+lib.mainMenu.1.IFSUB {
+  wrapItemAndSub = <li class="first-item menu-item-has-children">|</li>|*|<li class="menu-item-has-children">|</li>|*|<li class="last-item menu-item-has-children">|</li>
+  ATagBeforeWrap = 1
+  doNotLinkIt = 0
+  ATagTitle.field = title
+  ATagParams = 
+}
+lib.mainMenu.1.ACTIFSUB = 1
+lib.mainMenu.1.ACTIFSUB {
+  wrapItemAndSub = <li class="first-item active menu-item-has-children">|</li>|*|<li class="active menu-item-has-children">|</li>|*|<li class="last-item active menu-item-has-children">|</li>
+  ATagBeforeWrap = 1
+  doNotLinkIt = 0
+  ATagTitle.field = title
+  ATagParams = 
+}
+lib.mainMenu.2 = TMENU
+lib.mainMenu.2.wrap = <ul class="drpdwn rd2">|</ul>
+lib.mainMenu.2.expAll = 1
+lib.mainMenu.2.noBlur = 1
+lib.mainMenu.2.NO {
+  wrapItemAndSub = <li class="first-item">|</li>|*|<li>|</li>|*|<li class="last-item">|</li>
+  ATagTitle.field = title
+  ATagParams = class="scroll" data-speed="1000"
+}
+lib.mainMenu.2.ACT = 1
+lib.mainMenu.2.ACT {
+  wrapItemAndSub = <li class="first-item active">|</li>|*|<li class="active">|</li>|*|<li class="last-item active">|</li>
+  ATagTitle.field = title
+  ATagParams = class="scroll active" data-speed="1000"
+}
+## Menu [End]
+
+
+
+## MOBILE Menu [Begin]
+lib.mobilemainMenu = HMENU
+lib.mobilemainMenu.special = directory
+lib.mobilemainMenu.includeNotInMenu = 0
+lib.mobilemainMenu.special.value = {$mainMenuEntryPid}
+lib.mobilemainMenu.excludeUidList = {$mainMenuExcludedPid}
+lib.mobilemainMenu.1 = TMENU
+lib.mobilemainMenu.1.allWrap.insertData=1
+lib.mobilemainMenu.1.stdWrap.insertData=1
+lib.mobilemainMenu.1.wrap = |
+lib.mobilemainMenu.1.expAll = 1
+lib.mobilemainMenu.1.noBlur = 1
+lib.mobilemainMenu.1.NO {
+  wrapItemAndSub = <li class="first-item">|</li>|*|<li>|</li>|*|<li class="last-item">|</li>
+  ATagTitle.field = title
+}
+lib.mobilemainMenu.1.ACT = 1
+lib.mobilemainMenu.1.ACT {
+  wrapItemAndSub = <li class="first-item active">|</li>|*|<li class="active">|</li>|*|<li class="last-item active">|</li>
+  ATagTitle.field = title
+}
+lib.mobilemainMenu.1.IFSUB = 1
+lib.mobilemainMenu.1.IFSUB {
+  wrapItemAndSub = <li class="first-item drop">|</li>|*|<li class="drop">|</li>|*|<li class="last-item drop">|</li>
+  ATagBeforeWrap = 1
+  doNotLinkIt = 0
+  ATagTitle.field = title
+}
+lib.mobilemainMenu.1.ACTIFSUB = 1
+lib.mobilemainMenu.1.ACTIFSUB {
+  wrapItemAndSub = <li class="first-item active drop">|</li>|*|<li class="active drop">|</li>|*|<li class="last-item active drop">|</li>
+  ATagBeforeWrap = 1
+  doNotLinkIt = 0
+  ATagTitle.field = title
+}
+lib.mobilemainMenu.2 = TMENU
+lib.mobilemainMenu.2.wrap = <span class="arrow"><i></i></span><ul class="drop-menu bottom-right">|</ul>
+lib.mobilemainMenu.2.expAll = 1
+lib.mobilemainMenu.2.noBlur = 1
+lib.mobilemainMenu.2.NO {
+  wrapItemAndSub = <li class="first-item">|</li>|*|<li>|</li>|*|<li class="last-item">|</li>
+  ATagTitle.field = title
+}
+lib.mobilemainMenu.2.ACT = 1
+lib.mobilemainMenu.2.ACT {
+  wrapItemAndSub = <li class="first-item active">|</li>|*|<li class="active">|</li>|*|<li class="last-item active">|</li>
+  ATagTitle.field = title
+}
+## MOBILE Menu [End]
+
+
+
+## Footer Menu A [Begin]
+lib.footerMenuA = HMENU
+lib.footerMenuA.special = directory
+lib.footerMenuA.includeNotInMenu = 0
+lib.footerMenuA.special.value = {$footerMenuAEntryPid}
+lib.footerMenuA.excludeUidList = {$footerMenuAExcludedPid}
+lib.footerMenuA.1 = TMENU
+lib.footerMenuA.1.allWrap.insertData=1
+lib.footerMenuA.1.stdWrap.insertData=1
+lib.footerMenuA.1.wrap = |
+lib.footerMenuA.1.expAll = 1
+lib.footerMenuA.1.noBlur = 1
+lib.footerMenuA.1.NO {
+  wrapItemAndSub = <li class="first-item">|</li>|*|<li>|</li>|*|<li class="last-item">|</li>
+  ATagTitle.field = title
+}
+lib.footerMenuA.1.ACT = 1
+lib.footerMenuA.1.ACT {
+  wrapItemAndSub = <li class="first-item active">|</li>|*|<li class="active">|</li>|*|<li class="last-item active">|</li>
+  ATagTitle.field = title
+}
+## Footer Menu A [End]
+
+
+## Footer Menu B [Begin]
+lib.footerMenuB = HMENU
+lib.footerMenuB.special = directory
+lib.footerMenuB.includeNotInMenu = 0
+lib.footerMenuB.special.value = {$footerMenuBEntryPid}
+lib.footerMenuB.excludeUidList = {$footerMenuBExcludedPid}
+lib.footerMenuB.1 = TMENU
+lib.footerMenuB.1.allWrap.insertData=1
+lib.footerMenuB.1.stdWrap.insertData=1
+lib.footerMenuB.1.wrap = |
+lib.footerMenuB.1.expAll = 1
+lib.footerMenuB.1.noBlur = 1
+lib.footerMenuB.1.NO {
+  wrapItemAndSub = <li class="first-item">|</li>|*|<li>|</li>|*|<li class="last-item">|</li>
+  ATagTitle.field = title
+}
+lib.footerMenuB.1.ACT = 1
+lib.footerMenuB.1.ACT {
+  wrapItemAndSub = <li class="first-item active">|</li>|*|<li class="active">|</li>|*|<li class="last-item active">|</li>
+  ATagTitle.field = title
+}
+## Footer Menu B [End]
+
+
+## Footer Menu C [Begin]
+lib.footerMenuC = HMENU
+lib.footerMenuC.special = directory
+lib.footerMenuC.includeNotInMenu = 0
+lib.footerMenuC.special.value = {$footerMenuCEntryPid}
+lib.footerMenuC.excludeUidList = {$footerMenuCExcludedPid}
+lib.footerMenuC.1 = TMENU
+lib.footerMenuC.1.allWrap.insertData=1
+lib.footerMenuC.1.stdWrap.insertData=1
+lib.footerMenuC.1.wrap = |
+lib.footerMenuC.1.expAll = 1
+lib.footerMenuC.1.noBlur = 1
+lib.footerMenuC.1.NO {
+  wrapItemAndSub = <li class="first-item">|</li>|*|<li>|</li>|*|<li class="last-item">|</li>
+  ATagTitle.field = title
+}
+lib.footerMenuC.1.ACT = 1
+lib.footerMenuC.1.ACT {
+  wrapItemAndSub = <li class="first-item active">|</li>|*|<li class="active">|</li>|*|<li class="last-item active">|</li>
+  ATagTitle.field = title
+}
+## Footer Menu C [End]

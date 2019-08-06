@@ -1,0 +1,80 @@
+
+plugin.tx_nkcadportal_nkcadportalfe {
+	view {
+		templateRootPaths.0 = {$plugin.tx_nkcadportal_nkcadportalfe.view.templateRootPath}
+		partialRootPaths.0 = {$plugin.tx_nkcadportal_nkcadportalfe.view.partialRootPath}
+		layoutRootPaths.0 = {$plugin.tx_nkcadportal_nkcadportalfe.view.layoutRootPath}
+	}
+	persistence {
+		storagePid = {$plugin.tx_nkcadportal_nkcadportalfe.persistence.storagePid}
+	}
+	settings {
+	
+	}
+}
+
+plugin.tx_nkcadportal._CSS_DEFAULT_STYLE (
+	textarea.f3-form-error {
+		background-color:#FF9F9F;
+		border: 1px #FF0000 solid;
+	}
+
+	input.f3-form-error {
+		background-color:#FF9F9F;
+		border: 1px #FF0000 solid;
+	}
+
+	.tx-nkcadportal table {
+		border-collapse:separate;
+		border-spacing:10px;
+	}
+
+	.tx-nkcadportal table th {
+		font-weight:bold;
+	}
+
+	.tx-nkcadportal table td {
+		vertical-align:top;
+	}
+
+	.typo3-messages .message-error {
+		color:red;
+	}
+
+	.typo3-messages .message-ok {
+		color:green;
+	}
+
+)
+
+ # Module configuration
+module.tx_nkcadportal_web_nkcadportalnkcadportalbe {
+	persistence {
+		storagePid = {$module.tx_nkcadportal_nkcadportalbe.persistence.storagePid}
+	}
+	view {
+		templateRootPaths.0 = {$module.tx_nkcadportal_nkcadportalbe.view.templateRootPath}
+		partialRootPaths.0 = {$module.tx_nkcadportal_nkcadportalbe.view.partialRootPath}
+		layoutRootPaths.0 = {$module.tx_nkcadportal_nkcadportalbe.view.layoutRootPath}
+	}
+}
+
+config.tx_extbase { 
+        persistence {
+                classes {
+                        TYPO3\CMS\Extbase\Domain\Model\FrontendUser {
+                                subclasses {
+                                        Tx_Nkcadportal_CustomFrontendUser = Netkyngs\Nkcadportal\Domain\Model\CustomFrontendUser
+
+                                }
+                        }
+                        Netkyngs\Nkcadportal\Domain\Model\CustomFrontendUser {
+                                mapping {
+                                        tableName = fe_users
+                                        recordType = Tx_Nkcadportal_CustomFrontendUser
+                                }
+                        }
+
+                }
+        }
+}

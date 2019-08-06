@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2018-09-03T11:15:14Z" product-name="nkcadportal">
+		<header/>
+		<body>
+			<trans-unit id="fein.description">
+				<source>FEIN</source>
+			</trans-unit>
+			<trans-unit id="numberofemployees.description">
+				<source>Number of Employees</source>
+			</trans-unit>
+			<trans-unit id="numberofcdldrivers.description">
+				<source>Number of CDL Drivers</source>
+			</trans-unit>
+			<trans-unit id="businesstype.description">
+				<source>Business Type</source>
+			</trans-unit>
+			<trans-unit id="insurancecarrier.description">
+				<source>Insurance Carrier</source>
+			</trans-unit>
+			<trans-unit id="insuranceagent.description">
+				<source>Insurance Agent</source>
+			</trans-unit>
+			<trans-unit id="hearaboutus.description">
+				<source>How did you hear about us?</source>
+			</trans-unit>
+			<trans-unit id="staffcomments.description">
+				<source>Staff Comments</source>
+			</trans-unit>
+			<trans-unit id="membercomments.description">
+				<source>Member Comments</source>
+			</trans-unit>
+			<trans-unit id="memberships.description">
+				<source>memberships</source>
+			</trans-unit>
+			<trans-unit id="contacts.description">
+				<source>contacts</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

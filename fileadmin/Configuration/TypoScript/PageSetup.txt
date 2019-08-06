@@ -1,0 +1,129 @@
+# Load the Mask Page Template Script:
+page < temp.mask.page
+
+# Configure meta tags:
+page.meta.X-UA-Compatible = IE=EDGE
+page.meta.X-UA-Compatible.httpEquivalent = 1
+page.meta.viewport = width=device-width, initial-scale=1
+page.meta.keywords.override.field = keywords
+page.meta.description.override.field = description
+page.meta.msapplication-TileColor = #2b5797
+page.meta.theme-color = #2b5797
+
+
+# Set the Page Object Paths
+page.10.partialRootPath = {$partialRootPath}
+page.10.layoutRootPath = {$layoutRootPath}
+page.10.workOnSubpart = {$templatePath}
+
+# Configure the Default Page Template (100% Width):
+page.10.file.stdWrap.cObject.default.value = {$templatePath}/Default.html
+
+# Template: Homepage
+page.10.file.stdWrap.cObject.3 = TEXT
+page.10.file.stdWrap.cObject.3.value = {$templatePath}/Home.html
+
+# Template: Default 100%
+page.10.file.stdWrap.cObject.1 = TEXT
+page.10.file.stdWrap.cObject.1.value = {$templatePath}/Default.html
+
+# Template: Default 66%/33%
+page.10.file.stdWrap.cObject.4 = TEXT
+page.10.file.stdWrap.cObject.4.value = {$templatePath}/Default-66-33.html
+
+# Template: Default 33%/66%
+page.10.file.stdWrap.cObject.5 = TEXT
+page.10.file.stdWrap.cObject.5.value = {$templatePath}/Default-33-66.html
+
+
+# Define the content variables:
+page.10.variables {
+	pathsCSS = TEXT
+	pathsCSS.value = {$cssPath}
+	pathsJS = TEXT
+	pathsJS.value = {$jsPath}
+
+	content_0 < styles.content.get
+	content_1 < styles.content.get
+	content_1.select.where = colPos = 1
+	content_2 < styles.content.get
+	content_2.select.where = colPos = 2
+	content_3 < styles.content.get
+	content_3.select.where = colPos = 3
+	content_4 < styles.content.get
+	content_4.select.where = colPos = 4
+	content_5 < styles.content.get
+	content_5.select.where = colPos = 5
+	content_6 < styles.content.get
+	content_6.select.where = colPos = 6
+	content_7 < styles.content.get
+	content_7.select.where = colPos = 7
+	content_8 < styles.content.get
+	content_8.select.where = colPos = 8
+	content_9 < styles.content.get
+	content_9.select.where = colPos = 9
+	content_10 < styles.content.get
+	content_10.select.where = colPos = 10
+	content_11 < styles.content.get
+	content_11.select.where = colPos = 11
+	content_12 < styles.content.get
+	content_12.select.where = colPos = 12
+	content_13 < styles.content.get
+	content_13.select.where = colPos = 13
+	content_14 < styles.content.get
+	content_14.select.where = colPos = 14
+	content_15 < styles.content.get
+	content_15.select.where = colPos = 15
+	content_16 < styles.content.get
+	content_16.select.where = colPos = 16
+	content_17 < styles.content.get
+	content_17.select.where = colPos = 17
+	
+	headerLogo < styles.content.get
+	headerLogo.select.where = colPos = 0
+	headerLogo.select.pidInList = {$partialsPid}
+	
+	footerCopyright < styles.content.get
+	footerCopyright.select.where = colPos = 1
+	footerCopyright.select.pidInList = {$partialsPid}
+	
+	footerColumnA < styles.content.get
+	footerColumnA.select.where = colPos = 2
+	footerColumnA.select.pidInList = {$partialsPid}
+	
+	footerColumnB < styles.content.get
+	footerColumnB.select.where = colPos = 3
+	footerColumnB.select.pidInList = {$partialsPid}
+	
+	footerColumnC < styles.content.get
+	footerColumnC.select.where = colPos = 4
+	footerColumnC.select.pidInList = {$partialsPid}
+	
+	footerColumnD < styles.content.get
+	footerColumnD.select.where = colPos = 5
+	footerColumnD.select.pidInList = {$partialsPid}
+	
+	mainMenu < lib.mainMenu
+	mobilemainMenu < lib.mobilemainMenu
+	breadcrumb < lib.breadcrumb
+	footerMenuA < lib.footerMenuA
+	footerMenuB < lib.footerMenuB
+	footerMenuC < lib.footerMenuC
+}
+
+# Make sure images can have a max width of 1634 (vs the default 600px)
+tt_content.textmedia.20.maxW = 1634
+
+# Add some Fluid templates customizations:
+lib.contentElement.partialRootPaths.200 = fileadmin/Fluid/Resources/Private/Partials/
+
+# Prepare AJAX page request:
+page.10.variables.ajaxRequest = TEXT
+page.10.variables.ajaxRequest.value = 0
+[globalVar = GP:ajax = true]
+	page.10.variables.ajaxRequest.value = 1
+	page.config.disableAllHeaderCode = 1
+	page.config.xhtml_cleaning = 0
+	page.config.admPanel = 0
+	page.config.debug = 0
+[end]

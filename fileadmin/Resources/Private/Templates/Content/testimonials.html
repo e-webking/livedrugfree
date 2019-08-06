@@ -1,0 +1,103 @@
+<f:if condition="{data.image}">	
+	<!-- PARALLAX BACKGROUND VERSION - REQUIRES parallax.min.js -->
+	<section class="section" data-parallax="scroll" data-image-src="\fileadmin\Resources\Public\Images\testimonials-background-example-3.jpg">
+	<!-- NON-PARALLAX-BACKGROUND-VERSION -->
+	<!--<section class="section">-->
+	
+		<div class="container">
+			<!-- DELPHI-TEMPLATE SPECIFIC -->
+			<div class="title-box text-center">
+				<h2>What Others Are Saying</h2>
+			</div>
+			<!-- DELPHI-TEMPLATE SPECIFIC End -->
+			<div class="relative">
+				<div class="owl-carousel owl-testimonials dark nav-style-1">
+					<f:for each="{data.image}" as="file" iteration="iterator">
+						<div class="image-card image-card-2">
+							<div class="card-body">
+								<div class="content">
+									<p><f:format.crop maxCharacters="370">{file.description}</f:format.crop></p>
+								</div>
+							</div>
+							<div class="card-top">
+								<div class="avatar">
+									<f:image src="{file.publicUrl}" alt="{file.title}" width="70c" height="70c" />
+								</div>
+								<div class="info">
+									<span class="name">{file.title}</span>
+									<span class="job-title">{file.alternative}</span>
+								</div>
+							</div>
+						</div>
+					</f:for>
+				</div>
+				
+				<script>
+					$(document).ready(function(){
+						var option = {
+							items : 1,
+							margin : 0,
+							loop : true,
+							center : false,
+							mousedrag : true,
+							touchdrag : true,
+							pulldrag : true,
+							nav : false,
+							navtext : ["<i class='fa fa-angle-left'></i>","<i class='fa fa-angle-right'></i>"],
+							dots : false,
+							dotsdata : false,
+							autoplay : true,
+							smartspeed : 650,
+							animateout : null,
+							animatein : null,
+							xs :  1,
+							sm :  2,
+							md :  2,
+							lg :  3
+						};
+
+						$('.owl-testimonials').owlCarousel({
+							margin: option.margin,
+							loop: option.loop,
+							center: option.center,
+							mouseDrag: option.mousedrag,
+							touchDrag: option.touchdrag,
+							pullDrag: option.pulldrag,
+							nav: option.nav,
+							navText: option.navtext,
+							dots: option.dots,
+							dotsData: option.dotsdata,
+							autoplay: option.autoplay,
+							smartSpeed: option.smartspeed,
+							animateIn: option.animatein,
+							animateOut: option.animateout,
+							items: 1
+							/*,
+							responsive: {
+								// breakpoint from 0 up
+								0: {
+									items: option.xs
+								},
+								// breakpoint from 768 up
+								480: {
+									items: option.sm
+								},
+								// breakpoint from 768 up
+								768: {
+									items: option.md
+								},
+								992: {
+									items: option.lg
+								},
+								1200: {
+									items : option.items
+								}
+							}
+							*/
+						});
+					});
+				</script>
+			</div>
+		</div>
+	</section>
+</f:if>

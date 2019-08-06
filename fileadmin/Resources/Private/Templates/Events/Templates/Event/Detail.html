@@ -1,0 +1,304 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+	  xmlns:e="http://typo3.org/ns/DERHANSEN/SfEventMgt/ViewHelpers"
+	  data-namespace-typo3-fluid="true">
+
+<f:layout name="Default" />
+
+<f:section name="main">
+
+	<f:if condition="{event}">
+		<e:title pageTitle="{event.title}" />
+
+		<h1><f:translate key="detail.title" /></h1>
+
+		<div class="event-detail-row">
+			<div class="event-detail-label">
+				<f:translate key="tx_sfeventmgt_domain_model_event.title" />
+			</div>
+			<div class="event-detail-value event-title">
+				{event.title}
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<div class="event-detail-row">
+			<div class="event-detail-label">
+				<f:translate key="tx_sfeventmgt_domain_model_event.teaser" />
+			</div>
+			<div class="event-detail-value event-teaser">
+				{event.teaser}
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<div class="event-detail-row">
+			<div class="event-detail-label">
+				<f:translate key="tx_sfeventmgt_domain_model_event.description" />
+			</div>
+			<div class="event-detail-value event-description">
+				<f:format.html>{event.description}</f:format.html>
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<f:if condition="{event.program}">
+			<div class="event-detail-row">
+				<div class="event-detail-label">
+					<f:translate key="tx_sfeventmgt_domain_model_event.program" />
+				</div>
+				<div class="event-detail-value event-program">
+					<f:format.html>{event.program}</f:format.html>
+				</div>
+				<div class="clear"></div>
+			</div>
+		</f:if>
+
+		<div class="event-detail-row">
+			<div class="event-detail-label">
+				<f:translate key="tx_sfeventmgt_domain_model_event.startdate" />
+			</div>
+			<div class="event-detail-value event-startdate">
+				<f:format.date format="%d.%m.%Y - %H:%M">{event.startdate}</f:format.date>
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<div class="event-detail-row">
+			<div class="event-detail-label">
+				<f:translate key="tx_sfeventmgt_domain_model_event.enddate" />
+			</div>
+			<div class="event-detail-value event-enddate">
+				<f:format.date format="%d.%m.%Y - %H:%M">{event.enddate}</f:format.date>
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<div class="event-detail-row">
+			<div class="event-detail-label">
+				<f:translate key="tx_sfeventmgt_domain_model_event.location" /> <f:translate key="tx_sfeventmgt_domain_model_event.location.title" />
+			</div>
+			<div class="event-detail-value event-location-title">
+				{event.location.title}
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<div class="event-detail-row">
+			<div class="event-detail-label">
+				<f:translate key="tx_sfeventmgt_domain_model_event.location" /> <f:translate key="tx_sfeventmgt_domain_model_event.location.address" />
+			</div>
+			<div class="event-detail-value event-location-address">
+				<f:format.nl2br>{event.location.address}</f:format.nl2br>
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<f:if condition="{event.location.zip}">
+			<div class="event-detail-row">
+				<div class="event-detail-label">
+					<f:translate key="tx_sfeventmgt_domain_model_event.location" /> <f:translate key="tx_sfeventmgt_domain_model_event.location.zip" />
+				</div>
+				<div class="event-detail-value event-location-zip">
+					{event.location.zip}
+				</div>
+				<div class="clear"></div>
+			</div>
+		</f:if>
+
+		<div class="event-detail-row">
+			<div class="event-detail-label">
+				<f:translate key="tx_sfeventmgt_domain_model_event.location" /> <f:translate key="tx_sfeventmgt_domain_model_event.location.city" />
+			</div>
+			<div class="event-detail-value event-location-city">
+				{event.location.city}
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<div class="event-detail-row">
+			<div class="event-detail-label">
+				<f:translate key="tx_sfeventmgt_domain_model_event.location" /> <f:translate key="tx_sfeventmgt_domain_model_event.location.country" />
+			</div>
+			<div class="event-detail-value event-location-country">
+				{event.location.country}
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<div class="event-detail-row">
+			<div class="event-detail-label">
+				<f:translate key="tx_sfeventmgt_domain_model_event.organisator" />
+			</div>
+			<div class="event-detail-value event-organisator">
+				<f:format.html>{event.organisator.name}</f:format.html>
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<div class="event-detail-row">
+			<div class="event-detail-label">
+				<f:translate key="tx_sfeventmgt_domain_model_event.maxParticipants" />
+			</div>
+			<div class="event-detail-value event-maxParticipants">
+				{event.maxParticipants}
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<div class="event-detail-row">
+			<div class="event-detail-label">
+				<f:translate key="tx_sfeventmgt_domain_model_event.registrations" />
+			</div>
+			<div class="event-detail-value event-registrations">
+				{event.registration->f:count()}
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<div class="event-detail-row">
+			<div class="event-detail-label">
+				<f:translate key="tx_sfeventmgt_domain_model_event.freePlaces" />
+			</div>
+			<div class="event-detail-value event-freePlaces">
+				{event.freePlaces}
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<div class="event-detail-row">
+			<div class="event-detail-label">
+				<f:translate key="tx_sfeventmgt_domain_model_event.price" />
+			</div>
+			<div class="event-detail-value event-price">
+				<f:if condition="{event.currentPrice} == 0">
+					<f:then>
+						<f:translate key="event.freeofcharge" />
+					</f:then>
+					<f:else>
+						{event.currentPrice} {event.currency}
+					</f:else>
+				</f:if>
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<div class="event-detail-row">
+			<div class="event-detail-label">
+				<f:translate key="tx_sfeventmgt_domain_model_event.link" />
+			</div>
+			<div class="event-detail-value event-link">
+				<f:link.page pageUid="{event.linkUrl}" target="{event.linkTarget}" title="{event.linkTitle}"><f:translate key="tx_sfeventmgt_domain_model_event.link" /></f:link.page>
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<div class="event-detail-row">
+			<div class="event-detail-label">
+				<f:translate key="tx_sfeventmgt_domain_model_event.top_event" />
+			</div>
+			<div class="event-detail-value event-price">
+				{event.topEvent}
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<f:if condition="{event.image}">
+			<div class="event-detail-row">
+				<div class="event-detail-label">
+					<f:translate key="tx_sfeventmgt_domain_model_event.image" />
+				</div>
+				<div class="event-detail-value event-image">
+					<f:for each="{event.image}" as="image">
+						<f:image src="{image.uid}" alt="" treatIdAsReference="TRUE" width="{settings.detail.imageWidth}" height="{settings.detail.imageHeight}" />
+					</f:for>
+				</div>
+				<div class="clear"></div>
+			</div>
+		</f:if>
+
+		<f:if condition="{event.additionalImage}">
+			<div class="event-detail-row">
+				<div class="event-detail-label">
+					<f:translate key="tx_sfeventmgt_domain_model_event.additional_image"/>
+				</div>
+				<div class="event-detail-value event-additional-image">
+					<f:for each="{event.additionalImage}" as="image">
+						<f:image src="{image.uid}" alt="" treatIdAsReference="TRUE" width="{settings.detail.imageWidth}" height="{settings.detail.imageHeight}"/>
+					</f:for>
+				</div>
+				<div class="clear"></div>
+			</div>
+		</f:if>
+
+		<f:if condition="{event.files}">
+			<div class="event-detail-row">
+				<div class="event-detail-label">
+					<f:translate key="tx_sfeventmgt_domain_model_event.files" />
+				</div>
+				<div class="event-detail-value files">
+					<f:for each="{event.files}" as="file">
+						<f:if condition="{file.originalResource.title}">
+							<f:then>
+								<a href="{file.originalResource.publicUrl}" target="_blank">{file.originalResource.title}</a>
+							</f:then>
+							<f:else>
+								<a href="{file.originalResource.publicUrl}" target="_blank"><f:translate key="detail.download"/></a>
+							</f:else>
+						</f:if>
+					</f:for>
+				</div>
+				<div class="clear"></div>
+			</div>
+		</f:if>
+
+		<f:if condition="{event.related}">
+			<div class="event-detail-row">
+				<div class="event-detail-label">
+					<f:translate key="tx_sfeventmgt_domain_model_event.related" />
+				</div>
+				<div class="event-detail-value event-related">
+					<f:for each="{event.related}" as="relatedevent">
+						<f:if condition="{settings.detailPid} == ''">
+							<f:then>
+								<f:link.action action="detail" arguments="{event : relatedevent}">{relatedevent.title}</f:link.action>
+							</f:then>
+							<f:else>
+								<f:link.action action="detail" arguments="{event : relatedevent}" pageUid="{settings.detailPid}">{relatedevent.title}</f:link.action>
+							</f:else>
+						</f:if>
+					</f:for>
+				</div>
+				<div class="clear"></div>
+			</div>
+		</f:if>
+
+		<f:if condition="{event.speaker}">
+			<div class="event-detail-row">
+				<div class="event-detail-label">
+					<f:translate key="tx_sfeventmgt_domain_model_event.speaker" />
+				</div>
+				<div class="event-detail-value event-speaker">
+					<ul>
+						<f:for each="{event.speaker}" as="speaker">
+							<li>{speaker.name}</li>
+						</f:for>
+					</ul>
+				</div>
+				<div class="clear"></div>
+			</div>
+		</f:if>
+
+		<f:link.action action="icalDownload" arguments="{event : event}"><f:translate key="event.icalDownload" /></f:link.action>
+
+		<f:link.action action="list" pageUid="{settings.listPid}"><f:translate key="event.backtext" /></f:link.action>
+		<f:if condition="{event.registrationPossible}">
+			<f:if condition="{settings.registrationPid} !=''">
+				<f:link.action action="registration" arguments="{event : event}" pageUid="{settings.registrationPid}">
+					<f:translate key="event.registration"/>
+				</f:link.action>
+			</f:if>
+		</f:if>
+	</f:if>
+</f:section>
+
+</html>

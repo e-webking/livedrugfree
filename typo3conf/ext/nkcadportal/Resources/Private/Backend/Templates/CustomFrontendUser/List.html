@@ -1,0 +1,361 @@
+{namespace customViewHelper=Netkyngs\Nkcadportal\ViewHelpers}
+
+<f:layout name="Default" />
+
+
+<f:section name="content">
+
+
+<f:flashMessages />
+
+<ul class="cad-portal-be-topnav">
+	<li><a href="#" data-link="table-members" class="active">Members</a><li>
+	<li><a href="#" data-link="table-memberships">Memberships</a><li>
+	<li><a href="#" data-link="table-newsletters">Newsletters</a><li>
+	<li><a href="#" data-link="table-documents">Documents</a><li>
+	<li><a href="#" data-link="table-reminders">Reminders</a><li>
+	<li><a href="#" data-link="table-reports">Reports</a><li>
+	<li><a href="#" data-link="table-codes">Codes</a><li>
+</ul>
+
+<!-- MEMBERS -->
+<div class="temp-dropdown-holder">
+	<select>
+		<option value="all">All members</option>
+		<option value="current">Current members</option>
+		<option value="expiringthismonth">Expiring this month</option>
+		<option value="expiringnextmonth">Expiring next month</option>
+		<option value="expiredwithinxdays">Expired within 60 days</option>
+		<option value="expired">Expired members</option>
+		<option value="suspendedandnew">Suspended and New</option>
+	</select>
+</div>
+<table class="cad-portal-be-table table-members datatable active" id="table-members">
+	<caption>Members</caption>
+	<thead>
+		<tr>
+			<th class="sorting_disabled">
+				<customViewHelper:be.editLink table="fe_users" uid="18" action="new">
+					<i class="fa fa-plus-circle"></i>
+				</customViewHelper:be.editLink>
+			</th>
+			<th class="sorting_disabled">Edit options</th>
+			<th>Company name</th>
+			<th>FEIN</th>
+			<th class="sorting_disabled">Address</th>
+			<th class="sorting_disabled">Primary Contact</th>
+			<th class="sorting_disabled">Primary Phone</th>
+			<th class="sorting_disabled">Email</th>
+			<th class="sorting_disabled"></th>
+			<th class="sorting_disabled"></th>
+			<th class="sorting_disabled"></th>
+		</tr>
+	</thead>
+	
+	<tbody>
+		<f:for each="{members}" as="member">
+			<tr data-row-id="{member.uid}" class="data">
+				<td>
+					<customViewHelper:be.editLink table="fe_users" uid="{member.uid}" action="edit">
+						<i class="fa fa-user"></i>
+					</customViewHelper:be.editLink>
+				</td>
+				<td class="edit-icon">
+					<customViewHelper:be.editLink table="fe_users" uid="{member.uid}" action="edit">
+						<i class="fa fa-pencil"></i>
+					</customViewHelper:be.editLink>&nbsp;
+					<i class="fa fa-eye-slash" onclick="performAjaxAction('36', 'hide-member', '{member.uid}', true);"></i>&nbsp;
+					<i class="fa fa-trash" onclick="performAjaxAction('36', 'delete-member', '{member.uid}', true);"></i>
+				</td>
+				<td>
+					<customViewHelper:be.editLink table="fe_users" uid="{member.uid}" action="edit">
+						{member.company}
+					</customViewHelper:be.editLink>
+				</td>
+				<td>{member.fein}</td>
+				<td>{member.address}</td>
+				<td>{member.firstname} {member.lastname}</td>
+				<td>{member.telephone}</td>
+				<td><f:link.email email="{member.email}" /></td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+		</f:for>
+	</tbody>
+</table>
+
+<!-- MEMBERSHIPS -->
+<table class="cad-portal-be-table table-memberships datatable" id="table-memberships">
+	<caption>Memberships</caption>
+	<thead>
+		<tr>
+			<th class="sorting_disabled">
+				<customViewHelper:be.editLink table="tx_nkcadportal_domain_model_membershiptemplate" uid="19" action="new">
+					<i class="fa fa-plus-circle"></i>
+				</customViewHelper:be.editLink>
+			</th>
+			<th class="sorting_disabled">Edit options</th>
+			<th>Description</th>
+			<th>Type</th>
+			<th>Price</th>
+			<th class="sorting_disabled">Term (Years)</th>
+			<th class="sorting_disabled">Includes</th>
+		</tr>
+	</thead>
+	
+	<tbody>
+		<f:for each="{membershiptemplates}" as="membership">
+			<tr data-row-id="{membership.uid}" class="data">
+				<td>
+					<customViewHelper:be.editLink table="tx_nkcadportal_domain_model_membershiptemplate" uid="{membership.uid}" action="edit">
+						<i class="fa fa-user"></i>
+					</customViewHelper:be.editLink>
+				</td>
+				<td class="edit-icon">
+					<customViewHelper:be.editLink table="tx_nkcadportal_domain_model_membershiptemplate" uid="{membership.uid}" action="edit">
+						<i class="fa fa-pencil"></i>
+					</customViewHelper:be.editLink>&nbsp;
+					<i class="fa fa-eye-slash" onclick="performAjaxAction('36', 'hide-membership', '{membership.uid}', true);"></i>&nbsp;
+					<i class="fa fa-trash" onclick="performAjaxAction('36', 'delete-membership', '{membership.uid}', true);"></i>
+				</td>
+				<td>
+					<customViewHelper:be.editLink table="tx_nkcadportal_domain_model_membershiptemplate" uid="{membership.uid}" action="edit">
+						{membership.description}
+					</customViewHelper:be.editLink>
+				</td>
+				<td>{membership.membershiptype}</td>
+				<td>{membership.price}</td>
+				<td>{membership.term}</td>
+				<td>
+					<f:for each="{membership.includednewsletters}" as="newsletter">{newsletter.name}<span class="comma-seperator">,</span>&nbsp;</f:for>
+				</td>
+			</tr>
+		</f:for>
+	</tbody>
+</table>
+
+<!-- NEWSLETTERS -->
+<table class="cad-portal-be-table table-newsletters datatable" id="table-newsletters">
+	<caption>Newsletters</caption>
+	<thead>
+		<tr>
+			<th class="sorting_disabled">
+				<customViewHelper:be.editLink table="tx_nkcadportal_domain_model_newsletter" uid="22" action="new">
+					<i class="fa fa-plus-circle"></i>
+				</customViewHelper:be.editLink>
+			</th>
+			<th class="sorting_disabled">Edit options</th>
+			<th>Date / Description</th>
+			<th>Type</th>
+			<th>Filename</th>
+		</tr>
+	</thead>
+	
+	<tbody>
+		<f:for each="{newsletters}" as="newsletter">
+			<tr data-row-id="{newsletter.uid}" class="data">
+				<td>
+					<a href="/index.php?id=36&action=serve-download&filepath={newsletter.file.originalResource.publicUrl}&friendlyfilename={newsletter.fileName}">
+						<i class="fa fa-pdf fa-file"></i>
+					</a>
+				</td>
+				<td class="edit-icon">
+					<customViewHelper:be.editLink table="tx_nkcadportal_domain_model_newsletter" uid="{newsletter.uid}" action="edit">
+						<i class="fa fa-pencil"></i>
+					</customViewHelper:be.editLink>&nbsp;
+					<i class="fa fa-eye-slash" onclick="performAjaxAction('36', 'hide-newsletter', '{newsletter.uid}', true);"></i>&nbsp;
+					<i class="fa fa-trash" onclick="performAjaxAction('36', 'delete-newsletter', '{newsletter.uid}', true);"></i>
+				</td>
+				<td>
+					<customViewHelper:be.editLink table="tx_nkcadportal_domain_model_newsletter" uid="{newsletter.uid}" action="edit">
+						{newsletter.title}
+					</customViewHelper:be.editLink>
+				</td>
+				<td>{newsletter.newslettertype.name}</td>
+				<td><a href="/index.php?id=36&action=serve-download&filepath={newsletter.file.originalResource.publicUrl}&friendlyfilename={newsletter.fileName}">{newsletter.fileName}</a></td>
+			</tr>
+		</f:for>
+	</tbody>
+</table>
+
+<!-- DOCUMENTS -->
+<table class="cad-portal-be-table table-documents datatable" id="table-documents">
+	<caption>Documents</caption>
+	<thead>
+		<tr>
+			<th class="sorting_disabled">
+				<customViewHelper:be.editLink table="tx_nkcadportal_domain_model_document" uid="23" action="new">
+					<i class="fa fa-plus-circle"></i>
+				</customViewHelper:be.editLink>
+			</th>
+			<th class="sorting_disabled">Edit options</th>
+			<th>Description</th>
+			<th>Filename</th>
+		</tr>
+	</thead>
+	
+	<tbody>
+		<f:for each="{documents}" as="document">
+			<tr data-row-id="{document.uid}" class="data">
+				<td>
+					<a href="/index.php?id=36&action=serve-download&filepath={document.file.originalResource.publicUrl}&friendlyfilename={document.fileName}">
+						<i class="fa fa-file"></i>
+					</a>
+				</td>
+				<td class="edit-icon">
+					<customViewHelper:be.editLink table="tx_nkcadportal_domain_model_document" uid="{document.uid}" action="edit">
+						<i class="fa fa-pencil"></i>
+					</customViewHelper:be.editLink>&nbsp;
+					<i class="fa fa-eye-slash" onclick="performAjaxAction('36', 'hide-document', '{document.uid}', true);"></i>&nbsp;
+					<i class="fa fa-trash" onclick="performAjaxAction('36', 'delete-document', '{document.uid}', true);"></i>
+				</td>
+				<td>
+					<customViewHelper:be.editLink table="tx_nkcadportal_domain_model_document" uid="{document.uid}" action="edit">
+						{document.title}
+					</customViewHelper:be.editLink>
+				</td>
+				<td><a href="/index.php?id=36&action=serve-download&filepath={document.file.originalResource.publicUrl}&friendlyfilename={document.fileName}">{document.fileName}</a></td>
+			</tr>
+		</f:for>
+	</tbody>
+</table>
+
+<!-- REMINDER -->
+<table class="cad-portal-be-table table-reminders datatable" id="table-reminders">
+	<caption>Reminders</caption>
+	<thead>
+		<tr>
+			<th class="sorting_disabled">
+				<customViewHelper:be.editLink table="tx_nkcadportal_domain_model_reminder" uid="20" action="new">
+					<i class="fa fa-plus-circle"></i>
+				</customViewHelper:be.editLink>
+			</th>
+			<th class="sorting_disabled">Edit options</th>
+			<th>Subject</th>
+			<th>Send options</th>
+			<th>States</th>
+		</tr>
+	</thead>
+	
+	<tbody>
+		<f:for each="{reminders}" as="reminder">
+			<tr data-row-id="{reminder.uid}" class="data">
+				<td>
+					<i class="fa fa-bell"></i>
+				</td>
+				<td class="edit-icon">
+					<customViewHelper:be.editLink table="tx_nkcadportal_domain_model_reminder" uid="{reminder.uid}" action="edit">
+						<i class="fa fa-pencil"></i>
+					</customViewHelper:be.editLink>&nbsp;
+					<i class="fa fa-eye-slash" onclick="performAjaxAction('36', 'hide-reminder', '{reminder.uid}', true);"></i>&nbsp;
+					<i class="fa fa-trash" onclick="performAjaxAction('36', 'delete-reminder', '{reminder.uid}', true);"></i>
+				</td>
+				<td>
+					<customViewHelper:be.editLink table="tx_nkcadportal_domain_model_reminder" uid="{reminder.uid}" action="edit">
+						{reminder.subject}
+					</customViewHelper:be.editLink>
+				</td>
+				<td>
+					{reminder.sendoptionsstring}
+				</td>
+				<td>
+					<f:for each="{reminder.states}" as="state">{state.state}<span class="comma-seperator">,</span>&nbsp;</f:for>
+				</td>
+			</tr>
+		</f:for>
+	</tbody>
+</table>
+
+<!-- REPORTS -->
+<table class="cad-portal-be-table table-reports datatable" id="table-reports">
+	<caption>Reports</caption>
+	<thead>
+		<tr>
+			<th class="sorting_disabled">
+				<customViewHelper:be.editLink table="tx_nkcadportal_domain_model_report" uid="21" action="new">
+					<i class="fa fa-plus-circle"></i>
+				</customViewHelper:be.editLink>
+			</th>
+			<th class="sorting_disabled">Edit options</th>
+			<th>Report name</th>
+			<th class="sorting_disabled">Download</th>
+		</tr>
+	</thead>
+	
+	<tbody>
+		<f:for each="{reports}" as="report">
+			<tr data-row-id="{report.uid}" class="data">
+				<td>
+					<i class="fa fa-bell"></i>
+				</td>
+				<td class="edit-icon">
+					<customViewHelper:be.editLink table="tx_nkcadportal_domain_model_report" uid="{report.uid}" action="edit">
+						<i class="fa fa-pencil"></i>
+					</customViewHelper:be.editLink>&nbsp;
+					<i class="fa fa-trash" onclick="performAjaxAction('36', 'delete-report', '{report.uid}', true);"></i>
+				</td>
+				<td>
+					<customViewHelper:be.editLink table="tx_nkcadportal_domain_model_report" uid="{report.uid}" action="edit">
+						{report.title}
+					</customViewHelper:be.editLink>
+				</td>
+				<td>
+					<a href="/index.php?id=36&action=serve-csv-report&uid={report.uid}">
+						<i class="fa fa-file"></i>
+					</a>
+				</td>
+			</tr>
+		</f:for>
+	</tbody>
+</table>
+
+<!-- CODES -->
+<table class="cad-portal-be-table table-codes datatable" id="table-codes">
+	<caption>Codes</caption>
+	<thead>
+		<tr>
+			<th class="sorting_disabled">
+				<customViewHelper:be.editLink table="tx_nkcadportal_domain_model_discountcode" uid="24" action="new">
+					<i class="fa fa-plus-circle"></i>
+				</customViewHelper:be.editLink>
+			</th>
+			<th class="sorting_disabled">Edit options</th>
+			<th>Agency</th>
+			<th>Description</th>
+			<th>Code</th>
+			<th>Discount</th>
+		</tr>
+	</thead>
+	
+	<tbody>
+		<f:for each="{codes}" as="code">
+			<tr data-row-id="{code.uid}" class="data">
+				<td>
+					<i class="fa fa-dollar"></i>
+				</td>
+				<td class="edit-icon">
+					<customViewHelper:be.editLink table="tx_nkcadportal_domain_model_discountcode" uid="{code.uid}" action="edit">
+						<i class="fa fa-pencil"></i>
+					</customViewHelper:be.editLink>&nbsp;
+					<i class="fa fa-eye-slash" onclick="performAjaxAction('36', 'hide-code', '{code.uid}', true);"></i>&nbsp;
+					<i class="fa fa-trash" onclick="performAjaxAction('36', 'delete-code', '{code.uid}', true);"></i>
+				</td>
+				<td>
+					<customViewHelper:be.editLink table="tx_nkcadportal_domain_model_discountcode" uid="{code.uid}" action="edit">
+						{code.agency}
+					</customViewHelper:be.editLink>
+				</td>
+				<td>{code.description}</td>
+				<td>{code.code}</td>
+				<td>
+					<f:format.currency currencySign="$" decimalSeparator="." thousandsSeparator="," prependCurrency="true">{code.discount}</f:format.currency>
+				</td>
+			</tr>
+		</f:for>
+	</tbody>
+</table>
+
+
+</f:section>
+</html>

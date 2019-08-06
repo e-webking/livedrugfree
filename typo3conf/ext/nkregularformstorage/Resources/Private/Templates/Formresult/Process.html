@@ -1,0 +1,53 @@
+
+<f:layout name="Default" />
+
+<f:section name="main">
+
+	<f:if condition="{printInvoice}">
+	
+		<f:then>
+		
+			<div class="frame frame-default frame-type-text frame-layout-0">
+				<header>
+					<h2 class="">
+						Thank you!
+					</h2>
+				</header>
+				<p>Thank for your order. We appreciate the opportunity to assist you.<br/>Please print your invoice by clicking the button below:</p>
+				<br/><a href="/index.php?id={currenPage}&action=printinvoice&paymentuid={paymentUid}" class="large-btn">Print/download your invoice</a>
+				<p>Back to <strong><a href="/member-login/my-portal/">My Portal</a></strong>.</p>
+				
+			</div>
+			
+			<style>
+				.large-btn {
+					color: red;
+					float: none;
+					margin-top: 8px;
+					margin-bottom: 5px;
+					padding: 10px 15px;
+					display: inline-block;
+					margin-top: 0;
+					margin-bottom: 30px;
+					border: 1px solid red;
+					border-radius: 3px;
+				}
+			</style>
+
+		</f:then>
+		
+		<f:else>
+
+			<script>
+				$(document).ready(function(){
+					if($("#captchaFormImage").length > 0){
+						$("#captchaFormImage").insertBefore($("input[name='tx_form_form[tx_form][captchaResponse]']"));
+					}
+				});
+			</script>
+	
+		</f:else>
+	
+	</f:if>
+	
+</f:section>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2017-05-10T08:16:14Z" product-name="nkregularformstorage">
+		<header/>
+		<body>
+			<trans-unit id="tx_nkregularformstorage_domain_model_formresult">
+				<source>Formresult</source>
+			</trans-unit>
+			<trans-unit id="tx_nkregularformstorage_domain_model_formresult.name">
+				<source>Name</source>
+			</trans-unit>
+			<trans-unit id="tx_nkregularformstorage_domain_model_formresult.email">
+				<source>Email</source>
+			</trans-unit>
+			<trans-unit id="tx_nkregularformstorage_domain_model_formresult.form">
+				<source>Form</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

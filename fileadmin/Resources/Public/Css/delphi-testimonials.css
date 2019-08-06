@@ -1,0 +1,36 @@
+/* TESTIMONIALS start */
+.image-card {
+	background: none;
+	padding-top: 10px;
+}
+.image-card:hover {
+	box-shadow: none;
+}
+.image-card .card-body .content p {
+    padding: 0 100px;
+    text-align: center;
+}
+.image-card .card-top {
+    width: 360px;
+    position: relative;
+    left: 50%;
+    /*margin-left: -180px;*/
+	margin-left: -160px;
+	margin-top: 40px;
+}
+.image-card .card-top .avatar {
+    float: left;
+    width: 70px;
+	height: 70px;
+    -webkit-border-radius: 100%;
+    -moz-border-radius: 100%;
+    border-radius: 100%;
+    overflow: hidden;
+}
+.image-card .card-top .info {
+    margin-left: 74px;
+    padding-left: 15px;
+	position: relative;
+    top: 9px;
+}
+/* TESTIMONIALS end */

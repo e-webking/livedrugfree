@@ -1,0 +1,21 @@
+<f:if condition="{data.image}">
+	<div class="owl-carousel slider-carousel">
+		<f:for each="{data.image}" as="file" iteration="iterator">
+			<!--<div class="custom-slide" style="background-image: url('/{file.publicUrl}');">-->
+			<div class="custom-slide">
+				<f:image src="/{file.publicUrl}" width="1920m" height="800c" alt="{file.title}"/>
+				<div class="custom-slide-caption">
+					<f:if condition="{file.title}">
+						<div class="caption-1">{file.title}</div>
+					</f:if>
+					<f:if condition="{file.alternative}">
+						<div class="caption-2">{file.alternative}</div>
+					</f:if>
+					<f:if condition="{file.description}">
+						<div class="caption-3">{file.description}</div>
+					</f:if>
+				</div>
+			</div>
+		</f:for>
+	</div>
+</f:if>

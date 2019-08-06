@@ -1,0 +1,131 @@
+
+<f:layout name="Default" />
+
+
+
+<f:section name="main">
+
+	<f:flashMessages />
+
+	<f:render partial="FormErrors" arguments="{object:Contact}" />
+
+	<form action="/index.php?id=38" enctype="multipart/form-data"  name="newDonation" method="post">
+		
+		<div class="form-row">
+			<div class="form-left">Amount <span class="required-aserix">*</span></div>
+			<div class="form-right form-right-small"><input type="text" name="amount" id="amount" required="required" value="0.00"/>
+			<p class="form-caption"><i>Do not insert a comma. I.e, $5,000.00 is entered as 5000.00</i></p>
+			</div>
+			<div class="clearfix"></div>
+		</div>
+		
+		<div class="form-row">
+			<div class="form-left">First name <span class="required-aserix">*</span></div>
+			<div class="form-right"><input type="text" name="firstname" id="firstname" required="required" value=""/></div>
+			<div class="clearfix"></div>
+		</div>
+		
+		<div class="form-row">
+			<div class="form-left">Last name <span class="required-aserix">*</span></div>
+			<div class="form-right"><input type="text" name="lastname" id="lastname" required="required" value=""/></div>
+			<div class="clearfix"></div>
+		</div>
+		
+		<div class="form-row">
+			<div class="form-left">Title</div>
+			<div class="form-right"><input type="text" name="title" id="title" value=""/></div>
+			<div class="clearfix"></div>
+		</div>
+		
+		<div class="form-row">
+			<div class="form-left">Company</div>
+			<div class="form-right"><input type="text" name="company" id="company" value=""/></div>
+			<div class="clearfix"></div>
+		</div>
+		
+		<div class="form-row">
+			<div class="form-left">Address line 1 <span class="required-aserix">*</span></div>
+			<div class="form-right"><input type="text" name="address1" id="address1" required="required" value=""/></div>
+			<div class="clearfix"></div>
+		</div>
+		
+		<div class="form-row">
+			<div class="form-left">Address line 2</div>
+			<div class="form-right"><input type="text" name="address2" id="address2" value=""/></div>
+			<div class="clearfix"></div>
+		</div>
+		
+		<div class="form-row">
+			<div class="form-left">City <span class="required-aserix">*</span></div>
+			<div class="form-right"><input type="text" name="city" id="city" required="required" value=""/></div>
+			<div class="clearfix"></div>
+		</div>
+		
+		<div class="form-row">
+			<div class="form-left">State <span class="required-aserix">*</span></div>
+			<div class="form-right form-right-small"><input type="text" name="state" id="state" required="required" value=""/></div>
+			<div class="clearfix"></div>
+		</div>
+		
+		<div class="form-row">
+			<div class="form-left">ZIP <span class="required-aserix">*</span></div>
+			<div class="form-right form-right-small"><input type="text" name="zip" id="zip" required="required" value=""/></div>
+			<div class="clearfix"></div>
+		</div>
+		
+		<div class="form-row">
+			<div class="form-left">Email <span class="required-aserix">*</span></div>
+			<div class="form-right"><input type="text" name="email" id="email" required="required" value=""/></div>
+			<div class="clearfix"></div>
+		</div>
+		
+		<div class="form-row">
+			<div class="form-left">Phone</div>
+			<div class="form-right"><input type="text" name="phone" id="phone" value=""/></div>
+			<div class="clearfix"></div>
+		</div>
+		
+		<div class="form-row">
+			<div class="form-left">Fax</div>
+			<div class="form-right"><input type="text" name="fax" id="fax" value=""/></div>
+			<div class="clearfix"></div>
+		</div>
+
+		<div class="form-row">
+			<div class="form-left">Message/Comments</div>
+			<div class="form-right"><textarea name="message" id="message"></textarea></div>
+			<div class="clearfix"></div>
+		</div>
+		
+		<h2>Payment details</h2>
+		
+		<f:render partial="Contact/PaymentFields" />
+		
+		<!-- ReCaptcha v2 part Start -->
+		<!--
+		<div class="form-row">
+			<div class="form-left">&nbsp;</div>
+			<div class="form-right">
+				<div class="g-recaptcha" data-sitekey="6Ldqnn0UAAAAAFkaFfjC6dwBQKnEOTE9WArCnRHv"></div>
+			<div class="clearfix"></div>
+		</div>
+		-->
+		<!-- ReCaptcha v2 part End -->
+		
+		<div class="form-row">
+			<div class="form-left">&nbsp;</div>
+			<div class="form-right"><input type="submit" name="submit" id="submit" value="Submit payment"/></div>
+			<div class="clearfix"></div>
+		</div>
+		
+		<!-- Hidden fields -->
+		<input type="hidden" name="formType" id="formType" value="newDonation"/>
+		<input type="hidden" name="confirmationpage" id="confirmationpage" value="{settings.donationregistrationpid}"/>
+		<input type="hidden" name="failedReturnFullPageLink" id="failedReturnFullPageLink" value="{settings.donationpid}"/>
+		<input type="hidden" name="storagepage" id="storagepage" value="37"/>
+		<input type="hidden" name="payment-option" id="payment-option" value="creditcard"/>
+		<input type="hidden" name="hasCaptcha" id="hasCaptcha" value="1"/>
+
+	</form>
+	
+</f:section>

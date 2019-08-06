@@ -1,0 +1,88 @@
+form {
+	width: 70%;
+}
+form .form-row {
+	
+}
+form .form-row .form-left {
+	float: left;
+	width: 33%;
+}
+form .form-row .form-right {
+	float: left;
+	width: 66%;
+}
+form .form-row .form-right input,
+form .form-row .form-right select,
+form .form-row .form-right submit,
+form .form-row .form-right textarea {
+	width: 100%;
+    visibility: visible;
+    display: block;
+    border: 1px solid #ccc;
+    padding: 5px 8px;
+    margin-bottom: 4px;
+}
+form .form-row .form-right.form-right-small input,
+form .form-row .form-right.form-right-small select {
+	width: 33%;
+}
+form span.required-aserix {
+	color: red;
+}
+form p.form-caption {
+	margin-bottom: 20px;
+}
+form .form-row .form-right.form-right-small select {
+	text-transform: capitalize;
+}
+form .form-row .error {
+	color: #d03401;
+    margin-bottom: 7px;
+    display: block;
+}
+
+/* PLACE HOLDER STYLES Start */
+form input[type="text"]::-webkit-input-placeholder,
+form input[type="password"]::-webkit-input-placeholder {
+	color: #bebebe;
+}
+
+form input[type="text"]:-moz-placeholder,
+form input[type="password"]::-moz-placeholder {
+	color: #bebebe;
+}
+
+form input[type="text"]::-moz-placeholder,
+form input[type="password"]::-moz-placeholder {
+	color: #bebebe;
+}
+
+form input[type="text"]:-ms-input-placeholder,
+form input[type="password"]:-ms-input-placeholder {
+	color: #bebebe;
+}
+
+form input[type="text"]::-ms-input-placeholder,
+form input[type="password"]::-ms-input-placeholder {
+	color: #bebebe;
+}
+
+form input[type="text"]::placeholder,
+form input[type="password"]::placeholder {
+	color: #bebebe;
+}
+/* PLACE HOLDER STYLES End */
+
+
+/* RESPOSIVENESS */
+@media screen and (max-width: 767px) {
+	form .form-row .form-left,
+	form .form-row .form-right {
+		float: none;
+		width: 100%;
+	}
+	form .form-row .form-right.form-right-small input,
+	form .form-row .form-right.form-right-small select {
+		width: 100%;
+	}

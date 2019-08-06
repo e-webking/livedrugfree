@@ -1,0 +1,26 @@
+
+<f:be.container
+	includeCssFiles="{
+		0: '/typo3conf/ext/nkcadportal/Resources/Public/Css/datatables.min.css',
+		1: '/typo3conf/ext/nkcadportal/Resources/Public/Css/nkcadportal-be.css',
+		2: '/fileadmin/Resources/Public/Css/font-awesome.min.css',
+                3: '/typo3conf/ext/nkregularformstorage/Resources/Public/Css/payment.css'
+	}"
+	
+	includeJsFiles="{
+		0: '/typo3conf/ext/nkcadportal/Resources/Public/JavaScript/nkcadportal-be.js'
+	}"
+	
+	includeRequireJsModules="{
+		0:'TYPO3/CMS/Nkcadportal/BackendDatatables'
+	}">
+
+	<div class="typo3-fullDoc">
+		<div id="typo3-docbody">
+			<div id="typo3-inner-docbody">
+                            <f:format.nl2br><f:flashMessages /></f:format.nl2br>
+				<f:render section="content" />
+			</div>
+		</div>
+	</div>
+</f:be.container>
