@@ -195,8 +195,9 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
 
                 //Check which memberships have been submitted for renewal:
                 $aRenewals = [];
-                for($i=1; $i <= 6; $i++){
-                        if((string)$formConfigArray["newmembership-$i"] != '0'){
+                
+                for ($i=1; $i <= 6; $i++){
+                        if ((string)$formConfigArray["newmembership-$i"] != '0') {
                                 $membershipTemplateUid = (int)$formConfigArray["newmembership-$i"];
                                 if(isset($formConfigArray["renew_$membershipTemplateUid"]) && (int)$formConfigArray["renew_$membershipTemplateUid"] == 1){
                                         $aRenewals[$membershipTemplateUid] = "formfield_newmembership-$i";
@@ -205,9 +206,9 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 }
 
                 //Process input/provided form (membership) values for NEW memberships (not renewals!):
-                foreach($formConfigArray as $fieldname => $fieldvalue){
-                    if(strpos($fieldname, "newmembership-") !== FALSE){
-                        if(trim($fieldvalue) !== '' && (int)$fieldvalue != 0){
+                foreach ($formConfigArray as $fieldname => $fieldvalue) {
+                    if (strpos($fieldname, "newmembership-") !== FALSE) {
+                        if (trim($fieldvalue) !== '' && (int)$fieldvalue != 0) {
                             $membershipTemplate = $this->membershipTemplateRepository->findByUid((int)$fieldvalue);
                             $calculatedPrice += $membershipTemplate->getPrice();
                             $this->aNewPaidMemberships[(int)$fieldvalue] = [];
@@ -218,8 +219,8 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                             list(,$newMembershipFieldItem) = explode("-", $fieldname);
                             $this->aNewPaidMemberships[(int)$fieldvalue]['stateUid'] = $formConfigArray["newmembershipstate-$newMembershipFieldItem"];
                             //Check whether this user already had this membership (which makes this a renewal)
-                            foreach($this->frontendUser->getMemberships() as $feUsersMembership){
-                                if($feUsersMembership->getMembershiptemplate()->getUid() == $membershipTemplate->getUid()){
+                            foreach ($this->frontendUser->getMemberships() as $feUsersMembership){
+                                if ($feUsersMembership->getMembershiptemplate()->getUid() == $membershipTemplate->getUid()){
                                     $this->aNewPaidMemberships[(int)$fieldvalue]['renewal'] = 1;
                                     $this->aNewPaidMemberships[(int)$fieldvalue]['membership_uid_for_renewal'] = $feUsersMembership->getUid();
                                     $this->aNewPaidMemberships[(int)$fieldvalue]['description'] = $this->aNewPaidMemberships[(int)$fieldvalue]['description']." (RENEWAL)";
@@ -249,23 +250,24 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 $trxApprovalResult = $response[0];			
                 $trxMessage = $response[3];
                 
-                if($trxApprovalResult == 1){
+                if ($trxApprovalResult == 1) {
                         //Sale approved..
                         $pstatus = 1;
                         $trxID = date('Y')."00".$this->formresultRepository->findAll()->count();
-                        if($formType == "membership"){
+                        
+                        if ($formType == "membership"){
                                 //Add (re)new(ed) memberships to the FE user:
                                 $this->enableNewMemberships();
                         }
-                }
-                else{
+                } else {
                         //Sale declined, redirect back to form..
                         $pstatus = -1;
+                        $this->addFlashMessage($trxMessage, '', \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR);
                         header("Location: /index.php?id=".$this->failedReturnPage."&paymentformerror=$trxMessage");
                         die("forwarded");
                 }
 
-            } else{
+            } else {
 
                 /*
                  * Payment mode is invoice
@@ -581,44 +583,88 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
 		return $_SERVER['HTTP_USER_AGENT'];
 	}
 	
+        /**
+         * Add memberships
+         */
 	public function enableNewMemberships(){
-		foreach($this->aNewPaidMemberships as $aMembershipTemplate){
-			//Get the current date and time object:
-			$currentDateTimeObject = $this->getDatetimeObjectNow();
-			//Distinguish DOT type (12 months membership duration) from DFT type (11 months membership duration):
-			if($aMembershipTemplate['type'] == "DOT"){
-				$expirationDateTimeObject = $this->getDatetimeObjectNow()->modify('+12 months');
-			}
-			else{
-				$expirationDateTimeObject = $this->getDatetimeObjectNow()->modify('+11 months');
-			}
-			//Get the actual membershipTemplate record:
-			$oMembershipTemplateRecord = $this->membershipTemplateRepository->findByUid($aMembershipTemplate['uid']);
-			if($aMembershipTemplate['renewal'] == 1){
-				//Renewal
-				$renewalMembership = $this->membershipRepository->findByUid($aMembershipTemplate['membership_uid_for_renewal']);
-				$renewalMembership->setStarttimecustom($currentDateTimeObject);
-				$renewalMembership->setEndtimecustom($expirationDateTimeObject);
-				$this->membershipRepository->update($renewalMembership);
-			}
-			else {
-				//New
-				$newMembership = new \Netkyngs\Nkcadportal\Domain\Model\Membership();
-				$newMembership->setMembershiptemplate($oMembershipTemplateRecord);
-				$newMembership->setState($this->stateRepository->findByUid($aMembershipTemplate['stateUid']));
-				$newMembership->setStarttimecustom($currentDateTimeObject);
-				$newMembership->setEndtimecustom($expirationDateTimeObject);
-				$newMembership->setPid($this->settings['membersPID']);
-				$this->frontendUser->addMembership($newMembership);
-				$this->frontendUserRepository->update($this->frontendUser);
-			}
-			
-			//Permantently save all database (model) changes:
-			$persistenceManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance("TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager");
-			$persistenceManager->persistAll();
-		}
+
+            foreach($this->aNewPaidMemberships as $aMembershipTemplate){
+                //Get the current date and time object:
+                $currentDateTimeObject = $this->getDatetimeObjectNow();
+                //Distinguish DOT type (12 months membership duration) from DFT type (11 months membership duration):
+                if ($aMembershipTemplate['type'] == "DOT"){
+                        $expirationDateTimeObject = $this->getDatetimeObjectNow()->modify('+12 months');
+                }
+                else{
+                        $expirationDateTimeObject = $this->getDatetimeObjectNow()->modify('+11 months');
+                }
+                //Get the actual membershipTemplate record:
+                $oMembershipTemplateRecord = $this->membershipTemplateRepository->findByUid($aMembershipTemplate['uid']);
+
+                if ($aMembershipTemplate['renewal'] == 1) {
+                        //Renewal
+                        $renewalMembership = $this->membershipRepository->findByUid($aMembershipTemplate['membership_uid_for_renewal']);
+
+                        if ($renewalMembership instanceof \Netkyngs\Nkcadportal\Domain\Model\Membership) {
+                            /*
+                             * Check whether expired membership or active
+                             * If expired, then act as new memebership
+                             * if active, new membership to activate after the current expires
+                             */
+                            $expiryDate = $renewalMembership->getEndtimecustom();
+                            $interval = $currentDateTimeObject->diff($expiryDate);
+
+                            $newMembership = new \Netkyngs\Nkcadportal\Domain\Model\Membership();
+                            $newMembership->setMembershiptemplate($oMembershipTemplateRecord);
+                            $newMembership->setState($this->stateRepository->findByUid($aMembershipTemplate['stateUid']));
+
+                            /*
+                             * Check if expired
+                             */
+                            if ($interval->format("%R%d") == '-') { 
+                                // Add new subscription from today
+                                $newMembership->setStarttimecustom($currentDateTimeObject);
+                                $newMembership->setEndtimecustom($expirationDateTimeObject);
+
+                            } else {
+                                $newMembership->setStarttimecustom($expiryDate);
+                                $cpExpDate = clone $expiryDate;
+                                //Start date will be a day after the expiry date
+                                if ($aMembershipTemplate['type'] == "DOT"){
+                                   $cpExpDate->add(new \DateInterval('P12M'));
+                                } else{
+                                   $cpExpDate->add(new \DateInterval('P11M'));
+                                }
+                                $newMembership->setEndtimecustom($cpExpDate);
+                            }
+                            
+                            $newMembership->setPid($this->settings['membersPID']);
+                            $this->frontendUser->addMembership($newMembership);
+                            $this->frontendUserRepository->update($this->frontendUser);
+                        }
+                        
+                } else {
+                        //New
+                        $newMembership = new \Netkyngs\Nkcadportal\Domain\Model\Membership();
+                        $newMembership->setMembershiptemplate($oMembershipTemplateRecord);
+                        $newMembership->setState($this->stateRepository->findByUid($aMembershipTemplate['stateUid']));
+                        $newMembership->setStarttimecustom($currentDateTimeObject);
+                        $newMembership->setEndtimecustom($expirationDateTimeObject);
+                        $newMembership->setPid($this->settings['membersPID']);
+                        $this->frontendUser->addMembership($newMembership);
+                        $this->frontendUserRepository->update($this->frontendUser);
+                }
+
+                //Permantently save all database (model) changes:
+                $persistenceManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance("TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager");
+                $persistenceManager->persistAll();
+            }
 	}
 	
+        /**
+         * 
+         * @return \DateTime
+         */
 	public function getDatetimeObjectNow() {
 		$tz_object = new \DateTimeZone('America/New_York');
 		$datetime = new \DateTime();
