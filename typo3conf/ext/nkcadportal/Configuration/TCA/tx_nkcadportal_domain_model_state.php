@@ -24,10 +24,10 @@ return array(
 		'iconfile' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('nkcadportal') . 'Resources/Public/Icons/tx_nkcadportal_domain_model_state.gif'
 	),
 	'interface' => array(
-		'showRecordFieldList' => 'hidden, isactuallstate, showinfestatelist, state, stateshort, pdftpl',
+		'showRecordFieldList' => 'hidden, isactuallstate, showinfestatelist, showaward, state, stateshort, pdftpl',
 	),
 	'types' => array(
-		'1' => array('showitem' => 'hidden;;1, isactuallstate, showinfestatelist, state, stateshort, pdftpl, --div--;LLL:EXT:cms/locallang_ttc.xlf:tabs.access, starttime, endtime'),
+		'1' => array('showitem' => 'hidden;;1, isactuallstate, showinfestatelist, showaward, state, stateshort, pdftpl, --div--;LLL:EXT:cms/locallang_ttc.xlf:tabs.access, starttime, endtime'),
 	),
 	'palettes' => array(
 		'1' => array('showitem' => ''),
@@ -145,6 +145,13 @@ return array(
 		'showinfestatelist' => array(
 			'exclude' => 1,
 			'label' => 'Show in FE (Profile) State List',
+			'config' => array(
+				'type' => 'check',
+			),
+		),
+                'showaward' => array(
+			'exclude' => 1,
+			'label' => 'Display Award download',
 			'config' => array(
 				'type' => 'check',
 			),

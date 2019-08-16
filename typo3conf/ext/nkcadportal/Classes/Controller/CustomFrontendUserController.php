@@ -256,86 +256,89 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
     public function showAction()
     {
 		
-		//Check if a form was submitted:
-		if(isset($_POST['tx_nkcadportal_nkcadportalfe'])){
-			if(isset($_POST['tx_nkcadportal_nkcadportalfe']['formaction'])){
-				switch($_POST['tx_nkcadportal_nkcadportalfe']['formaction']){
-					
-					case "createcontact":
-						$this->createContact();
-						break;
-						
-					case "updatefrontenduser":
-						$this->updateFrontendUser();
-						break;
-				}
-			}
-		}
-		
-		//Check if an AJAX request was made:
-		if ($action = filter_input(INPUT_GET, "action", FILTER_SANITIZE_SPECIAL_CHARS)) {
-			$this->performAjaxRequest($action);
-			die();
-		}
-		
-		//Add CSS and JS:
-		$this->addCssAndJsToFE();
-		
-		//Get the logged in FE User:
-		$feUserUid = $GLOBALS['TSFE']->fe_user->user['uid'];
-		$frontendUser = $this->frontendUserRepository->findByUid($feUserUid);
-		
-		//Add the accessible documents to the $frontendUser object:
-		$frontendUser = $this->addDocumentsToUser($frontendUser);
-		
-		//Add download path data to the documents:
-		foreach($frontendUser->documents as $document){
-			$publicUrl = $document->getFile()->getOriginalResource()->getPublicUrl();
-			$aPublicUrlTmp = explode("/", $publicUrl);
-			$document->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
-		}
-		
-		//Add the accessible newsletters to the $frontendUser object:
-		$frontendUser = $this->addNewslettersToUser($frontendUser);
-		
-		//Add download path data to the newsletters:
-		foreach($frontendUser->newsletters as $newsletter){
-			$publicUrl = $newsletter->getFile()->getOriginalResource()->getPublicUrl();
-			$aPublicUrlTmp = explode("/", $publicUrl);
-			$newsletter->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
-		}
-		
-		//Prepare profile form hearboutusoptions array:
-		$aHearaboutusoptions = array(
-			"Chamber"=>"Chamber",
-			"Chuck"=>"Chuck",
-			"Drug Free Workplace Help Website"=>"Drug Free Workplace Help Website",
-			"INSURANCE COMPANY"=>"Insurance Company",
-			"Karen"=>"Karen",
-			"MAILER"=>"Mailer",
-			"Noy"=>"Noy",
-			"POSTCARD"=>"Postcard",
-			"REFERRAL"=>"Referal",
-			"Renewal"=>"Renewal",
-			"Staci"=>"Staci",
-			"WEB"=>"Web",
-			"OTHER"=>"Other"
-		);
+        if (isset($_REQUEST['paymentformerror'])) {
+            $this->addFlashMessage($_REQUEST['paymentformerror'], '', \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR);
+        }
+        //Check if a form was submitted:
+        if(isset($_POST['tx_nkcadportal_nkcadportalfe'])){
+                if(isset($_POST['tx_nkcadportal_nkcadportalfe']['formaction'])){
+                        switch($_POST['tx_nkcadportal_nkcadportalfe']['formaction']){
 
-		//Prepare contact form contacttypes array:
-		$aContacttypes = array("DWF"=>"DWF", "DOT"=>"DOT", "Billing"=>"Billing", "Random"=>"Random");
-		
-		//Prepare form data:
-		$aFormdata = array(
-			"hearaboutusoptions"=>$aHearaboutusoptions,
-			"contacttypes"=>$aContacttypes
-		);
-		
-		//Get all states:
-		$allStates = $this->stateRepository->findByShowinfestatelist(1);
-		
-		//Get all memberships:
-		$allMemberships = $this->membershipTemplateRepository->findAll();
+                                case "createcontact":
+                                        $this->createContact();
+                                        break;
+
+                                case "updatefrontenduser":
+                                        $this->updateFrontendUser();
+                                        break;
+                        }
+                }
+        }
+
+        //Check if an AJAX request was made:
+        if ($action = filter_input(INPUT_GET, "action", FILTER_SANITIZE_SPECIAL_CHARS)) {
+                $this->performAjaxRequest($action);
+                die();
+        }
+
+        //Add CSS and JS:
+        $this->addCssAndJsToFE();
+
+        //Get the logged in FE User:
+        $feUserUid = $GLOBALS['TSFE']->fe_user->user['uid'];
+        $frontendUser = $this->frontendUserRepository->findByUid($feUserUid);
+
+        //Add the accessible documents to the $frontendUser object:
+        $frontendUser = $this->addDocumentsToUser($frontendUser);
+
+        //Add download path data to the documents:
+        foreach($frontendUser->documents as $document){
+                $publicUrl = $document->getFile()->getOriginalResource()->getPublicUrl();
+                $aPublicUrlTmp = explode("/", $publicUrl);
+                $document->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+        }
+
+        //Add the accessible newsletters to the $frontendUser object:
+        $frontendUser = $this->addNewslettersToUser($frontendUser);
+
+        //Add download path data to the newsletters:
+        foreach($frontendUser->newsletters as $newsletter){
+                $publicUrl = $newsletter->getFile()->getOriginalResource()->getPublicUrl();
+                $aPublicUrlTmp = explode("/", $publicUrl);
+                $newsletter->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+        }
+
+        //Prepare profile form hearboutusoptions array:
+        $aHearaboutusoptions = array(
+                "Chamber"=>"Chamber",
+                "Chuck"=>"Chuck",
+                "Drug Free Workplace Help Website"=>"Drug Free Workplace Help Website",
+                "INSURANCE COMPANY"=>"Insurance Company",
+                "Karen"=>"Karen",
+                "MAILER"=>"Mailer",
+                "Noy"=>"Noy",
+                "POSTCARD"=>"Postcard",
+                "REFERRAL"=>"Referal",
+                "Renewal"=>"Renewal",
+                "Staci"=>"Staci",
+                "WEB"=>"Web",
+                "OTHER"=>"Other"
+        );
+
+        //Prepare contact form contacttypes array:
+        $aContacttypes = array("DWF"=>"DWF", "DOT"=>"DOT", "Billing"=>"Billing", "Random"=>"Random");
+
+        //Prepare form data:
+        $aFormdata = array(
+                "hearaboutusoptions"=>$aHearaboutusoptions,
+                "contacttypes"=>$aContacttypes
+        );
+
+        //Get all states:
+        $allStates = $this->stateRepository->findByShowinfestatelist(1);
+
+        //Get all memberships:
+        $allMemberships = $this->membershipTemplateRepository->findAll();
 		
 		//Assign the required variables to the template:
         $this->view->assign('frontendUser', $frontendUser);
@@ -363,6 +366,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                 
                 $memTpl = $membership->getMembershiptemplate();
                 $state = $membership->getState();
+                $fname = 'DFWCertificate_'.$state->getState().'.pdf';
                 $srcFile = PATH_site.'uploads/tx_nkcadportal/'.$state->getPdftpl();
                 
                 if (file_exists($srcFile) && is_file($srcFile)) {
@@ -385,8 +389,8 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                         $pdf::$fpdi->SetFont('helvetica','',16);
                         $pdf::$fpdi->SetY(95);
                         $pdf::$fpdi->Cell(280,14, $startTime.' - '.$endTime,0,0,'C');
-                        $fname = 'certificate_'.$membershipUid.'.pdf';
-                        $fileCert = PATH_site . 'uploads/tx_nkcadportal/'.$fname;
+                        
+                        $fileCert = PATH_site . 'uploads/tx_nkcadportal/' . $fname;
                         
                         $pdf::$fpdi->Output($fname, 'D');
                     }

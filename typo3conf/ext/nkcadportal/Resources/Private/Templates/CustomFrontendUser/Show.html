@@ -1,4 +1,4 @@
-
+{namespace dc=Netkyngs\Nkcadportal\ViewHelpers}
 <f:layout name="Default" />
 
 <f:section name="main">
@@ -285,6 +285,7 @@
 		</f:if>
 	</div>
 </div>
+</f:section>
 
 <!-- CONTENT SECTION: NEW MEMBERSHIP ROW -->
 <f:section name="newNembershipRow">
@@ -321,8 +322,12 @@
 
 <!-- CONTENT SECTION: EXISTING MEMBERSHIP ROW -->
 <f:section name="existingNembershipRow">
+    
+    <f:if condition="{dc:isDisplayMembership(date:membership.endtimecustom)}">
 	<tr>
-		<td><input type="checkbox" value="true" name="renew_{membershipTemplateUid}" id="renew_{membershipTemplateUid}"/></td>
+		<td>
+                    <input type="checkbox" value="true" name="renew_{membershipTemplateUid}" id="renew_{membershipTemplateUid}"/>
+                </td>
 		<td>
 			{membership.membershiptemplate.description}
 		</td>
@@ -330,12 +335,24 @@
 			<span class="existing-state" data-uid="{membership.state.uid}">{membership.state.stateshort}</span>
 		</td>
 		<td>
-			<f:format.date format="m/d/Y">{membership.endtimecustom}</f:format.date>
+                    <f:if condition="{dc:membershipExpired(date:membership.endtimecustom)}">
+                        <f:then>
+                            <div class="rd-clr ">
+                                <f:format.date format="m/d/Y">{membership.endtimecustom}</f:format.date><br />
+                                EXPIRED
+                            </div>
+                        </f:then>
+                        <f:else>
+                            <f:format.date format="m/d/Y">{membership.endtimecustom}</f:format.date>
+                        </f:else>
+                    </f:if>
+			
 		</td>
 		<td>
-                    <f:link.action action="certdwn" arguments="{membership:membership.uid}"><i class="fa fa-download"></i></f:link.action>
+                    <f:if condition="{membership.state.showaward}">
+                        <f:link.action action="certdwn" arguments="{membership:membership.uid}"><i class="fa fa-download"></i></f:link.action>
+                    </f:if>
 		</td>
 	</tr>
-</f:section>
-
+    </f:if>
 </f:section>

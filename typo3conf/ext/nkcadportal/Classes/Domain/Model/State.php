@@ -59,6 +59,12 @@ class State extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * @var int
      */
     protected $showinfestatelist = 0;
+    
+    /**
+     *
+     * @var int
+     */
+    protected $showaward = 0;
 
     /**
      * pdftpl
@@ -169,4 +175,26 @@ class State extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     public function setPdftpl($pdftpl) {
         $this->pdftpl = $pdftpl;
     }
+    
+    /**
+     * Returns the showaward
+     * 
+     * @return int $showaward
+     */
+    public function getShowaward()
+    {
+        return $this->showaward;
+    }
+    
+    /**
+     * Sets the showaward
+     * 
+     * @param int $showaward
+     * @return void
+     */
+    public function setShowaward($showaward)
+    {
+        $this->showaward = $showaward;
+    }
+    
 }

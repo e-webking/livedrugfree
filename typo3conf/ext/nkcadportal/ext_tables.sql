@@ -300,6 +300,7 @@ CREATE TABLE tx_nkcadportal_domain_model_state (
 	isactuallstate tinyint(4) unsigned DEFAULT '0' NOT NULL,
 	showinfestatelist tinyint(4) unsigned DEFAULT '0' NOT NULL,
         pdftpl varchar(255) DEFAULT '' NOT NULL,
+        showaward tinyint(4) unsigned DEFAULT '0' NOT NULL,
 
 	tstamp int(11) unsigned DEFAULT '0' NOT NULL,
 	crdate int(11) unsigned DEFAULT '0' NOT NULL,
