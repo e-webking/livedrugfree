@@ -41,6 +41,13 @@ class Report extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     protected $title = '';
     
     /**
+     * filename
+     * 
+     * @var string
+     */
+    protected $filename = '';
+    
+    /**
      * SQL Query
      * 
      * @var string
@@ -67,6 +74,27 @@ class Report extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     public function setTitle($title)
     {
         $this->title = $title;
+    }
+    
+    /**
+     * Returns the filename
+     * 
+     * @return string $filename
+     */
+    public function getFilename()
+    {
+        return $this->filename;
+    }
+    
+    /**
+     * Sets the filename
+     * 
+     * @param string $filename
+     * @return void
+     */
+    public function setFilename($filename)
+    {
+        $this->filename = $filename;
     }
     
     /**

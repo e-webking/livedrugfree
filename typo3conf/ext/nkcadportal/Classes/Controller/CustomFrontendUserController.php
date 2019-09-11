@@ -36,13 +36,13 @@ if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('armpdfkit')) {
 class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionController
 {
 	
-	/**
-	* @var \TYPO3\CMS\Extbase\Domain\Repository\FrontendUserRepository
-	* @inject
-	*/
-	protected $frontendUserRepository;
+    /**
+     * @var \TYPO3\CMS\Extbase\Domain\Repository\FrontendUserRepository
+     * @inject
+     */
+    protected $frontendUserRepository;
 	
-	/**
+    /**
      * contactRepository
      * 
      * @var \Netkyngs\Nkcadportal\Domain\Repository\ContactRepository
@@ -50,7 +50,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
      */
     protected $contactRepository = NULL;
 	
-	/**
+    /**
      * stateRepository
      * 
      * @var \Netkyngs\Nkcadportal\Domain\Repository\StateRepository
@@ -58,7 +58,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
      */
     protected $stateRepository = NULL;
 	
-	/**
+    /**
      * membershipTemplateRepository
      * 
      * @var \Netkyngs\Nkcadportal\Domain\Repository\MembershipTemplateRepository
@@ -66,7 +66,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
      */
     protected $membershipTemplateRepository = NULL;
 	
-	/**
+    /**
      * discountcodeRepository
      * 
      * @var \Netkyngs\Nkcadportal\Domain\Repository\DiscountcodeRepository
@@ -74,7 +74,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
      */
     protected $discountcodeRepository = NULL;
 	
-	/**
+    /**
      * documentRepository
      * 
      * @var \Netkyngs\Nkcadportal\Domain\Repository\DocumentRepository
@@ -82,7 +82,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
      */
     protected $documentRepository = NULL;
 	
-	/**
+    /**
      * newsletterRepository
      * 
      * @var \Netkyngs\Nkcadportal\Domain\Repository\NewsletterRepository
@@ -90,7 +90,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
      */
     protected $newsletterRepository = NULL;
 	
-	/**
+    /**
      * reminderRepository
      * 
      * @var \Netkyngs\Nkcadportal\Domain\Repository\ReminderRepository
@@ -141,7 +141,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
     public function listAction()
     {
 		
-		//Get members:
+	//Get members:
         $members = $this->frontendUserRepository->findAll();
         $this->view->assign('members', $members);
 		
@@ -152,20 +152,26 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 		//Get the newsletters:
 		$newsletters = $this->newsletterRepository->findAll();
 		foreach($newsletters as $newsletter){
-			$publicUrl = $newsletter->getFile()->getOriginalResource()->getPublicUrl();
-			$aPublicUrlTmp = explode("/", $publicUrl);
-			$newsletter->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+                        $fileObj = $newsletter->getFile();
+                        if (!is_null($fileObj)) {
+                            $publicUrl = $newsletter->getFile()->getOriginalResource()->getPublicUrl();
+                            $aPublicUrlTmp = explode("/", $publicUrl);
+                            $newsletter->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+                        }
 		}
         $this->view->assign('newsletters', $newsletters);
 		
 		//Get the documents:
 		$documents = $this->documentRepository->findAll();
 		foreach($documents as $document){
-			$publicUrl = $document->getFile()->getOriginalResource()->getPublicUrl();
-			$aPublicUrlTmp = explode("/", $publicUrl);
-			$document->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+                    $fileObj = $document->getFile();
+                    if (!is_null($fileObj)) {
+                        $publicUrl = $document->getFile()->getOriginalResource()->getPublicUrl();
+                        $aPublicUrlTmp = explode("/", $publicUrl);
+                        $document->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+                    }
 		}
-        $this->view->assign('documents', $documents);
+        //$this->view->assign('documents', $documents);
 		
 		//Get the reminders:
 		$reminders = $this->reminderRepository->findAll();
@@ -191,58 +197,100 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
      */
     public function ajaxbeAction()
     {
-		if ($action = filter_input(INPUT_GET, "action", FILTER_SANITIZE_SPECIAL_CHARS)) {
-			
-			//Get some more vars:
-			$uid = filter_input(INPUT_GET, "uid", FILTER_SANITIZE_NUMBER_INT);
-			
-			//Switch actions:
-			switch($action){
-				
-				case "delete-member":
-				
-					$feUserToDelete = $this->frontendUserRepository->findByUid($uid);
-					$this->frontendUserRepository->remove($feUserToDelete);
-				
-					break;
-					
-				case "hide-member":
-				
-					$feUserToHide = $this->frontendUserRepository->findByUid($uid);
-					$feUserToHide->setHidden(1);
-					$this->frontendUserRepository->update($feUserToHide);
-				
-					break;
-					
-				case "unhide-member":
-				
-					$feUserToUnHide = $this->frontendUserRepository->findByUid($uid);
-					$feUserToUnHide->setHidden(0);
-					$this->frontendUserRepository->update($feUserToUnHide);
-				
-					break;
-					
-				case "serve-download":
-				
-					// We'll be outputting a PDF
-					//header('Content-type: application/pdf');
+        if ($action = filter_input(INPUT_GET, "action", FILTER_SANITIZE_SPECIAL_CHARS)) {
 
-					//Get the friendly filename:
-					$friendlyfilename = filter_input(INPUT_GET, "friendlyfilename", FILTER_SANITIZE_SPECIAL_CHARS);
-					header('Content-Disposition: attachment; filename="'.$friendlyfilename.'"');
+                //Get some more vars:
+                $uid = filter_input(INPUT_GET, "uid", FILTER_SANITIZE_NUMBER_INT);
 
-					//Get the actual file path:
-					$filePath = filter_input(INPUT_GET, "filepath", FILTER_SANITIZE_SPECIAL_CHARS);
-					readfile($filePath);
-				
-					break;
-				
-			}
-			
-			//Permantently save all database (model) changes:
-			$persistenceManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance("TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager");
-			$persistenceManager->persistAll();
-		}
+                //Switch actions:
+                switch($action){
+
+                        case "delete-member":
+
+                                $feUserToDelete = $this->frontendUserRepository->findByUid($uid);
+                                $this->frontendUserRepository->remove($feUserToDelete);
+
+                                break;
+
+                        case "hide-member":
+
+                                $feUserToHide = $this->frontendUserRepository->findByUid($uid);
+                                $feUserToHide->setHidden(1);
+                                $this->frontendUserRepository->update($feUserToHide);
+
+                                break;
+
+                        case "unhide-member":
+
+                                $feUserToUnHide = $this->frontendUserRepository->findByUid($uid);
+                                $feUserToUnHide->setHidden(0);
+                                $this->frontendUserRepository->update($feUserToUnHide);
+
+                                break;
+
+                        case "serve-download":
+
+                                // We'll be outputting a PDF
+                                //header('Content-type: application/pdf');
+
+                                //Get the friendly filename:
+                                $friendlyfilename = filter_input(INPUT_GET, "friendlyfilename", FILTER_SANITIZE_SPECIAL_CHARS);
+                                header('Content-Disposition: attachment; filename="'.$friendlyfilename.'"');
+
+                                //Get the actual file path:
+                                $filePath = filter_input(INPUT_GET, "filepath", FILTER_SANITIZE_SPECIAL_CHARS);
+                                readfile($filePath);
+
+                                break;
+                            
+                        case "serve-csv-report":
+                            
+                            //Report download
+                            $reportObj = $this->reportRepository->findByUid($uid);
+                            $filename = ($reportObj->getFilename() != '') ? $reportObj->getFilename() : 'report_'.$uid.'.csv';
+                            $sqlQuery = $reportObj->getSqlquery();
+                            
+                            $results = $GLOBALS['TYPO3_DB']->sql_query($sqlQuery);
+                            while($prop = $results->fetch_field()) {
+                                $header .= $prop->name.",";
+                            }
+                            
+                            $data = substr($header, 0, -1)."\n";
+                            while( $row = $results->fetch_row())
+                            {
+                                $line = '';
+                                foreach( $row as $value )
+                                {                                            
+                                    if ( ( !isset( $value ) ) || ( $value == "" ) )
+                                    {
+                                        $value = ",";
+                                    }
+                                    else
+                                    {
+                                        $value = str_replace( '"' , '""' , $value );
+                                        $value = '"' . $value . '"' . ",";
+                                    }
+                                    $line .= $value;
+                                }
+                                $data .= trim(substr($line,0,-1)) . "\n";
+                            }
+                            $data = str_replace( "\r" , "" , $data );
+                            
+                            header("Content-type: application/octet-stream");
+                            header("Content-Disposition: attachment; filename=$filename");
+                            header("Pragma: no-cache");
+                            header("Expires: 0");
+                            
+                            print "$data";
+                            exit;
+                            break;
+
+                }
+
+                //Permantently save all database (model) changes:
+                $persistenceManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance("TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager");
+                $persistenceManager->persistAll();
+        }
         
     }
 	
@@ -326,7 +374,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         );
 
         //Prepare contact form contacttypes array:
-        $aContacttypes = array("DWF"=>"DWF", "DOT"=>"DOT", "Billing"=>"Billing", "Random"=>"Random");
+        $aContacttypes = array("DFW"=>"DFW", "DOT"=>"DOT", "Billing"=>"Billing", "Random"=>"Random");
 
         //Prepare form data:
         $aFormdata = array(

@@ -9,7 +9,7 @@ return array(
 		'dividers2tabs' => TRUE,
 		'versioningWS' => 2,
 		'versioning_followPages' => TRUE,
-
+                'default_sortby' => 'forperiod DESC',
 		'languageField' => 'sys_language_uid',
 		'transOrigPointerField' => 'l10n_parent',
 		'transOrigDiffSourceField' => 'l10n_diffsource',
@@ -23,10 +23,10 @@ return array(
 		'iconfile' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('nkcadportal') . 'Resources/Public/Icons/tx_nkcadportal_domain_model_newsletter.gif'
 	),
 	'interface' => array(
-		'showRecordFieldList' => 'hidden, title, forperiod, newslettertype, file',
+		'showRecordFieldList' => 'hidden, title, forperiod, newslettertype, file, t6uid',
 	),
 	'types' => array(
-		'1' => array('showitem' => 'hidden;;1, title, forperiod, newslettertype, file, --div--;Access, starttime, endtime'),
+		'1' => array('showitem' => 'hidden;;1, title, forperiod, newslettertype, file, --div--;Access, starttime, endtime, t6uid'),
 	),
 	'palettes' => array(
 		'1' => array('showitem' => ''),
@@ -109,7 +109,6 @@ return array(
 				'default' => 0
 			),
 		),
-
 		'title' => array(
 			'exclude' => 1,
 			'label' => 'LLL:EXT:nkcadportal/Resources/Private/Language/locallang_db.xlf:tx_nkcadportal_domain_model_newsletter.title',
@@ -174,10 +173,8 @@ return array(
 				'max' => 20,
 				'eval' => 'date',
 				'checkbox' => 0,
-				'default' => 0,
-				'range' => array(
-					'lower' => mktime(0, 0, 0, date('m'), date('d'), date('Y'))
-				),
+				'default' => 0
+				
 			),
 		),
 		'newslettertype' => array(
@@ -197,6 +194,15 @@ return array(
 		   'type' => 'passthrough',
 		  ]
 		],
-		
+		't6uid' => array(
+                        'exclude' => 0,
+                        'label' => 'Old T6 UID',
+                        'config' => array(
+                                'type' => 'input',
+                                'size' => 10,
+                                'eval' => 'int',
+                                'readOnly' => true
+                        ),
+                ),
 	),
 );

@@ -23,10 +23,10 @@ return array(
 		'iconfile' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('nkcadportal') . 'Resources/Public/Icons/tx_nkcadportal_domain_model_report.gif'
 	),
 	'interface' => array(
-		'showRecordFieldList' => 'hidden, title, sqlquery',
+		'showRecordFieldList' => 'hidden, title, filename, sqlquery',
 	),
 	'types' => array(
-		'1' => array('showitem' => 'hidden;;1, title, sqlquery, --div--;LLL:EXT:cms/locallang_ttc.xlf:tabs.access, starttime, endtime'),
+		'1' => array('showitem' => 'hidden;;1, title, filename, sqlquery, --div--;LLL:EXT:cms/locallang_ttc.xlf:tabs.access, starttime, endtime'),
 	),
 	'palettes' => array(
 		'1' => array('showitem' => ''),
@@ -123,6 +123,15 @@ return array(
 				'type' => 'input',
 				'size' => 30,
 				'eval' => 'trim,required'
+			),
+		),
+                'filename'=> array(
+			'exclude' => 0,
+			'label' => 'LLL:EXT:nkcadportal/Resources/Private/Language/locallang_db.xlf:tx_nkcadportal_domain_model_report.filename',
+			'config' => array(
+				'type' => 'input',
+				'size' => 30,
+				'eval' => 'trim'
 			),
 		),
 		'sqlquery' => array(

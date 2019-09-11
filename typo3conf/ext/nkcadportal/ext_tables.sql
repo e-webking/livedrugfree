@@ -21,6 +21,8 @@ CREATE TABLE fe_users (
 
 	tx_extbase_type varchar(255) DEFAULT 'Tx_Nkcadportal_CustomFrontendUser' NOT NULL,
 
+        t6uid int(11) DEFAULT '0' NOT NULL,
+
 );
 
 #
@@ -108,6 +110,7 @@ CREATE TABLE tx_nkcadportal_domain_model_membership (
 	sys_language_uid int(11) DEFAULT '0' NOT NULL,
 	l10n_parent int(11) DEFAULT '0' NOT NULL,
 	l10n_diffsource mediumblob,
+        t6uid int(11) DEFAULT '0' NOT NULL,
 
 	PRIMARY KEY (uid),
 	KEY parent (pid),
@@ -147,6 +150,7 @@ CREATE TABLE tx_nkcadportal_domain_model_newslettertype (
 	sys_language_uid int(11) DEFAULT '0' NOT NULL,
 	l10n_parent int(11) DEFAULT '0' NOT NULL,
 	l10n_diffsource mediumblob,
+        
 
 	PRIMARY KEY (uid),
 	KEY parent (pid),
@@ -165,7 +169,7 @@ CREATE TABLE tx_nkcadportal_domain_model_newsletter (
 
 	title varchar(255) DEFAULT '' NOT NULL,
 	file int(11) unsigned NOT NULL default '0',
-	forperiod varchar(255) DEFAULT '' NOT NULL,
+	forperiod int(11) unsigned DEFAULT '0' NOT NULL,
 	newslettertype int(11) unsigned DEFAULT '0',
 
 	tstamp int(11) unsigned DEFAULT '0' NOT NULL,
@@ -189,6 +193,7 @@ CREATE TABLE tx_nkcadportal_domain_model_newsletter (
 	sys_language_uid int(11) DEFAULT '0' NOT NULL,
 	l10n_parent int(11) DEFAULT '0' NOT NULL,
 	l10n_diffsource mediumblob,
+        t6uid int(11) DEFAULT '0' NOT NULL,
 
 	PRIMARY KEY (uid),
 	KEY parent (pid),
@@ -236,11 +241,12 @@ CREATE TABLE tx_nkcadportal_domain_model_contact (
 	sys_language_uid int(11) DEFAULT '0' NOT NULL,
 	l10n_parent int(11) DEFAULT '0' NOT NULL,
 	l10n_diffsource mediumblob,
+        t6uid int(11) DEFAULT '0' NOT NULL,
 
 	PRIMARY KEY (uid),
 	KEY parent (pid),
 	KEY t3ver_oid (t3ver_oid,t3ver_wsid),
- KEY language (l10n_parent,sys_language_uid)
+        KEY language (l10n_parent,sys_language_uid)
 
 );
 
@@ -279,6 +285,7 @@ CREATE TABLE tx_nkcadportal_domain_model_document (
 	sys_language_uid int(11) DEFAULT '0' NOT NULL,
 	l10n_parent int(11) DEFAULT '0' NOT NULL,
 	l10n_diffsource mediumblob,
+        t6uid int(11) DEFAULT '0' NOT NULL,
 
 	PRIMARY KEY (uid),
 	KEY parent (pid),
@@ -370,6 +377,7 @@ CREATE TABLE tx_nkcadportal_domain_model_reminder (
 	sys_language_uid int(11) DEFAULT '0' NOT NULL,
 	l10n_parent int(11) DEFAULT '0' NOT NULL,
 	l10n_diffsource mediumblob,
+        t6uid int(11) DEFAULT '0' NOT NULL,
 
 	PRIMARY KEY (uid),
 	KEY parent (pid),
@@ -388,6 +396,7 @@ CREATE TABLE tx_nkcadportal_domain_model_report (
 
 	title varchar(255) DEFAULT '' NOT NULL,
 	sqlquery text NOT NULL,
+        filename varchar(255) DEFAULT '' NOT NULL,
 
 	tstamp int(11) unsigned DEFAULT '0' NOT NULL,
 	crdate int(11) unsigned DEFAULT '0' NOT NULL,
@@ -453,6 +462,7 @@ CREATE TABLE tx_nkcadportal_domain_model_discountcode (
 	sys_language_uid int(11) DEFAULT '0' NOT NULL,
 	l10n_parent int(11) DEFAULT '0' NOT NULL,
 	l10n_diffsource mediumblob,
+        t6uid int(11) DEFAULT '0' NOT NULL,
 
 	PRIMARY KEY (uid),
 	KEY parent (pid),

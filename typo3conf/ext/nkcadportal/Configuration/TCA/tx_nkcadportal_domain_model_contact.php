@@ -24,10 +24,10 @@ return array(
 		'iconfile' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('nkcadportal') . 'Resources/Public/Icons/tx_nkcadportal_domain_model_contact.gif'
 	),
 	'interface' => array(
-		'showRecordFieldList' => 'hidden, firstname, lastname, title, email, phone, contacttype',
+		'showRecordFieldList' => 'hidden, firstname, lastname, title, email, phone, contacttype, t6uid',
 	),
 	'types' => array(
-		'1' => array('showitem' => 'hidden;;1, firstname, lastname, title, email, phone, contacttype, --div--;LLL:EXT:cms/locallang_ttc.xlf:tabs.access, starttime, endtime'),
+		'1' => array('showitem' => 'hidden;;1, firstname, lastname, title, email, phone, contacttype, --div--;LLL:EXT:cms/locallang_ttc.xlf:tabs.access, starttime, endtime, t6uid'),
 	),
 	'palettes' => array(
 		'1' => array('showitem' => ''),
@@ -169,7 +169,7 @@ return array(
 				'type' => 'select',
 				'renderType' => 'selectSingle',
 				'items' => array(
-					array('DWF', 'DWF'),
+					array('DFW', 'DFW'),
 					array('DOT', 'DOT'),
 					array('Billing', 'Billing'),
 					array('Random', 'Random'),
@@ -185,5 +185,15 @@ return array(
 				'type' => 'passthrough',
 			),
 		),
+                't6uid' => array(
+                        'exclude' => 0,
+                        'label' => 'Old T6 UID',
+                        'config' => array(
+                                'type' => 'input',
+                                'size' => 10,
+                                'eval' => 'int',
+                                'readOnly' => true
+                        ),
+                ),
 	),
 );

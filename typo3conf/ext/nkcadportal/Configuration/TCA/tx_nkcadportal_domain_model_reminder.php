@@ -24,10 +24,10 @@ return array(
 		'iconfile' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('nkcadportal') . 'Resources/Public/Icons/tx_nkcadportal_domain_model_reminder.gif'
 	),
 	'interface' => array(
-		'showRecordFieldList' => 'hidden, daysspan, whentosend, fieldcondition, sendtogroup, subject, message, states',
+		'showRecordFieldList' => 'hidden, daysspan, whentosend, fieldcondition, sendtogroup, subject, message, states, t6uid',
 	),
 	'types' => array(
-		'1' => array('showitem' => 'hidden;;1, daysspan, whentosend, fieldcondition, sendtogroup, subject, message;;;richtext:rte_transform[mode=ts_links], states, --div--;LLL:EXT:cms/locallang_ttc.xlf:tabs.access, starttime, endtime'),
+		'1' => array('showitem' => 'hidden;;1, daysspan, whentosend, fieldcondition, sendtogroup, subject, message;;;richtext:rte_transform[mode=ts_links], states, --div--;LLL:EXT:cms/locallang_ttc.xlf:tabs.access, starttime, endtime, t6uid'),
 	),
 	'palettes' => array(
 		'1' => array('showitem' => ''),
@@ -164,7 +164,7 @@ return array(
 				'type' => 'select',
 				'renderType' => 'selectSingle',
 				'items' => array(
-					array('DWF', 'DWF'),
+					array('DFW', 'DFW'),
 					array('DOT', 'DOT'),
 					array('DOT Consortium', 'DOT Consortium'),
 					array('DOT Random', 'DOT Random'),
@@ -216,6 +216,9 @@ return array(
 			'config' => array(
 				'type' => 'select',
 				'renderType' => 'selectMultipleSideBySide',
+                                'items' => array(
+					array('-- All States --', '-2'),
+                                ),
 				'foreign_table' => 'tx_nkcadportal_domain_model_state',
 				'MM' => 'tx_nkcadportal_reminder_state_mm',
 				'size' => 10,
@@ -251,6 +254,16 @@ return array(
 				),
 			),
 		),
+               't6uid' => array(
+                        'exclude' => 0,
+                        'label' => 'Old T6 UID',
+                        'config' => array(
+                                'type' => 'input',
+                                'size' => 10,
+                                'eval' => 'int',
+                                'readOnly' => true
+                        ),
+                ),
 		
 	),
 );

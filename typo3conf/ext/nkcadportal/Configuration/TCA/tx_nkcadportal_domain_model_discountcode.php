@@ -24,10 +24,10 @@ return array(
 		'iconfile' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('nkcadportal') . 'Resources/Public/Icons/tx_nkcadportal_domain_model_discountcode.gif'
 	),
 	'interface' => array(
-		'showRecordFieldList' => 'hidden, agency, code, description, discount',
+		'showRecordFieldList' => 'hidden, agency, code, description, discount, t6uid',
 	),
 	'types' => array(
-		'1' => array('showitem' => 'hidden;;1, agency, code, description, discount, --div--;LLL:EXT:cms/locallang_ttc.xlf:tabs.access, starttime, endtime'),
+		'1' => array('showitem' => 'hidden;;1, agency, code, description, discount, --div--;LLL:EXT:cms/locallang_ttc.xlf:tabs.access, starttime, endtime, t6uid'),
 	),
 	'palettes' => array(
 		'1' => array('showitem' => ''),
@@ -153,6 +153,16 @@ return array(
 				'eval' => 'double2,required'
 			)
 		),
+                't6uid' => array(
+                        'exclude' => 0,
+                        'label' => 'Old T6 UID',
+                        'config' => array(
+                                'type' => 'input',
+                                'size' => 10,
+                                'eval' => 'int',
+                                'readOnly' => true
+                        ),
+                ),
 		
 	),
 );

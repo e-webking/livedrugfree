@@ -10,6 +10,9 @@ $(document).ready(function(){
 		$("#"+$target+"_wrapper").show();
 	});
 	
+        $('.datatable').dataTable({
+            "iDisplayLength": 25
+        });
 });
 
 

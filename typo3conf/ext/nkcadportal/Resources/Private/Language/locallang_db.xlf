@@ -175,6 +175,9 @@
 			<trans-unit id="tx_nkcadportal_domain_model_report.title">
 				<source>Title</source>
 			</trans-unit>
+                        <trans-unit id="tx_nkcadportal_domain_model_report.filename">
+				<source>File name</source>
+			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_report.sqlquery">
 				<source>SQL query</source>
 			</trans-unit>

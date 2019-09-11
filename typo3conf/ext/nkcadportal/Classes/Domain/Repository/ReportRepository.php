@@ -31,6 +31,5 @@ namespace Netkyngs\Nkcadportal\Domain\Repository;
  */
 class ReportRepository extends \TYPO3\CMS\Extbase\Persistence\Repository
 {
-
     
 }

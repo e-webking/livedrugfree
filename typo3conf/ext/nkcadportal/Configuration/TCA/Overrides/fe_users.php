@@ -212,6 +212,16 @@ $tmp_nkcadportal_columns = array(
 		),
 
 	),
+        't6uid' => array(
+		'exclude' => 0,
+		'label' => 'Old T6 UID',
+		'config' => array(
+			'type' => 'input',
+			'size' => 10,
+			'eval' => 'int',
+                        'readOnly' => true
+		),
+	),
 );
 
 
@@ -306,7 +316,7 @@ $GLOBALS['TCA']['fe_users']['columns'][$GLOBALS['TCA']['fe_users']['ctrl']['type
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
 	'fe_users',
-	'state,county',
+	'state,county,t6uid',
 	'',
 	'after:city'
 );
