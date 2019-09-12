@@ -30,6 +30,10 @@ if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('armpdfkit')) {
     require_once(\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('armpdfkit').'Classes/Pdf/Pdf.php');
 }
 
+use \TYPO3\CMS\Backend\Utility\BackendUtility;
+use \TYPO3\CMS\Core\Utility\GeneralUtility;
+use \TYPO3\CMS\Core\Database\ConnectionPool;
+
 /**
  * CustomFrontendUserController
  */
@@ -140,15 +144,16 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
      */
     public function listAction()
     {
-		
-	//Get members:
-        $members = $this->frontendUserRepository->findAll();
+        
+        /*
+	// Now polulated trough AJAX call	
+                //Get members:
+                $members = $this->frontendUserRepository->findAll();
         $this->view->assign('members', $members);
 		
 		//Get membershiptemplates:
 		$membershiptemplates = $this->membershipTemplateRepository->findAll();
-        $this->view->assign('membershiptemplates', $membershiptemplates);
-		
+        $this->view->assign('membershiptemplates', $membershiptemplates);	
 		//Get the newsletters:
 		$newsletters = $this->newsletterRepository->findAll();
 		foreach($newsletters as $newsletter){
@@ -160,7 +165,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                         }
 		}
         $this->view->assign('newsletters', $newsletters);
-		
+        
 		//Get the documents:
 		$documents = $this->documentRepository->findAll();
 		foreach($documents as $document){
@@ -171,7 +176,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                         $document->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
                     }
 		}
-        //$this->view->assign('documents', $documents);
+        $this->view->assign('documents', $documents);
 		
 		//Get the reminders:
 		$reminders = $this->reminderRepository->findAll();
@@ -179,18 +184,671 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 			$reminder->sendoptionsstring = $reminder->getDaysspan()." days ".$reminder->getWhentosend()." ".$reminder->getFieldcondition()." ".$reminder->getSendtogroup();
 		}
         $this->view->assign('reminders', $reminders);
-		
+	
 		//Get reports:
 		$reports = $this->reportRepository->findAll();
         $this->view->assign('reports', $reports);
-		
+	
 		//Get discount codes:
 		$codes = $this->discountcodeRepository->findAll();
         $this->view->assign('codes', $codes);
-		
+	*/
     }
-	
-	/**
+    
+    /**
+     * AJAX action get members
+     * @param array $params
+     * @param  \TYPO3\CMS\Core\Http\AjaxRequestHandler $ajaxObj
+     */
+    public function getMembersAction(\Psr\Http\Message\ServerRequestInterface $request,
+    \Psr\Http\Message\ResponseInterface $response) {
+         $params = $request->getParsedBody();
+        /*
+        $memArr[] = [
+                    'uid' => 1,
+                    'company' => 'Company',
+                    'fein' => 'FEIN1',
+                    'address' => 'Address 1',
+                    'name' => 'Name 1',
+                    'telephone' => 'Tel 1',
+                    'email' => 'email1@email.com'
+                ];
+        */
+        $memArr = [];
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('fe_users');
+        $queryBuilder->getRestrictions()->removeAll();
+        $rows = $queryBuilder->select('uid','company','fein','address','first_name','last_name','telephone','email')
+            ->from('fe_users')
+            ->where(
+                $queryBuilder->expr()->eq('deleted', 0),
+                $queryBuilder->expr()->eq('disable', 0)
+            )
+            ->execute()
+            ->fetchAll();
+        if (count($rows) > 0) {
+            foreach ($rows as $data) {
+                $memArr[] = [
+                        'uid' => $data['uid'],
+                        'edit' => $this->getMemberEditUrl($data['uid']),
+                        'option' => $this->getMemberOptionUrl($data['uid']),
+                        'company' => $data['company'],
+                        'fein' => $data['fein'],
+                        'address' => $data['address'],
+                        'name' => $data['first_name'].' '.$data['last_name'],
+                        'telephone' => $data['telephone'],
+                        'email' => '<a href="mailto:'.$data['email'].'">'.$data['email'].'</a>'
+                    ];
+            }
+        }
+        $arr['data'] = $memArr;
+        $json = $this->array2Json($arr);
+        $response->getBody()->write($json);
+        $response->withHeader('Cache-Control', 'no-cache, must-revalidate');
+        $response->withHeader('Content-Type', 'application/json;charset=utf-8');
+        
+        return $response;
+    }
+    
+    /**
+     * 
+     * @param int $uid
+     * @return string
+     */
+    protected function getMemberEditUrl($uid)
+    {
+        $editUserAccountUrl = BackendUtility::getModuleUrl('record_edit', array('edit[fe_users][' . $uid . ']' => 'edit', 'returnUrl' => BackendUtility::getModuleUrl('web_NkcadportalNkcadportalbe')));
+         
+        return '<a href="'.$editUserAccountUrl.'"><i class="fa fa-pencil"></i></a>';
+    }
+    
+    /**
+     * 
+     * @param int $uid
+     * @return string
+     */
+    protected function getMemberOptionUrl($uid) {
+        
+        return '<i class="fa fa-eye-slash" onclick="performAjaxAction(\'36\', \'hide-member\', \''. $uid .'\', true);"></i> <i class="fa fa-trash" onclick="performAjaxAction(\'36\', \'delete-member\', \''. $uid .'\', true);"></i>';
+    }
+    
+    /**
+     * AJAX action get members
+     * @param array $params
+     * @param  \TYPO3\CMS\Core\Http\AjaxRequestHandler $ajaxObj
+     */
+    public function getMembershipAction(\Psr\Http\Message\ServerRequestInterface $request,
+        \Psr\Http\Message\ResponseInterface $response) {
+         $params = $request->getParsedBody();
+         
+        $memArr = [];
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tx_nkcadportal_domain_model_membershiptemplate');
+        $queryBuilder->getRestrictions()->removeAll();
+        $rows = $queryBuilder->select('uid','description','membershiptype','price','term')
+            ->from('tx_nkcadportal_domain_model_membershiptemplate')
+            ->where(
+                $queryBuilder->expr()->eq('deleted', 0),
+                $queryBuilder->expr()->eq('hidden', 0)
+            )
+            ->execute()
+            ->fetchAll();
+        if (count($rows) > 0) {
+            foreach ($rows as $data) {
+                $memArr[] = [
+                        'uid' => $data['uid'],
+                        'edit' => $this->getMembershipEditUrl($data['uid']),
+                        'option' => $this->getMembershipOptionUrl($data['uid']),
+                        'description' => $data['description'],
+                        'membershiptype' => $data['membershiptype'],
+                        'price' => $data['price'],
+                        'term' => $data['term'],
+                        'includednewsletters' => $this->getIncludedNewsletters($data['uid'])
+                    ];
+            }
+        }
+        $arr['data'] = $memArr;
+        $json = $this->array2Json($arr);
+        $response->getBody()->write($json);
+        $response->withHeader('Cache-Control', 'no-cache, must-revalidate');
+        $response->withHeader('Content-Type', 'application/json;charset=utf-8');
+        
+        return $response;
+    }
+    
+    /**
+     * 
+     * @param int $uid
+     * @return string
+     */
+    protected function getMembershipEditUrl($uid)
+    {
+        $editUrl = BackendUtility::getModuleUrl('record_edit', array('edit[tx_nkcadportal_domain_model_membershiptemplate][' . $uid . ']' => 'edit', 'returnUrl' => BackendUtility::getModuleUrl('web_NkcadportalNkcadportalbe')));
+         
+        return '<a href="'.$editUrl.'"><i class="fa fa-pencil"></i></a>';
+    }
+    
+    /**
+     * 
+     * @param int $uid
+     * @return string
+     */
+    protected function getMembershipOptionUrl($uid) {
+        
+        return '<i class="fa fa-eye-slash" onclick="performAjaxAction(\'36\', \'hide-membership\', \''. $uid .'\', true);"></i> <i class="fa fa-trash" onclick="performAjaxAction(\'36\', \'delete-membership\', \''. $uid .'\', true);"></i>';
+    }
+
+    /**
+     * 
+     * @param int $uid
+     * @return string
+     */
+    protected function getIncludedNewsletters($uid) {
+        
+        $return = '';
+        
+        $foreign = 'tx_nkcadportal_domain_model_newslettertype';
+        $mm = 'tx_nkcadportal_membershiptemplate_newslettertype_mm';
+        $local = 'tx_nkcadportal_domain_model_membershiptemplate';
+        
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
+        $expr = $queryBuilder->expr();
+        
+        $queryBuilder->getRestrictions()->removeAll();
+        $rows = $queryBuilder->select('foreign.name')
+            ->from($foreign, 'foreign')
+            ->innerJoin('foreign', $mm, 'mm', $expr->eq('foreign.uid','mm.uid_foreign'))
+            ->innerJoin('mm', $local, 'local', $expr->eq('mm.uid_local', 'local.uid'))
+            ->where(
+                $expr->eq('local.uid', $uid)
+            )
+            ->execute()
+            ->fetchAll();
+        if (count($rows) > 0) {
+            foreach ($rows as $ndata) {
+                 $return .= $ndata['name'].'<span class="comma-seperator">,</span> ';
+            }
+        }
+        
+        return $return;
+    }
+    
+    /**
+     * 
+     * @param \Psr\Http\Message\ServerRequestInterface $request
+     * @param \Psr\Http\Message\ResponseInterface $response
+     */
+    public function getNewsletterAction(\Psr\Http\Message\ServerRequestInterface $request,
+        \Psr\Http\Message\ResponseInterface $response) {
+        
+        $newsArr = [];
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tx_nkcadportal_domain_model_newsletter');
+        $queryBuilder->getRestrictions()->removeAll();
+        $rows = $queryBuilder->select('uid','title','file','newslettertype')
+            ->from('tx_nkcadportal_domain_model_newsletter')
+            ->where(
+                $queryBuilder->expr()->eq('deleted', 0),
+                $queryBuilder->expr()->eq('hidden', 0)
+            )
+            ->execute()
+            ->fetchAll();
+        if (count($rows) > 0) {
+            foreach ($rows as $data) {
+                $newsArr[] = [
+                        'uid' => $data['uid'],
+                        'edit' => $this->getNlEditUrl($data['uid']),
+                        'option' => $this->getNlOptionUrl($data['uid']),
+                        'title' => $data['title'],
+                        'newslettertype' => $this->getNewsletterType($data['newslettertype']),
+                        'download' => $this->getNlDownload($data['uid'])
+                    ];
+            }
+        }
+        $arr['data'] = $newsArr;
+        $json = $this->array2Json($arr);
+        $response->getBody()->write($json);
+        $response->withHeader('Cache-Control', 'no-cache, must-revalidate');
+        $response->withHeader('Content-Type', 'application/json;charset=utf-8');
+        
+        return $response;
+        
+    }
+    
+    /**
+     * 
+     * @param int $uid
+     * @return string
+     */
+    protected function getNewsletterType($uid) {
+        
+        $return = '';
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tx_nkcadportal_domain_model_newslettertype');
+        $queryBuilder->getRestrictions()->removeAll();
+        $rows = $queryBuilder->select('name')
+            ->from('tx_nkcadportal_domain_model_newslettertype')
+            ->where(
+                $queryBuilder->expr()->eq('uid', $uid)
+            )
+            ->execute()
+            ->fetchAll();
+        return $rows[0]['name'];
+    }
+    
+    /**
+     * 
+     * @param int $uid
+     * @return string
+     */
+    protected function getNlEditUrl($uid)
+    {
+        $editUrl = BackendUtility::getModuleUrl('record_edit', array('edit[tx_nkcadportal_domain_model_newsletter][' . $uid . ']' => 'edit', 'returnUrl' => BackendUtility::getModuleUrl('web_NkcadportalNkcadportalbe')));
+         
+        return '<a href="'.$editUrl.'"><i class="fa fa-pencil"></i></a>';
+    }
+    
+    /**
+     * 
+     * @param int $uid
+     * @return string
+     */
+    protected function getNlOptionUrl($uid) {
+        
+        return '<i class="fa fa-eye-slash" onclick="performAjaxAction(\'36\', \'hide-newsletter\', \''. $uid .'\', true);"></i> <i class="fa fa-trash" onclick="performAjaxAction(\'36\', \'delete-newsletter\', \''. $uid .'\', true);"></i>';
+    }
+    
+    /**
+     * 
+     * @param int $uid
+     * @return string 
+     */
+    protected function getNlDownload($uid) {
+        
+        $return = '';
+        
+        $foreign = 'sys_file_reference';
+        $local = 'tx_nkcadportal_domain_model_newsletter';
+        
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
+        $expr = $queryBuilder->expr();
+        
+        $queryBuilder->getRestrictions()->removeAll();
+        $rows = $queryBuilder->select('foreign.uid_local')
+            ->from($foreign, 'foreign')
+            ->innerJoin('foreign', $local, 'local', $expr->eq('foreign.uid_foreign','local.uid'))
+            ->where(
+                $expr->eq('local.uid', $uid),
+                $expr->eq('foreign.deleted', 0),
+                $expr->eq('foreign.hidden', 0),
+                $expr->eq('foreign.tablenames', $queryBuilder->createNamedParameter($local)),
+                $expr->eq('foreign.fieldname', $queryBuilder->createNamedParameter('file'))
+            )
+            ->execute()
+            ->fetchAll();
+        
+        if (count($rows) > 0) {
+            
+            $fdata = $rows[0];
+            $resFac = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
+            $fileObj = $resFac->getFileObject($fdata['uid_local']);
+            
+            if (!is_null($fileObj)) {
+                
+                $url = $fileObj->getPublicUrl();
+                $fname = $fileObj->getName();
+                
+                $return = '<a href="/index.php?id=36&action=serve-download&filepath='. $url .'&friendlyfilename='. $fname.'">'.$fname.'</a>';
+            }
+        }
+        
+        return $return;
+    }
+    
+    /**
+     * 
+     * @param \Psr\Http\Message\ServerRequestInterface $request
+     * @param \Psr\Http\Message\ResponseInterface $response
+     * @return \Psr\Http\Message\ResponseInterface
+     */
+    public function getDocumentAction(\Psr\Http\Message\ServerRequestInterface $request,
+        \Psr\Http\Message\ResponseInterface $response) {
+        
+        $docArr = [];
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tx_nkcadportal_domain_model_document');
+        $queryBuilder->getRestrictions()->removeAll();
+        $rows = $queryBuilder->select('uid','title','file')
+            ->from('tx_nkcadportal_domain_model_document')
+            ->where(
+                $queryBuilder->expr()->eq('deleted', 0),
+                $queryBuilder->expr()->eq('hidden', 0)
+            )
+            ->execute()
+            ->fetchAll();
+        if (count($rows) > 0) {
+            foreach ($rows as $data) {
+                $docArr[] = [
+                        'uid' => $data['uid'],
+                        'edit' => $this->getDocEditUrl($data['uid']),
+                        'option' => $this->getDocOptionUrl($data['uid']),
+                        'title' => $data['title'],
+                        'download' => $this->getDocDownload($data['uid'])
+                    ];
+            }
+        }
+        $arr['data'] = $docArr;
+        $json = $this->array2Json($arr);
+        $response->getBody()->write($json);
+        $response->withHeader('Cache-Control', 'no-cache, must-revalidate');
+        $response->withHeader('Content-Type', 'application/json;charset=utf-8');
+        
+        return $response;
+        
+    }
+
+    /**
+     * 
+     * @param int $uid
+     * @return string
+     */
+    protected function getDocEditUrl($uid)
+    {
+        $editUrl = BackendUtility::getModuleUrl('record_edit', array('edit[tx_nkcadportal_domain_model_document][' . $uid . ']' => 'edit', 'returnUrl' => BackendUtility::getModuleUrl('web_NkcadportalNkcadportalbe')));
+         
+        return '<a href="'.$editUrl.'"><i class="fa fa-pencil"></i></a>';
+    }
+    
+    /**
+     * 
+     * @param int $uid
+     * @return string
+     */
+    protected function getDocOptionUrl($uid) {
+        
+        return '<i class="fa fa-eye-slash" onclick="performAjaxAction(\'36\', \'hide-document\', \''. $uid .'\', true);"></i> <i class="fa fa-trash" onclick="performAjaxAction(\'36\', \'delete-document\', \''. $uid .'\', true);"></i>';
+    }
+    
+    /**
+     * 
+     * @param int $uid
+     * @return string 
+     */
+    protected function getDocDownload($uid) {
+        
+        $return = '';
+        
+        $foreign = 'sys_file_reference';
+        $local = 'tx_nkcadportal_domain_model_document';
+        
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
+        $expr = $queryBuilder->expr();
+        
+        $queryBuilder->getRestrictions()->removeAll();
+        $rows = $queryBuilder->select('foreign.uid_local')
+            ->from($foreign, 'foreign')
+            ->innerJoin('foreign', $local, 'local', $expr->eq('foreign.uid_foreign','local.uid'))
+            ->where(
+                $expr->eq('local.uid', $uid),
+                $expr->eq('foreign.deleted', 0),
+                $expr->eq('foreign.hidden', 0),
+                $expr->eq('foreign.tablenames', $queryBuilder->createNamedParameter($local)),
+                $expr->eq('foreign.fieldname', $queryBuilder->createNamedParameter('file'))
+            )
+            ->execute()
+            ->fetchAll();
+        
+        if (count($rows) > 0) {
+            
+            $fdata = $rows[0];
+            $resFac = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
+            $fileObj = $resFac->getFileObject($fdata['uid_local']);
+            
+            if (!is_null($fileObj)) {
+                
+                $url = $fileObj->getPublicUrl();
+                $fname = $fileObj->getName();
+                
+                $return = '<a href="/index.php?id=36&action=serve-download&filepath='. $url .'&friendlyfilename='. $fname.'">'.$fname.'</a>';
+            }
+        }
+        
+        return $return;
+    }
+    
+    /**
+     * 
+     * @param \Psr\Http\Message\ServerRequestInterface $request
+     * @param \Psr\Http\Message\ResponseInterface $response
+     * @return \Psr\Http\Message\ResponseInterface
+     */
+    public function getReminderAction(\Psr\Http\Message\ServerRequestInterface $request,
+        \Psr\Http\Message\ResponseInterface $response) {
+        
+        $remArr = [];
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tx_nkcadportal_domain_model_reminder');
+        $queryBuilder->getRestrictions()->removeAll();
+        $rows = $queryBuilder->select('uid','daysspan','whentosend','fieldcondition','sendtogroup','subject')
+            ->from('tx_nkcadportal_domain_model_reminder')
+            ->where(
+                $queryBuilder->expr()->eq('deleted', 0),
+                $queryBuilder->expr()->eq('hidden', 0)
+            )
+            ->execute()
+            ->fetchAll();
+        if (count($rows) > 0) {
+            foreach ($rows as $data) {
+                $remArr[] = [
+                        'uid' => $data['uid'],
+                        'edit' => '<i class="fa fa-bell"></i>',
+                        'option' => $this->getRemEditUrl($data['uid']).' '.$this->getRemOptionUrl($data['uid']),
+                        'subject' => $data['subject'],
+                        'sendoptionsstring' => $data['daysspan'].' days '.$data['whentosend'].' '.$data['fieldcondition'].' '.$data['sendtogroup'],
+                        'states' => $this->getRemStates($data['uid'])
+                    ];
+            }
+        }
+        $arr['data'] = $remArr;
+        $json = $this->array2Json($arr);
+        $response->getBody()->write($json);
+        $response->withHeader('Cache-Control', 'no-cache, must-revalidate');
+        $response->withHeader('Content-Type', 'application/json;charset=utf-8');
+        
+        return $response;
+        
+    }
+    
+
+    /**
+     * 
+     * @param int $uid
+     * @return string
+     */
+    protected function getRemEditUrl($uid)
+    {
+        $editUrl = BackendUtility::getModuleUrl('record_edit', array('edit[tx_nkcadportal_domain_model_reminder][' . $uid . ']' => 'edit', 'returnUrl' => BackendUtility::getModuleUrl('web_NkcadportalNkcadportalbe')));
+         
+        return '<a href="'.$editUrl.'"><i class="fa fa-pencil"></i></a>';
+    }
+    
+    /**
+     * 
+     * @param int $uid
+     * @return string
+     */
+    protected function getRemOptionUrl($uid) {
+        
+        return '<i class="fa fa-eye-slash" onclick="performAjaxAction(\'36\', \'hide-reminder\', \''. $uid .'\', true);"></i> <i class="fa fa-trash" onclick="performAjaxAction(\'36\', \'delete-reminder\', \''. $uid .'\', true);"></i>';
+    }
+    
+    /**
+     * 
+     * @param int $uid
+     * @return string
+     */
+    protected function getRemStates($uid) {
+        
+        $return = '';
+        
+        $foreign = 'tx_nkcadportal_domain_model_state';
+        $mm = 'tx_nkcadportal_reminder_state_mm';
+        $local = 'tx_nkcadportal_domain_model_reminder';
+        
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
+        $expr = $queryBuilder->expr();
+        
+        $queryBuilder->getRestrictions()->removeAll();
+        $rows = $queryBuilder->select('foreign.state')
+            ->from($foreign, 'foreign')
+            ->innerJoin('foreign', $mm, 'mm', $expr->eq('foreign.uid','mm.uid_foreign'))
+            ->innerJoin('mm', $local, 'local', $expr->eq('mm.uid_local', 'local.uid'))
+            ->where(
+                $expr->eq('local.uid', $uid)
+            )
+            ->execute()
+            ->fetchAll();
+        if (count($rows) > 0) {
+            foreach ($rows as $ndata) {
+                 $return .= $ndata['state'].'<span class="comma-seperator">,</span> ';
+            }
+        }
+        
+        return $return;
+    }
+    
+    /**
+     * 
+     * @param \Psr\Http\Message\ServerRequestInterface $request
+     * @param \Psr\Http\Message\ResponseInterface $response
+     * @return \Psr\Http\Message\ResponseInterface
+     */
+    public function getReportAction(\Psr\Http\Message\ServerRequestInterface $request,
+        \Psr\Http\Message\ResponseInterface $response) {
+        
+        $remArr = [];
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tx_nkcadportal_domain_model_report');
+        $queryBuilder->getRestrictions()->removeAll();
+        $rows = $queryBuilder->select('uid','title')
+            ->from('tx_nkcadportal_domain_model_report')
+            ->where(
+                $queryBuilder->expr()->eq('deleted', 0),
+                $queryBuilder->expr()->eq('hidden', 0)
+            )
+            ->execute()
+            ->fetchAll();
+        if (count($rows) > 0) {
+            foreach ($rows as $data) {
+                $remArr[] = [
+                        'uid' => $data['uid'],
+                        'edit' => '<i class="fa fa-bell"></i>',
+                        'option' => $this->getRepEditUrl($data['uid']).' '.$this->getRepOptionUrl($data['uid']),
+                        'title' => $data['title'],
+                        'csv' => $this->getRepCsv($data['uid'])
+                    ];
+            }
+        }
+        $arr['data'] = $remArr;
+        $json = $this->array2Json($arr);
+        $response->getBody()->write($json);
+        $response->withHeader('Cache-Control', 'no-cache, must-revalidate');
+        $response->withHeader('Content-Type', 'application/json;charset=utf-8');
+        
+        return $response;
+    }
+    
+    /**
+     * 
+     * @param int $uid
+     * @return string
+     */
+    protected function getRepEditUrl($uid)
+    {
+        $editUrl = BackendUtility::getModuleUrl('record_edit', array('edit[tx_nkcadportal_domain_model_report][' . $uid . ']' => 'edit', 'returnUrl' => BackendUtility::getModuleUrl('web_NkcadportalNkcadportalbe')));
+         
+        return '<a href="'.$editUrl.'"><i class="fa fa-pencil"></i></a>';
+    }
+    
+    /**
+     * 
+     * @param int $uid
+     * @return string
+     */
+    protected function getRepOptionUrl($uid) {
+        
+        return '<i class="fa fa-trash" onclick="performAjaxAction(\'36\', \'delete-report\', \''. $uid .'\', true);"></i>';
+    }
+    
+    /**
+     * 
+     * @param int $uid
+     * @return string
+     */
+    protected function getRepCsv($uid)
+    {
+         
+        return '<a href="/index.php?id=36&action=serve-csv-report&uid='.$uid.'"><i class="fa fa-file"></i></a>';
+    }
+    
+    /**
+     * 
+     * @param \Psr\Http\Message\ServerRequestInterface $request
+     * @param \Psr\Http\Message\ResponseInterface $response
+     * @return \Psr\Http\Message\ResponseInterface
+     */
+    public function getDiscountAction(\Psr\Http\Message\ServerRequestInterface $request,
+        \Psr\Http\Message\ResponseInterface $response) {
+        
+        $codeArr = [];
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tx_nkcadportal_domain_model_discountcode');
+        $queryBuilder->getRestrictions()->removeAll();
+        $rows = $queryBuilder->select('uid','agency','code','description','discount')
+            ->from('tx_nkcadportal_domain_model_discountcode')
+            ->where(
+                $queryBuilder->expr()->eq('deleted', 0),
+                $queryBuilder->expr()->eq('hidden', 0)
+            )
+            ->execute()
+            ->fetchAll();
+        if (count($rows) > 0) {
+            foreach ($rows as $data) {
+                $codeArr[] = [
+                        'uid' => $data['uid'],
+                        'dollar' => '<i class="fa fa-dollar"></i>',
+                        'option' => $this->getCodeEditUrl($data['uid']).' '.$this->getCodeOptionUrl($data['uid']),
+                        'agency' => $data['agency'],
+                        'description' => $data['description'],
+                        'code' => $data['code'],
+                        'discount' => '$'.number_format($data['discount'], 2, '.', ',')
+                    ];
+            }
+        }
+        $arr['data'] = $codeArr;
+        $json = $this->array2Json($arr);
+        $response->getBody()->write($json);
+        $response->withHeader('Cache-Control', 'no-cache, must-revalidate');
+        $response->withHeader('Content-Type', 'application/json;charset=utf-8');
+        
+        return $response;
+    }
+    
+    /**
+     * 
+     * @param int $uid
+     * @return string
+     */
+    protected function getCodeEditUrl($uid)
+    {
+        $editUrl = BackendUtility::getModuleUrl('record_edit', array('edit[tx_nkcadportal_domain_model_discountcode][' . $uid . ']' => 'edit', 'returnUrl' => BackendUtility::getModuleUrl('web_NkcadportalNkcadportalbe')));
+         
+        return '<a href="'.$editUrl.'"><i class="fa fa-pencil"></i></a>';
+    }
+    
+    /**
+     * 
+     * @param int $uid
+     * @return string
+     */
+    protected function getCodeOptionUrl($uid) {
+        
+        return '<i class="fa fa-eye-slash" onclick="performAjaxAction(\'36\', \'hide-code\', \''. $uid .'\', true);"></i> <i class="fa fa-trash" onclick="performAjaxAction(\'36\', \'delete-code\', \''. $uid .'\', true);"></i>';
+    }
+    
+    /**
      * action ajaxbe
      * 
      * @return void
@@ -706,4 +1364,16 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 		return $result;
 	}
 
-}
+
+
+        /**
+         * 
+         * @param array $arr
+         * @return string
+         */
+         protected function array2Json($arr)
+         {
+           return json_encode($arr);
+         }
+ 
+ }
