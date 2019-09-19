@@ -144,7 +144,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
      */
     public function listAction()
     {
-        
+        $this->view->assign('time', time()); 
         /*
 	// Now polulated trough AJAX call	
                 //Get members:
