@@ -58,8 +58,8 @@ function migrateData($start) {
             mysqli_query($GLOBALS['connect'], "set character_set_server='utf8'");
             mysqli_query($GLOBALS['connect'], "SET NAMES 'utf8'");
 
-            $query = "INSERT INTO " . DBNEW . ".tx_nkcadportal_domain_model_membership (pid, crdate, tstamp, cruser_id, deleted, hidden, customfrontenduser, membershiptemplate, state, starttimecustom, endtimecustom, t6uid) ";
-            $query .= "VALUES (". $GLOBALS['pid']['tx_nkcadportal_domain_model_membership'] .",'". $feRw['crdate'] ."','". $feRw['tstamp'] ."','". $feRw['cruser_id'] ."','". $feRw['deleted'] ."','". $feRw['hidden'] ."','".$newfeuseruid."','".$membershiptemplateuid."', '".$stateuid."', '".$renew."', '".$expire."', ".$olduid.")";
+            $query = "INSERT INTO " . DBNEW . ".tx_nkcadportal_domain_model_membership (pid, crdate, tstamp, cruser_id, deleted, hidden, customfrontenduser, membershiptemplate, state, starttimecustom, endtimecustom, statestarttimecustom, stateendtimecustom, t6uid) ";
+            $query .= "VALUES (". $GLOBALS['pid']['tx_nkcadportal_domain_model_membership'] .",'". $feRw['crdate'] ."','". $feRw['tstamp'] ."','". $feRw['cruser_id'] ."','". $feRw['deleted'] ."','". $feRw['hidden'] ."','".$newfeuseruid."','".$membershiptemplateuid."', '".$stateuid."', '".$renew."', '".$expire."','". $dcertoriginal ."','". $dcertrenewed ."', ".$olduid.")";
             mysqli_query($GLOBALS['connect'], $query) or die(__LINE__ ."<br>\n================\n<br>$olduid: $query<br> ".mysqli_error($GLOBALS['connect']));
             // Get the new uid
             $newId = mysqli_insert_id($GLOBALS['connect']);
@@ -72,7 +72,7 @@ function migrateData($start) {
             mysqli_query($GLOBALS['connect'], "set character_set_server='utf8'");
             mysqli_query($GLOBALS['connect'], "SET NAMES 'utf8'");
 
-            $query = "UPDATE " . DBNEW . ".tx_nkcadportal_domain_model_membership SET tstamp='".$feRw['tstamp']."', cruser_id=".$feRw['cruser_id'].", deleted=".$feRw['deleted'].", hidden='".$feRw['hidden']."', customfrontenduser='".$newfeuseruid."', membershiptemplate='".$membershiptemplateuid."', state='".$stateuid."', starttimecustom='".$renew."', endtimecustom='".$expire."' WHERE uid=".$newId;
+            $query = "UPDATE " . DBNEW . ".tx_nkcadportal_domain_model_membership SET tstamp='".$feRw['tstamp']."', cruser_id=".$feRw['cruser_id'].", deleted=".$feRw['deleted'].", hidden='".$feRw['hidden']."', customfrontenduser='".$newfeuseruid."', membershiptemplate='".$membershiptemplateuid."', state='".$stateuid."', starttimecustom='".$renew."', endtimecustom='".$expire."', statestarttimecustom='".$dcertoriginal."', stateendtimecustom='".$dcertrenewed."' WHERE uid=".$newId;
             mysqli_query($GLOBALS['connect'], $query) or die(__LINE__.': '. mysqli_error($GLOBALS['connect']));
 
         }

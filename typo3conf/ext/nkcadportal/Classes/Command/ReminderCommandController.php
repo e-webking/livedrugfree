@@ -89,13 +89,188 @@ class ReminderCommandController
                     $this->membershipExpiryReminders($row);
                     break;
                 case 'statecertexpire':
+                    $this->stateExpiryReminders($row);
                     break;
                 case 'newsletterstartdate':
+                    $this->newsletterReminders($row);
                     break;
             }
             
         }
         
+        /**
+         * 
+         * @param array $data
+         */
+        protected function newsletterReminders($data) {
+            
+            $days = $data['daysspan'];
+            $whentosend = $data['whentosend'];
+            $mType = $data['sendtogroup'];
+            $date = $this->determineDate($days, $whentosend);
+            $today = date("d-m-Y");
+            $activeTimestampArr = $this->convertDate($today);
+            
+            $grpUid = $this->getGroupUidByTitle($mType);
+            //now get the membership templates
+            $memTplArr = $this->getMembershipTemplatesByGrp($grpUid);
+            
+            if (count($memTplArr) > 0) {
+                
+                foreach ($memTplArr as $mtpluid) {
+                    // Find the newletter type
+                    $nlTypeArr = $this->getNewsletterTypeByMmtpl($mtpluid);
+                    
+                    if (count($nlTypeArr) > 0) {
+                        //get all the newsletter within the date
+                        foreach ($nlTypeArr as $nltypuid) {
+                            
+                            //Check whether there is newsletter for this date
+                            $flag = $this->checkNewsLetter($nltypuid, $date);
+                            
+                            if ($flag) {   
+                                $this->macroProcessNewsletter($data, $mType, $mtpluid, $activeTimestampArr);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        /**
+         * 
+         * @param array $data
+         * @param int $grpuid
+         * @param int $mtpluid
+         * @param array $activeTimestampArr
+         */
+        protected function macroProcessNewsletter($data, $grpuid, $mtpluid, $activeTimestampArr)
+        {
+            //Get all the active members of this membership
+            //Check the states where the newsletter goes out
+            if ($data['states'] !=  "-2") {
+                $statesUidArr = $this->getStatesUid($data['uid']);
+            }
+
+            //now get all the membership that has the state and this memshiptemplate
+            $foreign = 'fe_users';
+            $local = 'tx_nkcadportal_domain_model_membership';
+            $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
+            $queryBuilder->getRestrictions()->removeAll();
+            $expr = $queryBuilder->expr();
+            $andCond = $queryBuilder->expr()->andx();
+            $andCond->add($expr->eq('foreign.deleted', 0));
+            $andCond->add($expr->eq('foreign.disable', 0));
+            $andCond->add($expr->eq('local.deleted', 0));
+            $andCond->add($expr->eq('local.hidden', 0));
+            $andCond->add($expr->eq('local.membershiptemplate',  $mtpluid));
+            $andCond->add($expr->lt('local.starttimecustom', $activeTimestampArr[0]));
+            $andCond->add($expr->gt('local.endtimecustom', $activeTimestampArr[1]));
+
+            // Only send to these states
+            if ($statesUidArr > 0) {
+                $andCond->add($expr->in('local.state',  $statesUidArr));
+            }
+
+            $qbReady = $queryBuilder->select('foreign.uid', 'email','first_name', 'last_name')
+                        ->from($foreign, 'foreign')
+                        ->innerJoin('foreign', $local, 'local', $expr->eq('foreign.uid','local.customfrontenduser'))
+                        ->andWhere($andCond);
+
+            //echo __LINE__.':DEBUG:' . $queryBuilder->getSQL().'<br>';
+
+            $rows = $qbReady->execute()->fetchAll();
+
+            if (count($rows) > 0) {
+
+                foreach ($rows as $row) {
+                    //get all the contact
+                    $this->sendMail($row['email'], $row['first_name'].' '.$row['last_name'], $data['subject'], $data['message']);
+                    $contacts = $this->getContactRecords($row['uid'], $grpuid);
+
+                    if (is_array($contacts) && isset($contacts)) {
+                        if (count($contacts) > 0) {
+                            foreach ($contacts as $contact) {
+                                 $this->sendMail($contact['email'], $contact['firstname'].' '.$contact['lastname'], $data['subject'], $data['message']);
+                            }
+                        }
+                    }
+                }           
+
+            }
+        }
+
+        /**
+         * 
+         * @param array $data
+         */
+        protected function stateExpiryReminders($data)
+        {
+            $days = $data['daysspan'];
+            $whentosend = $data['whentosend'];
+            $mType = $data['sendtogroup'];
+            $date = $this->determineDate($days, $whentosend);
+            $timestampArr = $this->convertDate($date);
+            $grpUid = $this->getGroupUidByTitle($mType);
+            //now get the membership templates
+            $memTplArr = $this->getMembershipTemplatesByGrp($grpUid);
+            
+            //echo "Membership templates: ";
+            //var_dump($memTplArr);
+            //echo "States: ";
+            if ($data['states'] !=  "-2") {
+                $statesUidArr = $this->getStatesUid($data['uid']);
+            }
+            //var_dump($statesUidArr);
+            
+            if (count($memTplArr) > 0) {
+                //now get all the membership that has the state and this memshiptemplate
+                $foreign = 'fe_users';
+                $local = 'tx_nkcadportal_domain_model_membership';
+                $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
+                $queryBuilder->getRestrictions()->removeAll();
+                $expr = $queryBuilder->expr();
+                $andCond = $queryBuilder->expr()->andx();
+                $andCond->add($expr->eq('foreign.deleted', 0));
+                $andCond->add($expr->eq('foreign.disable', 0));
+                $andCond->add($expr->eq('local.deleted', 0));
+                $andCond->add($expr->eq('local.hidden', 0));
+                $andCond->add($expr->in('local.membershiptemplate',  $memTplArr));
+                $andCond->add($expr->gt('local.stateendtimecustom', $timestampArr[0]));
+                $andCond->add($expr->lt('local.stateendtimecustom', $timestampArr[1]));
+                
+                if ($statesUidArr > 0) {
+                    $andCond->add($expr->in('local.state',  $statesUidArr));
+                }
+                
+                $qbReady = $queryBuilder->select('foreign.uid', 'email','first_name', 'last_name')
+                            ->from($foreign, 'foreign')
+                            ->innerJoin('foreign', $local, 'local', $expr->eq('foreign.uid','local.customfrontenduser'))
+                            ->andWhere($andCond);
+
+                //echo __LINE__.':DEBUG:' . $queryBuilder->getSQL().'<br>';
+
+                $rows = $qbReady->execute()->fetchAll();
+
+                if (count($rows) > 0) {
+                    
+                    foreach ($rows as $row) {
+                        //get all the contact
+                        $this->sendMail($row['email'], $row['first_name'].' '.$row['last_name'], $data['subject'], $data['message']);
+                        $contacts = $this->getContactRecords($row['uid'], $mType);
+                        
+                        if (is_array($contacts) && isset($contacts)) {
+                            if (count($contacts) > 0) {
+                                foreach ($contacts as $contact) {
+                                     $this->sendMail($contact['email'], $contact['firstname'].' '.$contact['lastname'], $data['subject'], $data['message']);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         /**
          * 
          * @param array $data
@@ -134,6 +309,7 @@ class ReminderCommandController
                 $andCond->add($expr->in('local.membershiptemplate',  $memTplArr));
                 $andCond->add($expr->gt('local.endtimecustom', $timestampArr[0]));
                 $andCond->add($expr->lt('local.endtimecustom', $timestampArr[1]));
+                
                 if ($statesUidArr > 0) {
                     $andCond->add($expr->in('local.state',  $statesUidArr));
                 }
@@ -154,14 +330,45 @@ class ReminderCommandController
                         $this->sendMail($row['email'], $row['first_name'].' '.$row['last_name'], $data['subject'], $data['message']);
                         $contacts = $this->getContactRecords($row['uid'], $mType);
                         
-                        if (count($contacts) > 0 && is_array($contacts)) {
-                            foreach ($contacts as $contact) {
-                                 $this->sendMail($contact['email'], $contact['firstname'].' '.$contact['lastname'], $data['subject'], $data['message']);
+                        if (is_array($contacts) && isset($contacts)) {
+                            if (count($contacts) > 0) {
+                                foreach ($contacts as $contact) {
+                                     $this->sendMail($contact['email'], $contact['firstname'].' '.$contact['lastname'], $data['subject'], $data['message']);
+                                }
                             }
                         }
                     }
                 }
             }
+        }
+        
+        /**
+         * 
+         * @param int $nltype
+         * @param string $date
+         * @return bool
+         */
+        protected function checkNewsLetter($nltype, $date) {
+            
+            $flag = FALSE;
+            $timestampArr = $this->convertDate($date);
+            $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tx_nkcadportal_domain_model_newsletter');
+            $queryBuilder->getRestrictions()->removeAll();
+            $expr = $queryBuilder->expr();
+            $rows =  $queryBuilder->select('uid')->from('tx_nkcadportal_domain_model_newsletter')
+                        ->where(
+                            $expr->eq('deleted', 0),
+                            $expr->eq('hidden', 0),
+                            $expr->eq('newslettertype', $nltype),
+                            $expr->gt('starttime', $timestampArr[0]),
+                            $expr->lt('starttime', $timestampArr[1])
+                        )->execute()->fetchAll();
+            
+            if (count($rows) > 0) {
+                $flag = TRUE;
+            }
+            
+            return $flag;
         }
         
         /**
@@ -211,13 +418,51 @@ class ReminderCommandController
             return $rows[0]['uid'];
         }
 
+        /**
+         * 
+         * @param int $mtplid
+         */
+        protected function getNewsletterTypeByMmtpl($mtplid) {
+            
+            $return = [];
 
+            $local = 'tx_nkcadportal_domain_model_membershiptemplate';
+            $mm = 'tx_nkcadportal_membershiptemplate_newslettertype_mm';
+            $foreign = 'tx_nkcadportal_domain_model_newslettertype';
+           
+            if ($mtplid != '' && isset($mtplid)) { 
+                
+                $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
+                $expr = $queryBuilder->expr();
+
+                $queryBuilder->getRestrictions()->removeAll();
+                $rows = $queryBuilder->select('foreign.uid')
+                    ->from($foreign, 'foreign')
+                    ->innerJoin('foreign', $mm, 'mm', $expr->eq('foreign.uid','mm.uid_foreign'))
+                    ->innerJoin('mm', $local, 'local', $expr->eq('mm.uid_local', 'local.uid'))
+                    ->where(
+                        $expr->eq('local.uid', $mtplid)
+                    )
+                    ->execute()
+                    ->fetchAll();
+                if (count($rows) > 0) {
+                    foreach ($rows as $ndata) {
+                         $return[] = $ndata['uid'];
+                    }
+                }
+            }
+            
+            return $return;
+        }
+        
         /**
          * 
          * @param type $grpid
          * @return  array
          */
         protected function getMembershipTemplatesByGrp($grpid) {
+            
+            $return = [];
             
             if ($grpid != '' && isset($grpid)) {
                 
@@ -232,14 +477,14 @@ class ReminderCommandController
                                 $expr->eq('hidden', 0),
                                 $expr->eq('membershiptype',  $grpid)
                             )->execute()->fetchAll();
-                $return = [];
+                
 
                 foreach($rows as $row) {
                     $return[] = $row['uid'];
                 }
-
-                return $return;
             }
+            
+            return $return;
         }
         
         /**
@@ -326,9 +571,11 @@ class ReminderCommandController
             $mail = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Mail\\MailMessage');
             $senderMail = 'system@livedrugfree.org';
             $senderName = 'LiveDrugFree';
-                 
+            
+           // echo "$subject for $to : $name<br>";
+            
             $mail->setFrom(array($senderMail => $senderName))
-                 ->setTo(array('roel@netkyngs.com' => $name))
+                 ->setTo(array('roelkrottje@gmail.com' => $name))
                  ->setCc(array('anisur.mullick@gmail.com' => 'Tester'))
                  ->setSubject($subject.' for '.$to.':'.$name)
                  ->setBody($body, 'text/html')

@@ -116,7 +116,6 @@ return array(
 				),
 			),
 		),
-
 		'description' => array(
 			'exclude' => 0,
 			'label' => 'LLL:EXT:nkcadportal/Resources/Private/Language/locallang_db.xlf:tx_nkcadportal_domain_model_membershiptemplate.description',
