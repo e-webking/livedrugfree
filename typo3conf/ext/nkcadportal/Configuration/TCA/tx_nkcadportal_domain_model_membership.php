@@ -119,6 +119,7 @@ return array(
 				'type' => 'input',
 				'size' => 13,
 				'max' => 20,
+                                'renderType' => 'inputDateTime',
 				'eval' => 'date',
 				'checkbox' => 0,
 				'default' => 0
@@ -130,6 +131,7 @@ return array(
 			'label' => 'Expire',
 			'config' => array(
 				'type' => 'input',
+                                'renderType' => 'inputDateTime',
 				'size' => 13,
 				'max' => 20,
 				'eval' => 'date',
@@ -144,6 +146,7 @@ return array(
 			'label' => 'State Certified',
 			'config' => array(
 				'type' => 'input',
+                                'renderType' => 'inputDateTime',
 				'size' => 13,
 				'max' => 20,
 				'eval' => 'date',
@@ -157,6 +160,7 @@ return array(
 			'label' => 'State Expire',
 			'config' => array(
 				'type' => 'input',
+                                'renderType' => 'inputDateTime',
 				'size' => 13,
 				'max' => 20,
 				'eval' => 'date',
