@@ -202,7 +202,8 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
      */
     public function getMembersAction(\Psr\Http\Message\ServerRequestInterface $request,
     \Psr\Http\Message\ResponseInterface $response) {
-         $params = $request->getParsedBody();
+        $params = $request->getParsedBody();
+        $option = GeneralUtility::_GP('option');
         /*
         $memArr[] = [
                     'uid' => 1,
@@ -216,15 +217,121 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         */
         $memArr = [];
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('fe_users');
+        $expr = $queryBuilder->expr();
         $queryBuilder->getRestrictions()->removeAll();
-        $rows = $queryBuilder->select('uid','company','fein','address','first_name','last_name','telephone','email')
-            ->from('fe_users')
-            ->where(
-                $queryBuilder->expr()->eq('deleted', 0),
-                $queryBuilder->expr()->eq('disable', 0)
-            )
-            ->execute()
-            ->fetchAll();
+        switch ($option) {
+            case 'current':
+               $rows = $queryBuilder->select('fe_users.uid','company','fein','address','first_name','last_name','telephone','email')
+                                    ->from('fe_users','fe_users')
+                                    ->innerJoin('fe_users','tx_nkcadportal_domain_model_membership','tx_nkcadportal_domain_model_membership', $expr->eq('tx_nkcadportal_domain_model_membership.customfrontenduser','fe_users.uid'))
+                                    ->where(
+                                        $queryBuilder->expr()->eq('fe_users.deleted', 0),
+                                        $queryBuilder->expr()->eq('fe_users.disable', 0),
+                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.deleted', 0),
+                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.hidden', 0),
+                                        $queryBuilder->expr()->gt('tx_nkcadportal_domain_model_membership.endtimecustom', time())
+                                    )
+                                    ->execute()
+                                    ->fetchAll();
+                                    
+                break;
+            case 'expiringthismonth':
+               $month = date("M", time());
+               $ldTs = strtotime('last day of ' . $month);
+
+               $rows = $queryBuilder->select('fe_users.uid','company','fein','address','first_name','last_name','telephone','email')
+                                    ->from('fe_users','fe_users')
+                                    ->innerJoin('fe_users','tx_nkcadportal_domain_model_membership','tx_nkcadportal_domain_model_membership', $expr->eq('tx_nkcadportal_domain_model_membership.customfrontenduser','fe_users.uid'))
+                                    ->where(
+                                        $queryBuilder->expr()->eq('fe_users.deleted', 0),
+                                        $queryBuilder->expr()->eq('fe_users.disable', 0),
+                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.deleted', 0),
+                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.hidden', 0),
+                                        $queryBuilder->expr()->gt('tx_nkcadportal_domain_model_membership.endtimecustom', time()),
+                                        $queryBuilder->expr()->lt('tx_nkcadportal_domain_model_membership.endtimecustom', $ldTs)
+                                    )
+                                    ->execute()
+                                    ->fetchAll();
+                                    
+                break;
+            case 'expiringnextmonth':
+               $month = date("M", strtotime("+1 month"));
+               $ldNextMnTs = strtotime('last day of ' . $month);
+
+               $rows = $queryBuilder->select('fe_users.uid','company','fein','address','first_name','last_name','telephone','email')
+                                    ->from('fe_users', 'fe_users')
+                                    ->innerJoin('fe_users','tx_nkcadportal_domain_model_membership','tx_nkcadportal_domain_model_membership', $expr->eq('tx_nkcadportal_domain_model_membership.customfrontenduser','fe_users.uid'))
+                                    ->where(
+                                        $queryBuilder->expr()->eq('fe_users.deleted', 0),
+                                        $queryBuilder->expr()->eq('fe_users.disable', 0),
+                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.deleted', 0),
+                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.hidden', 0),
+                                        $queryBuilder->expr()->gt('tx_nkcadportal_domain_model_membership.endtimecustom', time()),
+                                        $queryBuilder->expr()->lt('tx_nkcadportal_domain_model_membership.endtimecustom', $ldNextMnTs)
+                                    )
+                                    ->execute()
+                                    ->fetchAll();
+                                    
+                break;
+            case 'expiredwithinxdays':
+               $sixtyDayTs = strtotime("+2 months");
+
+               $rows = $queryBuilder->select('fe_users.uid','company','fein','address','first_name','last_name','telephone','email')
+                                    ->from('fe_users','fe_users')
+                                    ->innerJoin('fe_users','tx_nkcadportal_domain_model_membership','tx_nkcadportal_domain_model_membership', $expr->eq('tx_nkcadportal_domain_model_membership.customfrontenduser','fe_users.uid'))
+                                    ->where(
+                                        $queryBuilder->expr()->eq('fe_users.deleted', 0),
+                                        $queryBuilder->expr()->eq('fe_users.disable', 0),
+                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.deleted', 0),
+                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.hidden', 0),
+                                        $queryBuilder->expr()->gt('tx_nkcadportal_domain_model_membership.endtimecustom', time()),
+                                        $queryBuilder->expr()->lt('tx_nkcadportal_domain_model_membership.endtimecustom', $sixtyDayTs)
+                                    )
+                                    ->execute()
+                                    ->fetchAll();
+                                    
+                break;
+            case 'expired':
+
+               $rows = $queryBuilder->select('fe_users.uid','company','fein','address','first_name','last_name','telephone','email')
+                                    ->from('fe_users','fe_users')
+                                    ->innerJoin('fe_users','tx_nkcadportal_domain_model_membership','tx_nkcadportal_domain_model_membership', $expr->eq('tx_nkcadportal_domain_model_membership.customfrontenduser','fe_users.uid'))
+                                    ->where(
+                                        $queryBuilder->expr()->eq('fe_users.deleted', 0),
+                                        $queryBuilder->expr()->eq('fe_users.disable', 0),
+                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.deleted', 0),
+                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.hidden', 0),
+                                        $queryBuilder->expr()->lt('tx_nkcadportal_domain_model_membership.endtimecustom', time())
+                                    )
+                                    ->execute()
+                                    ->fetchAll();
+                                    
+                break;
+             case 'suspendedandnew':
+
+               $queryBuilder->select('fe_users.uid','company','fein','address','first_name','last_name','telephone','email')
+                                    ->from('fe_users','fe_users')
+                                    ->leftJoin('fe_users','tx_nkcadportal_domain_model_membership','tx_nkcadportal_domain_model_membership', $expr->eq('tx_nkcadportal_domain_model_membership.customfrontenduser','fe_users.uid'))
+                                    ->where(
+                                        $queryBuilder->expr()->eq('fe_users.deleted', 0),
+                                        $queryBuilder->expr()->isNull('tx_nkcadportal_domain_model_membership.customfrontenduser')
+                                    );
+                // echo $queryBuilder->getSQL();
+                                    $rows = $queryBuilder->execute()
+                                    ->fetchAll();
+                                    
+                break;
+            default:
+                $rows = $queryBuilder->select('uid','company','fein','address','first_name','last_name','telephone','email')
+                                    ->from('fe_users')
+                                    ->where(
+                                        $queryBuilder->expr()->eq('deleted', 0),
+                                        $queryBuilder->expr()->eq('disable', 0)
+                                    )
+                                    ->execute()
+                                    ->fetchAll();
+        }
+
         if (count($rows) > 0) {
             foreach ($rows as $data) {
                 $memArr[] = [
@@ -1245,7 +1352,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 			$setFunction = "set".ucfirst($formField);
 			$frontendUser->$setFunction($formValue);
 		}
-        $this->frontendUserRepository->update($frontendUser);
+                $this->frontendUserRepository->update($frontendUser);
 		
 		//Set the flash message:
 		$this->addFlashMessage(
@@ -1260,7 +1367,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 		$persistenceManager->persistAll();
 	}
 	
-	/**
+    /**
      * function createContact
      * 
      * @return void

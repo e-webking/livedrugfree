@@ -91,7 +91,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
     protected $redirectToFullUrl = 0;
     protected $selectedPackage = 0;
     protected $selectedPaymentType = 0;
-    protected $storagePage = 0;
+    protected $storagePage = 37;
     protected $membersStoragePage = 0;
     protected $form = '';
     protected $senderAssociation = '';
@@ -766,7 +766,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
          * Charge a credit card
          */
         public function chargecardAction() {
-            
+          
         }
         
         /**

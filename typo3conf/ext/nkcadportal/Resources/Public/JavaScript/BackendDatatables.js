@@ -150,7 +150,44 @@ define('TYPO3/CMS/Nkcadportal/BackendDatatables', ['jquery', 'datatables'], func
                  "order": [[ 2, "asc" ]]
             } );
     };
+    
+    BackendDatatables.filterDataTables = function(option) {
+        
+        var ajaxMemberUrl = TYPO3.settings.ajaxUrls['nkcadportal_members'];
+        $('#table-members').DataTable({
+            "destroy": true,
+            ajax: {
+                url: ajaxMemberUrl + '&option=' + option,
+                cache: false,
+            },
+            "columns": [
+                { "data": "edit" },
+                { "data": "option" },
+                { "data": "company" },
+                { "data": "fein" },
+                { "data": "address" },
+                { "data": "name" },
+                { "data": "telephone" },
+                { "data": "email" }
+            ],
+            "aoColumnDefs": [
+                {
+                        "bSortable": false,
+                        "aTargets": ["sorting_disabled"]
+                }
+             ],
+             "order": [[ 2, "asc" ]],
+             "initComplete": function(settings, json) {
+                 insertTypeDropDownIntoDataTables();
+              }
+        });
+    };
     $(document).ready(function() {
         BackendDatatables.initializeDataTables();
+        $('#memseloption').on('change', function(){
+            $('.beoverlay').show();
+            console.log('called');
+            BackendDatatables.filterDataTables($('#memseloption').val());
+        })
     });
 });

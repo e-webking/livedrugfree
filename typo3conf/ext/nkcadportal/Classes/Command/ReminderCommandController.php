@@ -572,13 +572,21 @@ class ReminderCommandController
             $senderMail = 'system@livedrugfree.org';
             $senderName = 'LiveDrugFree';
             
-           // echo "$subject for $to : $name<br>";
-            
-            $mail->setFrom(array($senderMail => $senderName))
-                 ->setTo(array('roelkrottje@gmail.com' => $name))
-                 ->setCc(array('anisur.mullick@gmail.com' => 'Tester'))
-                 ->setSubject($subject.' for '.$to.':'.$name)
+           // TESTING
+             $mail->setFrom(array($senderMail => $senderName))
+                 ->setTo(array('staci@livedrugfree.org' => $name))
+                 ->setCc(array('roelkrottje@gmail.com' => 'DFW Test'))
+                 ->setSubject($subject .' for '.$to.' ['.$name.']')
                  ->setBody($body, 'text/html')
                  ->send();
+             
+            /*
+             // PRODUCTION system
+            $mail->setFrom(array($senderMail => $senderName))
+                 ->setTo(array($to => $name))
+                 ->setSubject($subject)
+                 ->setBody($body, 'text/html')
+                 ->send();
+             */
         }
 }

@@ -8,12 +8,20 @@ $(document).ready(function(){
 		$(this).addClass("active");
 		$(".dataTables_wrapper").hide();
 		$("#"+$target+"_wrapper").show();
+                if($target != 'table-members') {
+                    $('.temp-dropdown-holder').hide();
+                } else {
+                    $('.temp-dropdown-holder').show();
+                    
+                }
 	});
+        
 });
 
 
 function insertTypeDropDownIntoDataTables(){
-	$(".temp-dropdown-holder").prependTo($("#table-members_wrapper"));
+        $('.temp-dropdown-holder').show();
+        $('.beoverlay').hide();
 }
 
 function performAjaxAction($ajaxPID, $action, $uid, $needsConfirmation){

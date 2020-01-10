@@ -6,7 +6,6 @@
 <f:section name="content">
 
 <f:flashMessages />
-
 <ul class="cad-portal-be-topnav">
 	<li><a href="#" data-link="table-members" class="active">Members</a><li>
 	<li><a href="#" data-link="table-memberships">Memberships</a><li>
@@ -19,7 +18,7 @@
 
 <!-- MEMBERS -->
 <div class="temp-dropdown-holder">
-	<select>
+	<select id="memseloption">
 		<option value="all">All members</option>
 		<option value="current">Current members</option>
 		<option value="expiringthismonth">Expiring this month</option>
@@ -29,6 +28,7 @@
 		<option value="suspendedandnew">Suspended and New</option>
 	</select>
 </div>
+<div class="beoverlay"><img src="{f:uri.resource(path:'images/bx_loader.gif')}" /></div>
 <table class="cad-portal-be-table table-members datatable active" id="table-members" style="width:100%">
 	<caption>Members</caption>
 	<thead>

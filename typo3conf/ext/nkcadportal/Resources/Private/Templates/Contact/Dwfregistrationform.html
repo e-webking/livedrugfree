@@ -9,17 +9,22 @@
 
 	<f:render partial="FormErrors" arguments="{object:Contact}" />
 
-	<f:form action="" enctype="multipart/form-data"  name="newDonation">
+	<f:form action="" enctype="multipart/form-data"  name="new_DFW_Registration">
 		
 		<f:render partial="Contact/Registrationfields" arguments="{formValues: formValues, formErrors: formErrors}"/>
 		
-		<!-- ReCaptcha v2 part Start -->
-		<div class="form-row">
-			<div class="form-left">&nbsp;</div>
-			<div class="form-right"><div class="g-recaptcha" data-sitekey="6Ldqnn0UAAAAAFkaFfjC6dwBQKnEOTE9WArCnRHv"></div></div>
-			<div class="clearfix"></div>
-		</div>
-		<!-- ReCaptcha v2 part End -->
+		<!-- RECAPTCHA SCRIPT -->
+		<script src="https://www.google.com/recaptcha/api.js?render=6Leuc70UAAAAADXY6N7W31w9ls4Aisqce2UHCnJ8"></script>
+		<script>
+		grecaptcha.ready(function() {
+		  grecaptcha.execute('6Leuc70UAAAAADXY6N7W31w9ls4Aisqce2UHCnJ8', {action: 'homepage'}).then(function(token) {
+			 var recaptchaResponse = document.getElementById('recaptchaResponse');
+			 recaptchaResponse.value = token;
+		  });
+		});
+		</script>
+		<f:form.hidden name="recaptcha_response" id="recaptchaResponse" value="" />
+		<!-- RECAPTCHA SCRIPT End -->
 		
 		<div class="form-row">
 			<div class="form-left">&nbsp;</div>
