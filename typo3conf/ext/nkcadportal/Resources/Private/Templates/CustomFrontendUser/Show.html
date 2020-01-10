@@ -326,8 +326,17 @@
     <f:if condition="{dc:isDisplayMembership(date:membership.endtimecustom)}">
 	<tr>
 		<td>
-                    <input type="checkbox" value="true" name="renew_{membershipTemplateUid}" id="renew_{membershipTemplateUid}"/>
-                </td>
+			<!-- Addition by Roel (DEC/2019) Hide DOT-Membership renewals / prevent these from renewing -->
+			<f:if condition="{membership.membershiptype} == 2">
+				<f:then>
+					<input disabled="disabled" type="checkbox" value="true" name="renew_{membershipTemplateUid}" id="renew_{membershipTemplateUid}"/>
+				</f:then>
+				<f:else>
+					<input type="checkbox" value="true" name="renew_{membershipTemplateUid}" id="renew_{membershipTemplateUid}"/>
+				</f:else>
+			</f:if>
+			<!-- Addition by Roel (DEC/2019) End -->
+        </td>
 		<td>
 			{membership.membershiptemplate.description}
 		</td>

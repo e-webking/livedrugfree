@@ -136,29 +136,30 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 $this->frontendUser = $this->frontendUserRepository->findByUid($feUserUid);
             }
 
-            //CAPTCHA VERIFICATION CODE START
-            if (isset($_POST["g-recaptcha-response"]) && isset($_POST["hasCaptcha"])) {
-                $response = $_POST["g-recaptcha-response"];
-                $url = 'https://www.google.com/recaptcha/api/siteverify';
-                $data = array(
-                        'secret' => '6Ldqnn0UAAAAAEInP1qbGXVyZqSwMScfNF39q3zt',
-                        'response' => $_POST["g-recaptcha-response"]
-                );
-                $options = array(
-                        'http' => array (
-                                'method' => 'POST',
-                                'content' => http_build_query($data)
-                        )
-                );
-                $context = stream_context_create($options);
-                $verify = file_get_contents($url, false, $context);
-                $captcha_success=json_decode($verify);
+            //ReCaptcha v3 Validation Start:
+			if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['recaptcha_response'])) {
+				
+				// Make and decode POST request:
+				$data = array(
+					'secret' => '6Leuc70UAAAAAHk_YSFxyVefaQck-lRFNmf-tkb4',
+					'response' => $_POST['recaptcha_response']
+				);
+				$verify = curl_init();
+				curl_setopt($verify, CURLOPT_URL, 'https://www.google.com/recaptcha/api/siteverify');
+				curl_setopt($verify, CURLOPT_POST, true);
+				curl_setopt($verify, CURLOPT_POSTFIELDS, http_build_query($data));
+				curl_setopt($verify, CURLOPT_SSL_VERIFYPEER, false);
+				curl_setopt($verify, CURLOPT_RETURNTRANSFER, true);
+				$jsonresponse = json_decode(curl_exec($verify));
 
-                if ($captcha_success->success==false) {
-                    die("RE-CAPTCHA TEST FAILED! ... Please <a href=\"javascript: history.back();\">go back</a> and try again.");
-                }
-            }
-            //CAPTCHA VERIFICATION CODE END
+				// Take action based on the score returned:
+				if ($jsonresponse->score >= 0.5) {
+					// Verified.... Continue.
+				} else {
+					die("ReCaptcha Test Failed... Please go back and try again.<br/><br/><a href=\"javascript:history.back();\">Return to form</a>");
+				}
+			}
+			//ReCaptcha v3 Validation End
 
             //Create form config array from POST array:
             $formConfigArray = $_POST;
@@ -231,6 +232,10 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                     }
                 }
             }
+			
+			if(($calculatedPrice * 1) < 1){
+				die("<strong>Fraudulent Price/Amount Detected... Processing of payment was cancelled.</strong>");
+			}
 
             $testmode = false; 
             $ptype = 0;
@@ -351,7 +356,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                     $subject = "New Membership Payment Received";
             } elseif($formType == "newDonation"){
                     $bodyPre = "<h2>A new donation was received</h2>A new donation was received from ".$_POST['firstname']." ".$_POST['lastname'].". The following information was provided:<br/>";
-                    $subject = "New Donation Received";
+                    $subject = "New donation has been received";
             }
             $body .= "<table style=\"font-family: Arial;\"><tbody>"; 
 
@@ -709,7 +714,8 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
 			'x_delim_char' => '|',
 			'x_relay_response' => false,
 			'x_test_request' => $testmode,
-			'x_email' => $userEmail
+			'x_email' => $userEmail,
+			'x_customer_ip' => $_SERVER["REMOTE_ADDR"]
 		 );
 		 
 		 //Distinguish DEV from LIVE:
