@@ -224,6 +224,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email', 'tx_nkcadportal_domain_model_contact.firstname as cfname','tx_nkcadportal_domain_model_contact.lastname as clname','tx_nkcadportal_domain_model_contact.email as cemail','tx_nkcadportal_domain_model_contact.phone as cphone')
                                     ->from('fe_users','fe_users')
                                     ->innerJoin('fe_users','tx_nkcadportal_domain_model_membership','tx_nkcadportal_domain_model_membership', $expr->eq('tx_nkcadportal_domain_model_membership.customfrontenduser','fe_users.uid'))
+                                    ->leftJoin('fe_users','tx_nkcadportal_domain_model_contact', 'tx_nkcadportal_domain_model_contact', $expr->eq('tx_nkcadportal_domain_model_contact.customfrontenduser', 'fe_users.uid'))
                                     ->where(
                                         $queryBuilder->expr()->eq('fe_users.deleted', 0),
                                         $queryBuilder->expr()->eq('fe_users.disable', 0),
