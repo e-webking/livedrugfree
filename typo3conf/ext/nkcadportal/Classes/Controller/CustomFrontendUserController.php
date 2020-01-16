@@ -221,14 +221,12 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         $queryBuilder->getRestrictions()->removeAll();
         switch ($option) {
             case 'current':
-               $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email', 'tx_nkcadportal_domain_model_contact.firstname as cfname','tx_nkcadportal_domain_model_contact.lastname as clname','tx_nkcadportal_domain_model_contact.email as cemail','tx_nkcadportal_domain_model_contact.phone as cphone')
+               $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email')
                                     ->from('fe_users','fe_users')
                                     ->innerJoin('fe_users','tx_nkcadportal_domain_model_membership','tx_nkcadportal_domain_model_membership', $expr->eq('tx_nkcadportal_domain_model_membership.customfrontenduser','fe_users.uid'))
-                                    ->leftJoin('fe_users','tx_nkcadportal_domain_model_contact', 'tx_nkcadportal_domain_model_contact', $expr->eq('tx_nkcadportal_domain_model_contact.customfrontenduser', 'fe_users.uid'))
                                     ->where(
                                         $queryBuilder->expr()->eq('fe_users.deleted', 0),
                                         $queryBuilder->expr()->eq('fe_users.disable', 0),
-                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_contact.deleted', 0),
                                         $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.deleted', 0),
                                         $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.hidden', 0),
                                         $queryBuilder->expr()->gt('tx_nkcadportal_domain_model_membership.endtimecustom', time())
@@ -241,16 +239,14 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $month = date("M", time());
                $ldTs = strtotime('last day of ' . $month);
 
-               $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email', 'tx_nkcadportal_domain_model_contact.firstname as cfname','tx_nkcadportal_domain_model_contact.lastname as clname','tx_nkcadportal_domain_model_contact.email as cemail','tx_nkcadportal_domain_model_contact.phone as cphone')
+               $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email')
                                     ->from('fe_users','fe_users')
                                     ->innerJoin('fe_users','tx_nkcadportal_domain_model_membership','tx_nkcadportal_domain_model_membership', $expr->eq('tx_nkcadportal_domain_model_membership.customfrontenduser','fe_users.uid'))
-                                    ->leftJoin('fe_users','tx_nkcadportal_domain_model_contact', 'tx_nkcadportal_domain_model_contact', $expr->eq('tx_nkcadportal_domain_model_contact.customfrontenduser', 'fe_users.uid'))
                                     ->where(
                                         $queryBuilder->expr()->eq('fe_users.deleted', 0),
                                         $queryBuilder->expr()->eq('fe_users.disable', 0),
                                         $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.deleted', 0),
                                         $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.hidden', 0),
-                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_contact.deleted', 0),
                                         $queryBuilder->expr()->gt('tx_nkcadportal_domain_model_membership.endtimecustom', time()),
                                         $queryBuilder->expr()->lt('tx_nkcadportal_domain_model_membership.endtimecustom', $ldTs)
                                     )
@@ -262,16 +258,14 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $month = date("M", strtotime("+1 month"));
                $ldNextMnTs = strtotime('last day of ' . $month);
 
-               $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email', 'tx_nkcadportal_domain_model_contact.firstname as cfname','tx_nkcadportal_domain_model_contact.lastname as clname','tx_nkcadportal_domain_model_contact.email as cemail','tx_nkcadportal_domain_model_contact.phone as cphone')
+               $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email')
                                     ->from('fe_users', 'fe_users')
                                     ->innerJoin('fe_users','tx_nkcadportal_domain_model_membership','tx_nkcadportal_domain_model_membership', $expr->eq('tx_nkcadportal_domain_model_membership.customfrontenduser','fe_users.uid'))
-                                    ->leftJoin('fe_users','tx_nkcadportal_domain_model_contact', 'tx_nkcadportal_domain_model_contact', $expr->eq('tx_nkcadportal_domain_model_contact.customfrontenduser', 'fe_users.uid'))
                                     ->where(
                                         $queryBuilder->expr()->eq('fe_users.deleted', 0),
                                         $queryBuilder->expr()->eq('fe_users.disable', 0),
                                         $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.deleted', 0),
                                         $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.hidden', 0),
-                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_contact.deleted', 0),
                                         $queryBuilder->expr()->gt('tx_nkcadportal_domain_model_membership.endtimecustom', time()),
                                         $queryBuilder->expr()->lt('tx_nkcadportal_domain_model_membership.endtimecustom', $ldNextMnTs)
                                     )
@@ -282,16 +276,14 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
             case 'expiredwithinxdays':
                $sixtyDayTs = strtotime("+2 months");
 
-               $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email', 'tx_nkcadportal_domain_model_contact.firstname as cfname','tx_nkcadportal_domain_model_contact.lastname as clname','tx_nkcadportal_domain_model_contact.email as cemail','tx_nkcadportal_domain_model_contact.phone as cphone')
+               $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email')
                                     ->from('fe_users','fe_users')
                                     ->innerJoin('fe_users','tx_nkcadportal_domain_model_membership','tx_nkcadportal_domain_model_membership', $expr->eq('tx_nkcadportal_domain_model_membership.customfrontenduser','fe_users.uid'))
-                                    ->leftJoin('fe_users','tx_nkcadportal_domain_model_contact', 'tx_nkcadportal_domain_model_contact', $expr->eq('tx_nkcadportal_domain_model_contact.customfrontenduser', 'fe_users.uid'))
                                     ->where(
                                         $queryBuilder->expr()->eq('fe_users.deleted', 0),
                                         $queryBuilder->expr()->eq('fe_users.disable', 0),
                                         $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.deleted', 0),
-                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.hidden', 0),
-                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_contact.deleted', 0),
+                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.hidden', 0),                                        
                                         $queryBuilder->expr()->gt('tx_nkcadportal_domain_model_membership.endtimecustom', time()),
                                         $queryBuilder->expr()->lt('tx_nkcadportal_domain_model_membership.endtimecustom', $sixtyDayTs)
                                     )
@@ -301,16 +293,14 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                 break;
             case 'expired':
 
-               $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email', 'tx_nkcadportal_domain_model_contact.firstname as cfname','tx_nkcadportal_domain_model_contact.lastname as clname','tx_nkcadportal_domain_model_contact.email as cemail','tx_nkcadportal_domain_model_contact.phone as cphone')
+               $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email')
                                     ->from('fe_users','fe_users')
                                     ->innerJoin('fe_users','tx_nkcadportal_domain_model_membership','tx_nkcadportal_domain_model_membership', $expr->eq('tx_nkcadportal_domain_model_membership.customfrontenduser','fe_users.uid'))
-                                    ->leftJoin('fe_users','tx_nkcadportal_domain_model_contact', 'tx_nkcadportal_domain_model_contact', $expr->eq('tx_nkcadportal_domain_model_contact.customfrontenduser', 'fe_users.uid'))
                                     ->where(
                                         $queryBuilder->expr()->eq('fe_users.deleted', 0),
                                         $queryBuilder->expr()->eq('fe_users.disable', 0),
                                         $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.deleted', 0),
                                         $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.hidden', 0),
-                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_contact.deleted', 0),
                                         $queryBuilder->expr()->lt('tx_nkcadportal_domain_model_membership.endtimecustom', time())
                                     )
                                     ->execute()
@@ -319,13 +309,11 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                 break;
              case 'suspendedandnew':
 
-               $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email', 'tx_nkcadportal_domain_model_contact.firstname as cfname','tx_nkcadportal_domain_model_contact.lastname as clname','tx_nkcadportal_domain_model_contact.email as cemail','tx_nkcadportal_domain_model_contact.phone as cphone')
+               $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email')
                                     ->from('fe_users','fe_users')
                                     ->leftJoin('fe_users','tx_nkcadportal_domain_model_membership','tx_nkcadportal_domain_model_membership', $expr->eq('tx_nkcadportal_domain_model_membership.customfrontenduser','fe_users.uid'))
-                                    ->leftJoin('fe_users','tx_nkcadportal_domain_model_contact', 'tx_nkcadportal_domain_model_contact', $expr->eq('tx_nkcadportal_domain_model_contact.customfrontenduser', 'fe_users.uid'))
                                     ->where(
                                         $queryBuilder->expr()->eq('fe_users.deleted', 0),
-                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_contact.deleted', 0),
                                         $queryBuilder->expr()->isNull('tx_nkcadportal_domain_model_membership.customfrontenduser')
                                     );
                 // echo $queryBuilder->getSQL();
@@ -334,20 +322,44 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                                     
                 break;
             default:
-                $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email', 'tx_nkcadportal_domain_model_contact.firstname as cfname','tx_nkcadportal_domain_model_contact.lastname as clname','tx_nkcadportal_domain_model_contact.email as cemail','tx_nkcadportal_domain_model_contact.phone as cphone')
+                $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email')
                                     ->from('fe_users', 'fe_users')
-                                    ->leftJoin('fe_users','tx_nkcadportal_domain_model_contact', 'tx_nkcadportal_domain_model_contact', $expr->eq('tx_nkcadportal_domain_model_contact.customfrontenduser', 'fe_users.uid'))
                                     ->where(
                                         $queryBuilder->expr()->eq('fe_users.deleted', 0),
-                                        $queryBuilder->expr()->eq('fe_users.disable', 0),
-                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_contact.deleted', 0)
+                                        $queryBuilder->expr()->eq('fe_users.disable', 0)
                                     )
                                     ->execute()
                                     ->fetchAll();
         }
 
         if (count($rows) > 0) {
+            
             foreach ($rows as $data) {
+                
+                $contacts = $this->getContactData($data['uid']);
+                $cname = '';
+                $cemail = '';
+                $cphone = '';
+                
+                if (is_array($contacts) && isset($contacts)) {               
+                    if (count($contacts) > 0) {
+                        foreach ($contacts as $contact) {
+                            
+                            $cname .= $contact['firstname'].' '.$contact['lastname'].'|';
+                            $cemail .= $contact['email'].'|';
+                            $cphone .= $contact['phone'].'|';
+                        }
+                        if(strlen($cname) > 0) {
+                            $cname = substr($cname, 0, -1);
+                        }
+                        if(strlen($cemail) > 0) {
+                            $cemail = substr($cemail, 0, -1);
+                        }
+                        if(strlen($cphone) > 0) {
+                            $cphone = substr($cphone, 0, -1);
+                        }
+                    }
+                }
                 $memArr[] = [
                         'uid' => $data['uid'],
                         'edit' => $this->getMemberEditUrl($data['uid']),
@@ -358,9 +370,9 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                         'name' => $data['first_name'].' '.$data['last_name'],
                         'telephone' => $data['telephone'],
                         'email' => '<a href="mailto:'.$data['email'].'">'.$data['email'].'</a>',
-                        'cname' => $data['cfname'].' '.$data['clname'],
-                        'cemail' => $data['cemail'],
-                        'cphone' => $data['cphone']
+                        'cname' => $cname,
+                        'cemail' => $cemail,
+                        'cphone' => $cphone
                     ];
             }
         }
@@ -371,6 +383,29 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         $response->withHeader('Content-Type', 'application/json;charset=utf-8');
         
         return $response;
+    }
+    
+    /**
+     * 
+     * @param int $feuser
+     * @return mixed
+     */
+    protected function getContactData($feuser)
+    {
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tx_nkcadportal_domain_model_contact');
+        $queryBuilder->getRestrictions()->removeAll();
+        $expr = $queryBuilder->expr();
+        $rows =  $queryBuilder->select('firstname','lastname','email', 'phone')
+                    ->from('tx_nkcadportal_domain_model_contact')
+                    ->where(
+                        $expr->eq('deleted', 0),
+                        $expr->eq('hidden', 0),
+                        $expr->eq('customfrontenduser', $feuser)
+                    )->execute()->fetchAll();
+
+        if (count($rows) > 0) {
+           return $rows;
+        }
     }
     
     /**
