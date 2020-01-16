@@ -18,12 +18,18 @@ define('TYPO3/CMS/Nkcadportal/BackendDatatables', ['jquery', 'datatables'], func
                     { "data": "address" },
                     { "data": "name" },
                     { "data": "telephone" },
-                    { "data": "email" }
+                    { "data": "email" },
+                    { "data": "cname"},
+                    { "data": "cemail"},
+                    { "data": "cphone"}
                 ],
                 "aoColumnDefs": [
                     {
                             "bSortable": false,
                             "aTargets": ["sorting_disabled"]
+                    },
+                    {
+                        "bVisible": false, "aTargets": [ 8,9,10 ] 
                     }
                  ],
                  "order": [[ 2, "asc" ]],
@@ -168,12 +174,18 @@ define('TYPO3/CMS/Nkcadportal/BackendDatatables', ['jquery', 'datatables'], func
                 { "data": "address" },
                 { "data": "name" },
                 { "data": "telephone" },
-                { "data": "email" }
+                { "data": "email" },
+                { "data": "cname"},
+                { "data": "cemail"},
+                { "data": "cphone"}
             ],
             "aoColumnDefs": [
                 {
                         "bSortable": false,
                         "aTargets": ["sorting_disabled"]
+                },
+                {
+                    "bVisible": false, "aTargets": [ 8,9,10 ] 
                 }
              ],
              "order": [[ 2, "asc" ]],
