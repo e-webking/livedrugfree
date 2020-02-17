@@ -448,6 +448,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                 $queryBuilder->expr()->eq('deleted', 0),
                 $queryBuilder->expr()->eq('hidden', 0)
             )
+            ->orderBy('sorting', 'ASC')
             ->execute()
             ->fetchAll();
         if (count($rows) > 0) {
@@ -494,7 +495,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         
         return '<i class="fa fa-eye-slash" onclick="performAjaxAction(\'36\', \'hide-membership\', \''. $uid .'\', true);"></i> <i class="fa fa-trash" onclick="performAjaxAction(\'36\', \'delete-membership\', \''. $uid .'\', true);"></i>';
     }
-
+    
     /**
      * 
      * @param int $uid
@@ -1168,9 +1169,12 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 
         //Add download path data to the newsletters:
         foreach($frontendUser->newsletters as $newsletter){
-                $publicUrl = $newsletter->getFile()->getOriginalResource()->getPublicUrl();
+            $nlFile =  $newsletter->getFile();
+            if(is_object($nlFile)) {
+                $publicUrl = $nlFile->getOriginalResource()->getPublicUrl();
                 $aPublicUrlTmp = explode("/", $publicUrl);
                 $newsletter->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+            }
         }
 
         //Prepare profile form hearboutusoptions array:
@@ -1271,31 +1275,31 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 		//Get all states this user has a membership for:
 		$aUserStates = [];
 		foreach($frontendUser->getMemberships() as $membership){
-			$aUserStates[$membership->getState()->getUid()] = $membership->getState();
+                    $aUserStates[$membership->getState()->getUid()] = $membership->getState();
 		}
-		
 		//Get the single $oAllStates state object:
 		$oAllStates = $this->stateRepository->findByUid(1);
 
-		//Collect the documents for a) the usergroup this user belongs to and b) the state this user has a membership for:
-		$collectedDocuments = $this->documentRepository->findByUsergroups($frontendUser->getUsergroup());
-		$frontendUser->documents = [];
-		foreach($collectedDocuments as $document){
-			foreach($document->getStates() as $documentState){
-				if($documentState->getUid() == $oAllStates->getUid()){
-					$frontendUser->documents[] = $document;
-					continue(2);
-				}
-				else{
-					foreach($aUserStates as $userState){
-						if($documentState->getUid() == $userState->getUid()){
-							$frontendUser->documents[] = $document;
-							continue(3);
-						}
-					}
-				}
-			}
-		}
+		//Collect the documents for a) the membership usergroups this user belongs to and b) the state this user has a membership for:
+                $frontendUser->documents = [];
+               
+                $collectedDocuments = $this->documentRepository->findByUsergroups($frontendUser->getUsergroup());
+
+                foreach($collectedDocuments as $document){
+                    foreach($document->getStates() as $documentState){
+                        if ($documentState->getUid() == $oAllStates->getUid()){
+                            $frontendUser->documents[] = $document;
+                            continue(2);
+                        } else{
+                            foreach($aUserStates as $userState){
+                                if($documentState->getUid() == $userState->getUid()){
+                                    $frontendUser->documents[] = $document;
+                                    continue(3);
+                                }
+                            }
+                        }
+                    }
+                }
 		
 		//Return the updated user object:
 		return $frontendUser;

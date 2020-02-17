@@ -491,8 +491,8 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
 
             //Prepare the PDF field population array:
             $aFields = array(
-                    'date'   				=> date('m/d/Y', $oPayment->getCustomtstamp()),
-                    'ordernumber' 			=> $oPayment->getInvoiceid(),
+                    'date'   			=> date('m/d/Y', $oPayment->getCustomtstamp()),
+                    'ordernumber' 		=> $oPayment->getInvoiceid(),
                     'invoicename'    		=> $GLOBALS['TSFE']->fe_user->user['first_name'].", ".$GLOBALS['TSFE']->fe_user->user['last_name'],
                     'invoicecompany'   		=> $GLOBALS['TSFE']->fe_user->user['company'],
                     'invoiceaddress'   		=> $GLOBALS['TSFE']->fe_user->user['address'],
@@ -524,10 +524,10 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                                     $aNewsletters[] = $oNewsletter->getName();
                             }
                             if(isset($aRenewals[$aPaymentFormArray["newmembership-$i"]])){
-                                    $aFields["membershipplan_$i"] 		= $this->membershipTemplateRepository->findByUid($aPaymentFormArray["newmembership-$i"])->getDescription()." (RENEWAL)";
+                                    $aFields["membershipplan_$i"] = $this->membershipTemplateRepository->findByUid($aPaymentFormArray["newmembership-$i"])->getDescription()." (RENEWAL)";
                             }
                             else{
-                                    $aFields["membershipplan_$i"] 		= $this->membershipTemplateRepository->findByUid($aPaymentFormArray["newmembership-$i"])->getDescription();
+                                    $aFields["membershipplan_$i"] = $this->membershipTemplateRepository->findByUid($aPaymentFormArray["newmembership-$i"])->getDescription();
                             }
                             $aFields["membershiptype_$i"] 		= $this->frontendUserGroupRepository->findByUid($this->membershipTemplateRepository->findByUid($aPaymentFormArray["newmembership-$i"])->getMembershiptype())->getTitle();
                             $aFields["membershipnewsletters_$i"] = implode(", ", $aNewsletters);
@@ -611,6 +611,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                         $renewalMembership = $this->membershipRepository->findByUid($aMembershipTemplate['membership_uid_for_renewal']);
 
                         if ($renewalMembership instanceof \Netkyngs\Nkcadportal\Domain\Model\Membership) {
+                            
                             /*
                              * Check whether expired membership or active
                              * If expired, then act as new memebership
@@ -622,7 +623,10 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                             $newMembership = new \Netkyngs\Nkcadportal\Domain\Model\Membership();
                             $newMembership->setMembershiptemplate($oMembershipTemplateRecord);
                             $newMembership->setState($this->stateRepository->findByUid($aMembershipTemplate['stateUid']));
-
+                            $newMembership->setMtitle($oMembershipTemplateRecord->getDescription());
+                            $newMembership->setPrice($oMembershipTemplateRecord->getPrice());
+                            $newMembership->setTerm($oMembershipTemplateRecord->getTerm());
+                            $newMembership->setMembershiptype($oMembershipTemplateRecord->getMembershiptype());
                             /*
                              * Check if expired
                              */
@@ -653,6 +657,10 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                         $newMembership = new \Netkyngs\Nkcadportal\Domain\Model\Membership();
                         $newMembership->setMembershiptemplate($oMembershipTemplateRecord);
                         $newMembership->setState($this->stateRepository->findByUid($aMembershipTemplate['stateUid']));
+                        $newMembership->setMtitle($oMembershipTemplateRecord->getDescription());
+                        $newMembership->setPrice($oMembershipTemplateRecord->getPrice());
+                        $newMembership->setTerm($oMembershipTemplateRecord->getTerm());
+                        $newMembership->setMembershiptype($oMembershipTemplateRecord->getMembershiptype());
                         $newMembership->setStarttimecustom($currentDateTimeObject);
                         $newMembership->setEndtimecustom($expirationDateTimeObject);
                         $newMembership->setPid($this->settings['membersPID']);

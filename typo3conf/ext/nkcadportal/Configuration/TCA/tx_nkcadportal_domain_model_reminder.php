@@ -27,7 +27,7 @@ return array(
 		'showRecordFieldList' => 'hidden, daysspan, whentosend, fieldcondition, sendtogroup, subject, message, states, t6uid',
 	),
 	'types' => array(
-		'1' => array('showitem' => 'hidden;;1, daysspan, whentosend, fieldcondition, sendtogroup, subject, message;;;richtext:rte_transform[mode=ts_links], states, --div--;LLL:EXT:cms/locallang_ttc.xlf:tabs.access, starttime, endtime, t6uid'),
+		'1' => array('showitem' => 'hidden;;1, daysspan, whentosend, fieldcondition, sendtogroup, subject, message;;;richtext:rte_transform[mode=ts_links], states, --div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:access, starttime, endtime, t6uid'),
 	),
 	'palettes' => array(
 		'1' => array('showitem' => ''),

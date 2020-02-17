@@ -2,7 +2,9 @@
 return array(
 	'ctrl' => array(
 		'title'	=> 'LLL:EXT:nkcadportal/Resources/Private/Language/locallang_db.xlf:tx_nkcadportal_domain_model_membership',
-		'label' => 'membershiptemplate',
+                'label'=> 'state',
+		'label_alt' => 'mtitle',
+                'label_alt_force' => true,
 		'tstamp' => 'tstamp',
 		'crdate' => 'crdate',
 		'cruser_id' => 'cruser_id',
@@ -20,14 +22,14 @@ return array(
 			'starttime' => 'starttime',
 			'endtime' => 'endtime',
 		),
-		'searchFields' => 'membershiptemplate,state,',
+		'searchFields' => 'membershiptemplate,customfrontenduser,state,mtitle,membershiptype,price,t6uid,',
 		'iconfile' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('nkcadportal') . 'Resources/Public/Icons/tx_nkcadportal_domain_model_membership.gif'
 	),
 	'interface' => array(
-		'showRecordFieldList' => 'hidden, membershiptemplate, state, t6uid',
+		'showRecordFieldList' => 'hidden, membershiptemplate, customfrontenduser, state, mtitle, membershiptype, price, term, t6uid',
 	),
 	'types' => array(
-		'1' => array('showitem' => 'hidden;;1, membershiptemplate, state, starttimecustom, endtimecustom, statestarttimecustom, stateendtimecustom, --div--;Access, starttime, endtime, t6uid'),
+		'1' => array('showitem' => 'hidden;;1, membershiptemplate, customfrontenduser, state, mtitle, membershiptype, price, term, starttimecustom, endtimecustom, statestarttimecustom, stateendtimecustom, --div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:access, starttime, endtime, t6uid'),
 	),
 	'palettes' => array(
 		'1' => array('showitem' => ''),
@@ -90,11 +92,14 @@ return array(
 			'label' => 'Start',
 			'config' => array(
 				'type' => 'input',
+                                'renderType' => 'usDate',
+                                'placeholder' => 'mm/dd/yyyy',
+                                'eval' => 'date',
+                                'format' => 'm/d/Y',
+                                'max' => 20,
 				'size' => 13,
-				'max' => 20,
-				'eval' => 'date',
 				'checkbox' => 0,
-				'default' => 0
+				'default' => 0,
 			),
 		),
 		'endtime' => array(
@@ -103,11 +108,14 @@ return array(
 			'label' => 'End',
 			'config' => array(
 				'type' => 'input',
+                                'renderType' => 'usDate',
+                                'placeholder' => 'mm/dd/yyyy',
+                                'eval' => 'date',
+                                'format' => 'm/d/Y',
+                                'max' => 20,
 				'size' => 13,
-				'max' => 20,
-				'eval' => 'date',
 				'checkbox' => 0,
-				'default' => 0
+				'default' => 0,
 			),
 		),
 		
@@ -117,12 +125,14 @@ return array(
 			'label' => 'Purchased',
 			'config' => array(
 				'type' => 'input',
+                                'renderType' => 'usDate',
+                                'placeholder' => 'mm/dd/yyyy',
+                                'eval' => 'date',
+                                'format' => 'm/d/Y',
+                                'max' => 20,
 				'size' => 13,
-				'max' => 20,
-                                'renderType' => 'inputDateTime',
-				'eval' => 'date',
 				'checkbox' => 0,
-				'default' => 0
+				'default' => 0,
 			),
 		),
 		'endtimecustom' => array(
@@ -131,12 +141,14 @@ return array(
 			'label' => 'Expire',
 			'config' => array(
 				'type' => 'input',
-                                'renderType' => 'inputDateTime',
+                                'renderType' => 'usDate',
+                                'placeholder' => 'mm/dd/yyyy',
+                                'eval' => 'date',
+                                'format' => 'm/d/Y',
+                                'max' => 20,
 				'size' => 13,
-				'max' => 20,
-				'eval' => 'date',
 				'checkbox' => 0,
-				'default' => 0
+				'default' => 0,
 			),
 		),
 		
@@ -146,12 +158,14 @@ return array(
 			'label' => 'State Certified',
 			'config' => array(
 				'type' => 'input',
-                                'renderType' => 'inputDateTime',
+                                'renderType' => 'usDate',
+                                'placeholder' => 'mm/dd/yyyy',
+                                'eval' => 'date',
+                                'format' => 'm/d/Y',
+                                'max' => 20,
 				'size' => 13,
-				'max' => 20,
-				'eval' => 'date',
 				'checkbox' => 0,
-				'default' => 0
+				'default' => 0,
 			),
 		),
 		'stateendtimecustom' => array(
@@ -160,15 +174,16 @@ return array(
 			'label' => 'State Expire',
 			'config' => array(
 				'type' => 'input',
-                                'renderType' => 'inputDateTime',
+                                'renderType' => 'usDate',
+                                'placeholder' => 'mm/dd/yyyy',
+                                'eval' => 'date',
+                                'format' => 'm/d/Y',
+                                'max' => 20,
 				'size' => 13,
-				'max' => 20,
-				'eval' => 'date',
 				'checkbox' => 0,
 				'default' => 0,
 			),
 		),
-
 		'membershiptemplate' => array(
 			'exclude' => 0,
 			'label' => 'LLL:EXT:nkcadportal/Resources/Private/Language/locallang_db.xlf:tx_nkcadportal_domain_model_membership.membershiptemplate',
@@ -191,10 +206,53 @@ return array(
 				'maxitems' => 1,
 			),
 		),
-		
-		'customfrontenduser' => array(
+		'mtitle' => array(
+			'exclude' => 0,
+			'label' => 'LLL:EXT:nkcadportal/Resources/Private/Language/locallang_db.xlf:tx_nkcadportal_domain_model_membershiptemplate.description',
 			'config' => array(
-				'type' => 'passthrough',
+				'type' => 'input',
+				'size' => 50,
+				'eval' => 'trim,required'
+			),
+		),
+                'membershiptype' => array(
+			'exclude' => 0,
+			'label' => 'LLL:EXT:nkcadportal/Resources/Private/Language/locallang_db.xlf:tx_nkcadportal_domain_model_membershiptemplate.membershiptype',
+			'config' => array(
+				'type' => 'select',
+				'renderType' => 'selectSingle',
+				'foreign_table' => 'fe_groups',
+				'minitems' => 1,
+				'maxitems' => 1,
+			),
+		),
+                'price' => array(
+			'exclude' => 0,
+			'label' => 'LLL:EXT:nkcadportal/Resources/Private/Language/locallang_db.xlf:tx_nkcadportal_domain_model_membershiptemplate.price',
+			'config' => array(
+				'type' => 'input',
+				'size' => 4,
+				'eval' => 'double2,required'
+			)
+		),
+		'term' => array(
+			'exclude' => 0,
+			'label' => 'LLL:EXT:nkcadportal/Resources/Private/Language/locallang_db.xlf:tx_nkcadportal_domain_model_membershiptemplate.term',
+			'config' => array(
+				'type' => 'input',
+				'size' => 2,
+				'eval' => 'int,required'
+			)
+		),
+		'customfrontenduser' => array(
+                        'exclude' => 0,
+			'label' => 'Company',
+			'config' => array(
+				'type' => 'select',
+				'renderType' => 'selectSingle',
+				'foreign_table' => 'fe_users',
+				'minitems' => 0,
+				'maxitems' => 1,
 			),
 		),
                 't6uid' => array(

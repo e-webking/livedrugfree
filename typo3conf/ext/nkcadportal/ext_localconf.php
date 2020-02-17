@@ -37,6 +37,12 @@ if (!defined('TYPO3_MODE')) {
 	)
 );
 
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1581921537] = [
+    'nodeName' => 'usDate',
+    'priority' => 40,
+    'class' => \Netkyngs\Nkcadportal\Form\Element\UsDateElement::class,
+];
+
 if (TYPO3_MODE === 'BE') {
     $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['extbase']['commandControllers'][$_EXTKEY.'_reminder'] =
         \Netkyngs\Nkcadportal\Command\ReminderCommandController::class;

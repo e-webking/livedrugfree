@@ -26,7 +26,7 @@ return array(
 		'showRecordFieldList' => 'hidden, name',
 	),
 	'types' => array(
-		'1' => array('showitem' => 'hidden;;1, name, --div--;LLL:EXT:cms/locallang_ttc.xlf:tabs.access, starttime, endtime'),
+		'1' => array('showitem' => 'hidden;;1, name, --div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:access, starttime, endtime'),
 	),
 	'palettes' => array(
 		'1' => array('showitem' => ''),

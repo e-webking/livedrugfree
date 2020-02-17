@@ -36,22 +36,34 @@ class DocumentRepository extends \TYPO3\CMS\Extbase\Persistence\Repository
      * @var array
      */
     protected $defaultOrderings = array(
-        'sorting' => \TYPO3\CMS\Extbase\Persistence\QueryInterface::ORDER_ASCENDING
+        'title' => \TYPO3\CMS\Extbase\Persistence\QueryInterface::ORDER_ASCENDING
     );
 	
-	
-	public function findByUsergroups ($usergroups){
+    
+    /**
+     * 
+     * @param array $usergroups
+     * @return @return \TYPO3\CMS\Extbase\Persistence\QueryResultInterface
+     */
+    public function findByUsergroups ($usergroups){
 
-		//Set query:
         $query = $this->createQuery();
-		
-		//Create usergroup constraints:
-		$groupConstraints = [];
-		foreach($usergroups as $usergroup){
-			$query->logicalOr(
-				$groupConstraints[] = $query->contains('groups', $usergroup)
-			);
-		}
+        $constraints = [];
+        $constraints[] = $query->in('groups.uid', $usergroups);
+        $query->matching(
+            $query->logicalAnd(
+                $constraints
+            )
+        );
+        
+	/*
+        //Create usergroup constraints:
+        $groupConstraints = [];
+        foreach($usergroups as $usergroup){
+                $query->logicalOr(
+                        $groupConstraints[] = $query->contains('groups', $usergroup)
+                );
+        }
 		
         //Apply filtering
 		$query->matching(
@@ -59,9 +71,9 @@ class DocumentRepository extends \TYPO3\CMS\Extbase\Persistence\Repository
 				$groupConstraints
 			)
 		);
-
+        */
         //Execute and return query:
         return $query->execute();
-	}
+    }
 
 }

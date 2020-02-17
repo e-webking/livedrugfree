@@ -27,7 +27,7 @@ return array(
 		'showRecordFieldList' => 'hidden, title, groups, states, file, t6uid',
 	),
 	'types' => array(
-		'1' => array('showitem' => 'hidden;;1, title, groups, states, file, --div--;Access, starttime, endtime, t6uid'),
+		'1' => array('showitem' => 'hidden;;1, title, groups, states, file, --div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:access, starttime, endtime, t6uid'),
 	),
 	'palettes' => array(
 		'1' => array('showitem' => ''),

@@ -228,31 +228,60 @@ $tmp_nkcadportal_columns = array(
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns('fe_users',$tmp_nkcadportal_columns);
 
 
+$showitm = '--div--;Member Info,company,--palette--;;nmblk,--palette--;;addrblk, country, --palette--;;phblk,--div--;Business Info;;;;1-1-1,businesstype,--palette--;;employees,--palette--;;insurance,--palette--;;references,--div--;Membership;;;;1-1-1,memberships,--div--;More contacts;;;;1-1-1,contacts,--div--;Comments;;;;1-1-1,staffcomments,membercomments,--div--;System;;;;1-1-1,username,password,usergroup,tx_extbase_type,t6uid,lastlogin,--div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:access,--palette--;;tacess,';
 
+if (isset($GLOBALS['TCA']['fe_users']['types']['0']['showitem'])) {
+    $GLOBALS['TCA']['fe_users']['types']['Tx_Nkcadportal_CustomFrontendUser']['showitem'] = $showitm;
+} elseif(is_array($GLOBALS['TCA']['fe_users']['types'])) {
+    $fe_users_type_definition = reset($GLOBALS['TCA']['fe_users']['types']);
+    $GLOBALS['TCA']['fe_users']['types']['Tx_Nkcadportal_CustomFrontendUser']['showitem'] = $fe_users_type_definition['showitem'];
+} else {
+    $GLOBALS['TCA']['fe_users']['types']['Tx_Nkcadportal_CustomFrontendUser']['showitem'] = '';
+}
 /* inherit and extend the show items from the parent class */
 
-if(isset($GLOBALS['TCA']['fe_users']['types']['0']['showitem'])) {
-	$GLOBALS['TCA']['fe_users']['types']['Tx_Nkcadportal_CustomFrontendUser']['showitem'] = $GLOBALS['TCA']['fe_users']['types']['0']['showitem'];
-} elseif(is_array($GLOBALS['TCA']['fe_users']['types'])) {
-	// use first entry in types array
-	$fe_users_type_definition = reset($GLOBALS['TCA']['fe_users']['types']);
-	$GLOBALS['TCA']['fe_users']['types']['Tx_Nkcadportal_CustomFrontendUser']['showitem'] = $fe_users_type_definition['showitem'];
-} else {
-	$GLOBALS['TCA']['fe_users']['types']['Tx_Nkcadportal_CustomFrontendUser']['showitem'] = '';
-}
+//if (isset($GLOBALS['TCA']['fe_users']['types']['0']['showitem'])) {
+//    $GLOBALS['TCA']['fe_users']['types']['Tx_Nkcadportal_CustomFrontendUser']['showitem'] = $GLOBALS['TCA']['fe_users']['types']['0']['showitem'];
+//} elseif(is_array($GLOBALS['TCA']['fe_users']['types'])) {
+//
+//    $fe_users_type_definition = reset($GLOBALS['TCA']['fe_users']['types']);
+//    $GLOBALS['TCA']['fe_users']['types']['Tx_Nkcadportal_CustomFrontendUser']['showitem'] = $fe_users_type_definition['showitem'];
+//} else {
+//    $GLOBALS['TCA']['fe_users']['types']['Tx_Nkcadportal_CustomFrontendUser']['showitem'] = '';
+//}
 
 #$GLOBALS['TCA']['fe_users']['types']['Tx_Nkcadportal_CustomFrontendUser']['showitem'] .= ',--div--;LLL:EXT:nkcadportal/Resources/Private/Language/locallang_db.xlf:tx_nkcadportal_domain_model_customfrontenduser,';
 #$GLOBALS['TCA']['fe_users']['types']['Tx_Nkcadportal_CustomFrontendUser']['showitem'] .= 'cellphone, state, fein, numberofemployees, numberofcdldrivers, businesstype, insurancecarrier, insuranceagent, hearaboutus, staffcomments, membercomments, memberships, contacts';
 
 $GLOBALS['TCA']['fe_users']['columns'][$GLOBALS['TCA']['fe_users']['ctrl']['type']]['config']['items'][] = array('LLL:EXT:nkcadportal/Resources/Private/Language/locallang_db.xlf:fe_users.tx_extbase_type.Tx_Nkcadportal_CustomFrontendUser','Tx_Nkcadportal_CustomFrontendUser');
 
+
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addLLrefForTCAdescr(
 	'',
 	'EXT:/Resources/Private/Language/locallang_csh_.xlf'
 );
 
-
 # PALLETS:
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+        'fe_users',
+        'nmblk',
+        'first_name, last_name,--linebreak--,title',
+        ''
+);
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+        'fe_users',
+        'addrblk',
+        'address, additionaladdress,--linebreak--,city, state, zip',
+        ''
+);
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+        'fe_users',
+        'phblk',
+        'telephone, cellphone,--linebreak--, fax, www,--linebreak--,email',
+        ''
+);
+
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
         'fe_users',
         'employees',
@@ -271,53 +300,67 @@ $GLOBALS['TCA']['fe_users']['columns'][$GLOBALS['TCA']['fe_users']['ctrl']['type
         'hearaboutus',
         ''
 );
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+        'fe_users',
+        'tacess',
+        'disable, starttime, endtime',
+        ''
+);
+/*
+ 
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
+	'fe_users',
+	'--div--;Member Info;;;;1-1-1,company,--palette--;;nmblk,--palette--;;addrblk, country, --palette--;;phblk',
+	'',
+	''
+);
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
 	'fe_users',
 	'--div--;Business Info;;;;1-1-1,businesstype,--palette--;;employees,--palette--;;insurance,--palette--;;references',
 	'',
-	'after:www'
+	'after:email'
 );
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
 	'fe_users',
 	'--div--;Membership;;;;1-1-1,memberships',
 	'',
-	''
+	'after:references'
 );
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
 	'fe_users',
-	'--div--;Contacts;;;;1-1-1,contacts',
+	'--div--;More contacts;;;;1-1-1,contacts',
 	'',
-	''
+	'after:memberships'
 );
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
 	'fe_users',
-	'--div--;Comments;;;;1-1-1,membercomments,staffcomments',
+	'--div--;Comments;;;;1-1-1,staffcomments,membercomments',
 	'',
-	''
+	'after:contacts'
 );
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
+	'fe_users',
+	'--div--;System;;;;1-1-1,username,password,usergroup,lastlogin,name,image,--div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:access,--palette--;;tacess',
+	'',
+	'after:membercomments'
+);
+
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
 	'fe_users',
-	'additionaladdress',
+	'county',
 	'',
-	'after:address'
+	'after:zip'
 );
-
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
 	'fe_users',
-	'cellphone',
+	't6uid',
 	'',
-	'after:telephone'
+	'after:tx_extbase_type'
 );
 
-\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
-	'fe_users',
-	'state,county,t6uid',
-	'',
-	'after:city'
-);
-
+*/

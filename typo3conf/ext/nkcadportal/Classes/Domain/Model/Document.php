@@ -40,10 +40,10 @@ class Document extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      */
     protected $title = '';
 	
-	/**
-	* @var \DateTime
-	*/
-	protected $tstamp;
+    /**
+     * @var \DateTime
+     */
+    protected $tstamp;
     
     /**
      * File
@@ -61,7 +61,7 @@ class Document extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      */
     protected $states = null;
 	
-	/**
+    /**
      * States
      * 
      * @var \TYPO3\CMS\Extbase\Persistence\ObjectStorage<\TYPO3\CMS\Extbase\Domain\Model\FrontendUserGroup>
@@ -180,7 +180,7 @@ class Document extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
 	
 	
 	
-	/**
+    /**
      * Adds a FrontendUserGroup
      * 
      * @param \TYPO3\CMS\Extbase\Domain\Model\FrontendUserGroup $group

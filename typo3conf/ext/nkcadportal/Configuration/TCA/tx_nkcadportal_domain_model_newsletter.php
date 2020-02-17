@@ -26,7 +26,7 @@ return array(
 		'showRecordFieldList' => 'hidden, title, forperiod, newslettertype, file, t6uid',
 	),
 	'types' => array(
-		'1' => array('showitem' => 'hidden;;1, title, forperiod, newslettertype, file, --div--;Access, starttime, endtime, t6uid'),
+		'1' => array('showitem' => 'hidden;;1, title, forperiod, newslettertype, file, --div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:access, starttime, endtime, t6uid'),
 	),
 	'palettes' => array(
 		'1' => array('showitem' => ''),
@@ -169,11 +169,14 @@ return array(
 			'label' => 'LLL:EXT:nkcadportal/Resources/Private/Language/locallang_db.xlf:tx_nkcadportal_domain_model_newsletter.forperiod',
 			'config' => array(
 				'type' => 'input',
+                                'renderType' => 'usDate',
+                                'placeholder' => 'mm/dd/yyyy',
+                                'eval' => 'date',
+                                'format' => 'm/d/Y',
+                                'max' => 20,
 				'size' => 13,
-				'max' => 20,
-				'eval' => 'date',
 				'checkbox' => 0,
-				'default' => 0
+				'default' => 0,
 				
 			),
 		),

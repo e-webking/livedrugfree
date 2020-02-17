@@ -137,6 +137,7 @@ class ReminderCommandController
             }
         }
         
+        
         /**
          * 
          * @param array $data
@@ -572,22 +573,23 @@ class ReminderCommandController
             $senderMail = 'system@livedrugfree.org';
             $senderName = 'LiveDrugFree';
             
-           // TESTING
-             $mail->setFrom(array($senderMail => $senderName))
+            /*
+            // TESTING
+            $mail->setFrom(array($senderMail => $senderName))
                  //->setTo(array('staci@livedrugfree.org' => $name))
 				 ->setTo(array('sbwcdfwp@gmail.com' => $name))
                  ->setCc(array('roelkrottje@gmail.com' => 'DFW Test'))
                  ->setSubject($subject .' for '.$to.' ['.$name.']')
                  ->setBody($body, 'text/html')
                  ->send();
-             
-            /*
-             // PRODUCTION system
+            */
+            
+            // PRODUCTION system
             $mail->setFrom(array($senderMail => $senderName))
                  ->setTo(array($to => $name))
                  ->setSubject($subject)
                  ->setBody($body, 'text/html')
                  ->send();
-             */
+            
         }
 }

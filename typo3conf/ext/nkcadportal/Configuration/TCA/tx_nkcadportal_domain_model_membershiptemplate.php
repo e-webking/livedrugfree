@@ -24,10 +24,10 @@ return array(
 		'iconfile' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('nkcadportal') . 'Resources/Public/Icons/tx_nkcadportal_domain_model_membershiptemplate.gif'
 	),
 	'interface' => array(
-		'showRecordFieldList' => 'hidden, description, membershiptype, price, term, includednewsletters',
+		'showRecordFieldList' => 'hidden, description, membershiptype, price, term, includednewsletters, t6uid',
 	),
 	'types' => array(
-		'1' => array('showitem' => 'hidden;;1, description, membershiptype, price, term, includednewsletters, --div--;LLL:EXT:cms/locallang_ttc.xlf:tabs.access, starttime, endtime'),
+		'1' => array('showitem' => 'hidden;;1, description, membershiptype, price, term, includednewsletters, --div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:access, starttime, endtime, t6uid'),
 	),
 	'palettes' => array(
 		'1' => array('showitem' => ''),
@@ -196,6 +196,16 @@ return array(
 				),
 			),
 		),
+                't6uid' => array(
+                        'exclude' => 0,
+                        'label' => 'Old T6 UID',
+                        'config' => array(
+                                'type' => 'input',
+                                'size' => 10,
+                                'eval' => 'int',
+                                'readOnly' => true
+                        ),
+                ),
 		
 	),
 );

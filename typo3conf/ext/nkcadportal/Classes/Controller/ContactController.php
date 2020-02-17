@@ -40,22 +40,22 @@ class ContactController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControll
      */
     protected $contactRepository = NULL;
 	
-	/**
-	* @var \Netkyngs\Nkcadportal\Domain\Repository\CustomFrontendUserRepository
-	* @inject
-	*/
-	protected $customFrontendUserRepository;
-	
-	/**
-	* @var \TYPO3\CMS\Extbase\Domain\Repository\FrontendUserGroupRepository
-	* @inject
-	*/
-	protected $frontendUserGroupRepository;
-	
-	//Global vars:
-	protected $aFormErrors = [];
-	
-	/**
+    /**
+     * @var \Netkyngs\Nkcadportal\Domain\Repository\CustomFrontendUserRepository
+     * @inject
+     */
+    protected $customFrontendUserRepository;
+
+    /**
+     * @var \TYPO3\CMS\Extbase\Domain\Repository\FrontendUserGroupRepository
+     * @inject
+     */
+    protected $frontendUserGroupRepository;
+
+    //Global vars:
+    protected $aFormErrors = [];
+
+    /**
      * initialize action
      * 
      * @return void

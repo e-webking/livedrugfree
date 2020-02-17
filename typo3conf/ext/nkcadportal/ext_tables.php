@@ -69,5 +69,5 @@ $TCA['tt_content']['types']['list']['subtypes_addlist'][$pluginSignature] = 'pi_
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addPiFlexFormValue($pluginSignature, 'FILE:EXT:' . $_EXTKEY . '/Configuration/FlexForms/flexform.xml');
 
 
-//$TCA['tx_nkcadportal_domain_model_contact']['ctrl']['hideTable'] = 1;
-#$TCA['tx_nkcadportal_domain_model_membership']['ctrl']['hideTable'] = 1;
+$GLOBALS['TCA']['fe_users']['ctrl']['label'] = 'company';
+$GLOBALS['TCA']['fe_users']['ctrl']['default_sortby'] = 'ORDER BY company';

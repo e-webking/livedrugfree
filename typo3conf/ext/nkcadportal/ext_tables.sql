@@ -57,6 +57,7 @@ CREATE TABLE tx_nkcadportal_domain_model_membershiptemplate (
 	t3ver_tstamp int(11) DEFAULT '0' NOT NULL,
 	t3ver_move_id int(11) DEFAULT '0' NOT NULL,
 	sorting int(11) DEFAULT '0' NOT NULL,
+        t6uid int(11) DEFAULT '0' NOT NULL,
 
 	sys_language_uid int(11) DEFAULT '0' NOT NULL,
 	l10n_parent int(11) DEFAULT '0' NOT NULL,
@@ -65,7 +66,7 @@ CREATE TABLE tx_nkcadportal_domain_model_membershiptemplate (
 	PRIMARY KEY (uid),
 	KEY parent (pid),
 	KEY t3ver_oid (t3ver_oid,t3ver_wsid),
- KEY language (l10n_parent,sys_language_uid)
+        KEY language (l10n_parent,sys_language_uid)
 
 );
 
@@ -81,6 +82,10 @@ CREATE TABLE tx_nkcadportal_domain_model_membership (
 
 	membershiptemplate int(11) unsigned DEFAULT '0',
 	state int(11) unsigned DEFAULT '0',
+        mtitle varchar(255) DEFAULT '' NOT NULL,
+        membershiptype int(11) DEFAULT '0' NOT NULL,
+        price double(11,2) DEFAULT '0.00' NOT NULL,
+	term int(11) DEFAULT '0' NOT NULL,
 
 	tstamp int(11) unsigned DEFAULT '0' NOT NULL,
 	crdate int(11) unsigned DEFAULT '0' NOT NULL,
@@ -488,6 +493,7 @@ CREATE TABLE tx_nkcadportal_domain_model_contact (
 	customfrontenduser  int(11) unsigned DEFAULT '0' NOT NULL,
 
 );
+
 
 #
 # Table structure for table 'tx_nkcadportal_membershiptemplate_newslettertype_mm'

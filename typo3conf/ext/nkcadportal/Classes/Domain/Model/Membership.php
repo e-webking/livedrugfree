@@ -47,36 +47,64 @@ class Membership extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * @lazy
      */
     protected $state = null;
-	
-	/**
-	* @var \DateTime
-	*/
-	protected $endtime;
-	
-	/**
-	* @var \DateTime
-	*/
-	protected $starttime;
-	
-	/**
-	* @var \DateTime
-	*/
-	protected $endtimecustom;
-	
-	/**
-	* @var \DateTime
-	*/
-	protected $starttimecustom;
-	
-	/**
-	* @var \DateTime
-	*/
-	protected $stateendtimecustom;
-	
-	/**
-	* @var \DateTime
-	*/
-	protected $statestarttimecustom;
+    
+    /**
+     * Membership Title
+     * 
+     * @var string
+     */
+    protected $mtitle = '';
+    
+    /**
+     * Membership Type
+     * 
+     * @var int
+     */
+    protected $membershiptype = 0;
+    
+    /**
+     * Price
+     * 
+     * @var float
+     */
+    protected $price = 0.0;
+    
+    /**
+     * Term (Years)
+     * 
+     * @var int
+     */
+    protected $term = 0;
+
+    /**
+     * @var \DateTime
+     */
+    protected $endtime;
+
+    /**
+     * @var \DateTime
+     */
+    protected $starttime;
+
+    /**
+     * @var \DateTime
+     */
+    protected $endtimecustom;
+
+    /**
+     * @var \DateTime
+     */
+    protected $starttimecustom;
+
+    /**
+     * @var \DateTime
+     */
+    protected $stateendtimecustom;
+
+    /**
+     * @var \DateTime
+     */
+    protected $statestarttimecustom;
     
     /**
      * Returns the membershiptemplate
@@ -119,8 +147,92 @@ class Membership extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     {
         $this->state = $state;
     }
-	
-	/**
+
+    /**
+     * Returns the title
+     * 
+     * @return string $mtitle
+     */
+    public function getMtitle()
+    {
+        return $this->mtitle;
+    }
+    
+    /**
+     * Sets the title
+     * 
+     * @param string $mtitle
+     * @return void
+     */
+    public function setMtitle($mtitle)
+    {
+        $this->mtitle = $mtitle;
+    }
+    
+    /**
+     * Returns the membershiptype
+     * 
+     * @return int $membershiptype
+     */
+    public function getMembershiptype()
+    {
+        return $this->membershiptype;
+    }
+    
+    /**
+     * Sets the membershiptype
+     * 
+     * @param int $membershiptype
+     * @return void
+     */
+    public function setMembershiptype($membershiptype)
+    {
+        $this->membershiptype = $membershiptype;
+    }
+    
+    /**
+     * Returns the price
+     * 
+     * @return float $price
+     */
+    public function getPrice()
+    {
+        return $this->price;
+    }
+    
+    /**
+     * Sets the price
+     * 
+     * @param float $price
+     * @return void
+     */
+    public function setPrice($price)
+    {
+        $this->price = $price;
+    }
+    
+    /**
+     * Returns the term
+     * 
+     * @return int $term
+     */
+    public function getTerm()
+    {
+        return $this->term;
+    }
+    
+    /**
+     * Sets the term
+     * 
+     * @param int $term
+     * @return void
+     */
+    public function setTerm($term)
+    {
+        $this->term = $term;
+    }
+    
+    /**
      * Returns the endtime
      * 
      * @return \DateTime $endtime
@@ -141,7 +253,7 @@ class Membership extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
         $this->endtime = $endtime;
     }
 	
-	/**
+    /**
      * Returns the starttime
      * 
      * @return \DateTime $starttime
@@ -162,10 +274,7 @@ class Membership extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
         $this->starttime = $starttime;
     }
 	
-	
-	
-	
-	/**
+    /**
      * Returns the endtimecustom
      * 
      * @return \DateTime $endtimecustom
@@ -186,7 +295,7 @@ class Membership extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
         $this->endtimecustom = $endtimecustom;
     }
 	
-	/**
+    /**
      * Returns the starttimecustom
      * 
      * @return \DateTime $starttimecustom
@@ -206,11 +315,8 @@ class Membership extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     {
         $this->starttimecustom = $starttimecustom;
     }
-	
-	
-	
-	
-	/**
+
+    /**
      * Returns the stateendtimecustom
      * 
      * @return \DateTime $stateendtimecustom
@@ -230,8 +336,8 @@ class Membership extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     {
         $this->stateendtimecustom = $stateendtimecustom;
     }
-	
-	/**
+
+    /**
      * Returns the statestarttimecustom
      * 
      * @return \DateTime $statestarttimecustom
@@ -244,12 +350,12 @@ class Membership extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     /**
      * Sets the state
      * 
-     * @param \DateTime $state
+     * @param \DateTime $statestarttimecustom
      * @return void
      */
-    public function setStatestarttimecustom($state)
+    public function setStatestarttimecustom($statestarttimecustom)
     {
-        $this->state = $state;
+        $this->statestarttimecustom = $statestarttimecustom;
     }
 
 }

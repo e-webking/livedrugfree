@@ -27,7 +27,7 @@ return array(
 		'showRecordFieldList' => 'hidden, isactuallstate, showinfestatelist, showaward, state, stateshort, pdftpl',
 	),
 	'types' => array(
-		'1' => array('showitem' => 'hidden;;1, isactuallstate, showinfestatelist, showaward, state, stateshort, pdftpl, --div--;LLL:EXT:cms/locallang_ttc.xlf:tabs.access, starttime, endtime'),
+		'1' => array('showitem' => 'hidden;;1, isactuallstate, showinfestatelist, showaward, state, stateshort, pdftpl, --div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:access, starttime, endtime'),
 	),
 	'palettes' => array(
 		'1' => array('showitem' => ''),

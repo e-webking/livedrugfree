@@ -27,7 +27,7 @@ return array(
 		'showRecordFieldList' => 'hidden, firstname, lastname, title, email, phone, contacttype, t6uid',
 	),
 	'types' => array(
-		'1' => array('showitem' => 'hidden;;1, firstname, lastname, title, email, phone, contacttype, --div--;LLL:EXT:cms/locallang_ttc.xlf:tabs.access, starttime, endtime, t6uid'),
+		'1' => array('showitem' => 'hidden;;1, firstname, lastname, title, email, phone, contacttype, --div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:access, starttime, endtime, t6uid'),
 	),
 	'palettes' => array(
 		'1' => array('showitem' => ''),
