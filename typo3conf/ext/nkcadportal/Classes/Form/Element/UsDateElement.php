@@ -82,6 +82,8 @@ class UsDateElement extends AbstractFormElement
         if (MathUtility::canBeInterpretedAsInteger($itemValue) && $itemValue != 0) {
            $adjustedValue = $itemValue + date('Z', (int)$itemValue);
            $itemValue = date($format, $adjustedValue);
+        } else {
+            $itemValue = 0;
         }
         
         $fieldInformationResult = $this->renderFieldInformation();
@@ -112,10 +114,9 @@ class UsDateElement extends AbstractFormElement
             'id' => StringUtility::getUniqueId('formengine-input-'),
             'class' => implode(' ', [
                 'form-control',
-                't3js-clearable',
                 'hasDefaultValue',
+                'nkdatepicker'
             ]),
-            'data-date-type' => 'date',
             'data-formengine-validation-rules'=> json_encode(['type'=>'date']),
             'data-formengine-input-params' => json_encode([
                 'field' => $parameterArray['itemFormElName'],
@@ -206,6 +207,8 @@ class UsDateElement extends AbstractFormElement
         }
 
         $resultArray['html'] = '<div class="formengine-field-item t3js-formengine-field-item">' . $fieldInformationHtml . $fullElement . '</div>';
+        $resultArray['stylesheetFiles'] = ['/typo3conf/ext/nkcadportal/Resources/Public/Css/jquery-ui.min.css'];
+        $resultArray['requireJsModules'] = ['TYPO3/CMS/Nkcadportal/BackendNkDate','TYPO3/CMS/Nkcadportal/jquery-ui.min'];
         
         return $resultArray;
     }
