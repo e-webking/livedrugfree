@@ -137,29 +137,29 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             }
 
             //ReCaptcha v3 Validation Start:
-			if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['recaptcha_response'])) {
-				
-				// Make and decode POST request:
-				$data = array(
-					'secret' => '6Leuc70UAAAAAHk_YSFxyVefaQck-lRFNmf-tkb4',
-					'response' => $_POST['recaptcha_response']
-				);
-				$verify = curl_init();
-				curl_setopt($verify, CURLOPT_URL, 'https://www.google.com/recaptcha/api/siteverify');
-				curl_setopt($verify, CURLOPT_POST, true);
-				curl_setopt($verify, CURLOPT_POSTFIELDS, http_build_query($data));
-				curl_setopt($verify, CURLOPT_SSL_VERIFYPEER, false);
-				curl_setopt($verify, CURLOPT_RETURNTRANSFER, true);
-				$jsonresponse = json_decode(curl_exec($verify));
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['recaptcha_response'])) {
 
-				// Take action based on the score returned:
-				if ($jsonresponse->score >= 0.5) {
-					// Verified.... Continue.
-				} else {
-					die("ReCaptcha Test Failed... Please go back and try again.<br/><br/><a href=\"javascript:history.back();\">Return to form</a>");
-				}
-			}
-			//ReCaptcha v3 Validation End
+                // Make and decode POST request:
+                $data = array(
+                        'secret' => '6Leuc70UAAAAAHk_YSFxyVefaQck-lRFNmf-tkb4',
+                        'response' => $_POST['recaptcha_response']
+                );
+                $verify = curl_init();
+                curl_setopt($verify, CURLOPT_URL, 'https://www.google.com/recaptcha/api/siteverify');
+                curl_setopt($verify, CURLOPT_POST, true);
+                curl_setopt($verify, CURLOPT_POSTFIELDS, http_build_query($data));
+                curl_setopt($verify, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($verify, CURLOPT_RETURNTRANSFER, true);
+                $jsonresponse = json_decode(curl_exec($verify));
+
+                // Take action based on the score returned:
+                if ($jsonresponse->score >= 0.5) {
+                        // Verified.... Continue.
+                } else {
+                        die("ReCaptcha Test Failed... Please go back and try again.<br/><br/><a href=\"javascript:history.back();\">Return to form</a>");
+                }
+            }
+            //ReCaptcha v3 Validation End
 
             //Create form config array from POST array:
             $formConfigArray = $_POST;
@@ -187,8 +187,10 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             if ($formType == "newDonation"){
                 //Single/isolated Donation type:
                 $calculatedPrice = number_format((float)$formConfigArray['amount'], "2", ".", "");
+                $item_description = 'Donation';
                 
             } else {
+                $item_description = '';
                 //Membership -- Calculate the total price ($calculatedPrice) and collect any new membership purchases or membership renewals:
                 $calculatedPrice = 0;
                 $donationAmount = (int)$formConfigArray['donate'];
@@ -200,13 +202,19 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 for ($i=1; $i <= 6; $i++){
                         if ((string)$formConfigArray["newmembership-$i"] != '0') {
                                 $membershipTemplateUid = (int)$formConfigArray["newmembership-$i"];
-                                if(isset($formConfigArray["renew_$membershipTemplateUid"]) && (int)$formConfigArray["renew_$membershipTemplateUid"] == 1){
+                                if (isset($formConfigArray["renew_$membershipTemplateUid"]) && (int)$formConfigArray["renew_$membershipTemplateUid"] == 1){
                                         $aRenewals[$membershipTemplateUid] = "formfield_newmembership-$i";
+                                        $renewMembershipTemplate = $this->membershipTemplateRepository->findByUid((int)$membershipTemplateUid);
+                                        if ($renewMembershipTemplate instanceof \Netkyngs\Nkcadportal\Domain\Model\MembershipTemplate) {
+                                            $item_description .= $renewMembershipTemplate->getDescription().',';
+                                        }
                                 }
                         }
                 }
 
                 //Process input/provided form (membership) values for NEW memberships (not renewals!):
+                
+                
                 foreach ($formConfigArray as $fieldname => $fieldvalue) {
                     if (strpos($fieldname, "newmembership-") !== FALSE) {
                         if (trim($fieldvalue) !== '' && (int)$fieldvalue != 0) {
@@ -215,6 +223,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                             $this->aNewPaidMemberships[(int)$fieldvalue] = [];
                             $this->aNewPaidMemberships[(int)$fieldvalue]['uid'] = $membershipTemplate->getUid();
                             $this->aNewPaidMemberships[(int)$fieldvalue]['description'] = $membershipTemplate->getDescription();
+                            $item_description .= $membershipTemplate->getDescription().',';
                             $this->aNewPaidMemberships[(int)$fieldvalue]['renewal'] = 0;
                             $this->aNewPaidMemberships[(int)$fieldvalue]['type'] = $membershipTemplate->getMembershiptype();
                             list(,$newMembershipFieldItem) = explode("-", $fieldname);
@@ -232,10 +241,14 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                     }
                 }
             }
+            
+            if (strlen($item_description) > 1) {
+                $item_description = substr($item_description, 0, -1);
+            }
 			
-			if(($calculatedPrice * 1) < 1){
-				die("<strong>Fraudulent Price/Amount Detected... Processing of payment was cancelled.</strong>");
-			}
+            if (($calculatedPrice * 1) < 1){
+                die("<strong>Fraudulent Price/Amount Detected... Processing of payment was cancelled.</strong>");
+            }
 
             $testmode = false; 
             $ptype = 0;
@@ -246,12 +259,12 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 //Mode is direct credit cad payment
                 //---------------------------------
                 //Dertermine if this is a test:
-                if($formConfigArray['paymentForm']['Card_Name'] == "Testmode123"){
-                        $testmode = true;
+                if ($formConfigArray['paymentForm']['Card_Name'] == "Testmode123"){
+                    $testmode = true;
                 }
 
                 //Process the payment:
-                $response = $this->processCreditcardPayment($testmode, $calculatedPrice, $formType);
+                $response = $this->processCreditcardPayment($testmode, $calculatedPrice, $item_description, $formType);
                 $trxApprovalResult = $response[0];			
                 $trxMessage = $response[3];
                 
@@ -312,7 +325,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             //Determine the user's email and the company name:
             if ($formType == "membership"){
                 $userCompany = $this->frontendUser->getCompany();
-                $userName = $this->frontendUser->getName();
+                $userName = $this->frontendUser->getFirstName().' '.$this->frontendUser->getLastName();
                 $userEmail = $this->frontendUser->getEmail();
             } elseif($formType == "newDonation") {
                 $userCompany = addSlashes($_POST['company']);
@@ -497,13 +510,13 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                     'invoicecompany'   		=> $GLOBALS['TSFE']->fe_user->user['company'],
                     'invoiceaddress'   		=> $GLOBALS['TSFE']->fe_user->user['address'],
                     'invoiceaddress2'   	=> $GLOBALS['TSFE']->fe_user->user['additionaladdress'],
-                    'invoicecitystatezip'   => $GLOBALS['TSFE']->fe_user->user['city'].", ".$GLOBALS['TSFE']->fe_user->user['state'].". ".$GLOBALS['TSFE']->fe_user->user['zip'],
+                    'invoicecitystatezip'       => $GLOBALS['TSFE']->fe_user->user['city'].", ".$GLOBALS['TSFE']->fe_user->user['state'].". ".$GLOBALS['TSFE']->fe_user->user['zip'],
                     'discountcodetext'   	=> $aPaymentFormArray['discountcode'] != '' ? "Discount code {$aPaymentFormArray['discountcode']}" : '',
                     'discountamount'  		=> $aPaymentFormArray['discountcode'] != '' ? "$".$this->discountcodeRepository->findByCode($aPaymentFormArray['discountcode'])->getFirst()->getDiscount() : '',
                     'donationtext'   		=> $aPaymentFormArray['donate'] != '' ? 'Donation amount' : '',
                     'donationamount'   		=> $aPaymentFormArray['donate'] != '' ? '$'.number_format($aPaymentFormArray['donate'], "2") : '',
-                    'invoiceamount'			=> $aPaymentFormArray['purchasetotal'],
-                    'paymenttype'			=> ($aPaymentFormArray['payment-option'] == "printinvoice" ? "Check" : "Credit card"),
+                    'invoiceamount'		=> $aPaymentFormArray['purchasetotal'],
+                    'paymenttype'		=> ($aPaymentFormArray['payment-option'] == "printinvoice" ? "Check" : "Credit card"),
             );
 
             //Calculate/determine the renewals array:
@@ -545,9 +558,18 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
 	}
 	
 	//Payment function:
-	public function processCreditcardPayment($testmode, $calculatedPrice, $formType){
+        /**
+         * 
+         * @param bool $testmode
+         * @param mixed $calculatedPrice
+         * @param string $item_description
+         * @param string $formType
+         * @return type
+         */
+	public function processCreditcardPayment($testmode, $calculatedPrice, $item_description, $formType){
 
-            $nameoncard = $_POST['paymentForm']['Card_Name'];
+            $fname = $_POST['paymentForm']['Card_Fname'];
+            $lname = $_POST['paymentForm']['Card_Lname'];
             $billingaddress = $_POST['paymentForm']['Address'];
             $city = $_POST['paymentForm']['City'];
             $state = $_POST['paymentForm']['State'];
@@ -565,20 +587,27 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             }
             if ($formType == "membership"){
                 $userEmail = $this->frontendUser->getEmail();
+                $company = $this->frontendUser->getCompany();
             } elseif($formType == "newDonation"){
                 $userEmail = addSlashes($_POST['email']);
+                $company = addSlashes($_POST['company']);
             }
             
-            $data['name'] = $nameoncard;
+            $data['fname'] = $fname;
+            $data['lname'] = $lname;
+            $data['item_description'] = $item_description;
+            
+            
             $data['cardno'] = $cardnumber;
             $data['cvv'] = $securitycode;
             $data['expmn'] = $cc_exp_month;
             $data['expyr'] = $cc_exp_year;
             $data['amount'] = $calculatedPrice;
             $data['address'] = $billingaddress;
+            $data['state'] = $state;
             $data['zip'] = $zip;
             $data['email'] = $userEmail;
-
+            $data['company'] = $company;
 
             return $this->makeTransaction($data, $testmode);
 		
@@ -698,10 +727,15 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             $cc_exp_year = $data['expyr'];
             $billingaddress = $data['address'];
             $zip = $data['zip'];
-            $nameoncard = $data['name'];
+            $fname = $data['fname'];
+            $lname = $data['lname'];
+            $state = $data['state'];
             $cardnumber = $data['cardno'];
             $securitycode = $data['cvv'];
             $userEmail = $data['email'];
+            $company = trim($data['company']);
+            $item_description = $data['item_description'];
+            $cust_id = hash('ripemd160', $data);
             
             $authnet_values = array(
 			'x_invoice_num' => time(),
@@ -709,8 +743,10 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
 			'x_exp_date' => $cc_exp_month.$cc_exp_year,
 			'x_address' => $billingaddress,
 			'x_zip' => $zip,
-			'x_first_name' => '',
-			'x_last_name' => $nameoncard,
+                        'x_state' => $state,
+                        'x_description'	=> $item_description,
+			'x_first_name' => $fname,
+			'x_last_name' => $lname,
 			'x_relay_response' => false,
 			'x_type' => 'AUTH_CAPTURE',
 			'x_method' => 'CC',
@@ -723,8 +759,13 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
 			'x_relay_response' => false,
 			'x_test_request' => $testmode,
 			'x_email' => $userEmail,
+                        'x_cust_id' => $cust_id,
+                        'x_email_customer' => true,
 			'x_customer_ip' => $_SERVER["REMOTE_ADDR"]
 		 );
+            if ($company != '') {
+                $authnet_values['x_company'] = $company;
+            }
 		 
 		 //Distinguish DEV from LIVE:
 		 if ($testmode == true) {
@@ -754,12 +795,13 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
 		 curl_close($request);
 
 		 $response = explode('|', $postResponse);
+                 
 		 if (!isset($response[7]) || !isset($response[3]) || !isset($response[9])){
-			$msg = 'Authorize.net returned a malformed response, aborted';
-			if (isset($response[7])){
-				$msg .= ' '.(int)$response[7];
-			}
-			die($msg);
+                    $msg = 'Authorize.net returned a malformed response, aborted';
+                    if (isset($response[7])){
+                        $msg .= ' '.(int)$response[7];
+                    }
+                    die($msg);
 		}
 		
 		return $response;
@@ -852,7 +894,9 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                     
                     if ($user instanceof \Netkyngs\Nkcadportal\Domain\Model\CustomFrontendUser) {
                         
-                        $data['name'] = $arguments['name'];
+                        $data['fname'] = $user->getFirstName();
+                        $data['lname'] = $user->getLastName();
+                        $data['company'] = $arguments['company'];
                         $data['cardno'] = $arguments['cardno'];
                         $data['cvv'] = $arguments['code'];
                         $data['expmn'] = $cc_exp_month;
@@ -860,8 +904,10 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                         $data['amount'] = $arguments['amount'];
                         $data['address'] = $arguments['address'];
                         $data['zip'] = $arguments['zip'];
+                        $data['state'] = $arguments['state'];
                         $data['email'] = $arguments['email'];
-
+                        $data['item_description'] = $arguments['description'];
+                        
                         if ($arguments['name'] == "Testmode123"){
                             $testmode = true;
                         }
@@ -887,7 +933,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
 
                          //Add a new formresult record:
                         $newPaymentRecord = new \Netkyngs\Nkregularformstorage\Domain\Model\Formresult();
-                        $newPaymentRecord->setName($user->getCompany()." ".$user->getUsername());
+                        $newPaymentRecord->setName($user->getCompany()." ".$data['fname'].' '.$data['lname']);
                         $newPaymentRecord->setEmail($data['email']);
                         $newPaymentRecord->setTrxid($trxID);
                         $newPaymentRecord->setCardno($data['cardno']);
@@ -903,6 +949,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                         $newPaymentRecord->setPid($this->storagePage);
 
                         $this->formresultRepository->add($newPaymentRecord);
+                        
                         $this->addFlashMessage('Card successfuly charged','Transaction Status', 
                         \TYPO3\CMS\Core\Messaging\AbstractMessage::OK, FALSE);
                         
