@@ -89,11 +89,14 @@ return array(
 			'label' => 'LLL:EXT:lang/locallang_general.xlf:LGL.starttime',
 			'config' => array(
 				'type' => 'input',
+                                'renderType' => 'usDate',
+                                'placeholder' => 'mm/dd/yyyy',
+                                'eval' => 'date',
+                                'format' => 'm/d/Y',
+                                'max' => 20,
 				'size' => 13,
-				'max' => 20,
-				'eval' => 'date',
 				'checkbox' => 0,
-				'default' => 0
+				'default' => 0,
 			),
 		),
 		'endtime' => array(
@@ -102,11 +105,14 @@ return array(
 			'label' => 'LLL:EXT:lang/locallang_general.xlf:LGL.endtime',
 			'config' => array(
 				'type' => 'input',
+                                'renderType' => 'usDate',
+                                'placeholder' => 'mm/dd/yyyy',
+                                'eval' => 'date',
+                                'format' => 'm/d/Y',
+                                'max' => 20,
 				'size' => 13,
-				'max' => 20,
-				'eval' => 'date',
 				'checkbox' => 0,
-				'default' => 0
+				'default' => 0,
 			),
 		),
 		'title' => array(

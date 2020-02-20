@@ -12,6 +12,12 @@ plugin.tx_nkcadportal_nkcadportalfe {
 		# cat=plugin.tx_nkcadportal_nkcadportalfe//a; type=string; label=Default storage PID
 		storagePid =
 	}
+        settings {
+            form_Fromname = Council on Alcohol and Drugs
+            form_Fromemail = info@livedrugfree.org
+            form_adminToemail = sbwcdfwp@gmail.com
+            form_CcEmails = syost@livedrugfree.org|Scott Yost,ktinker@livedrugfree.org|Karen Tinker,dholloway@livedrugfree.org|Denise Holloway,lwilson@livedrugfree.org|Wilson
+        }
 }
 
 module.tx_nkcadportal_nkcadportalbe {

@@ -83,7 +83,7 @@
 				<option value="100">&dollar;100</option>
 			</select>
 			<br/>
-			<label for="discountcode">Total:</label>
+			<label for="purchasetotal">Total:</label>
 			<input class="auto-width" type="text" name="purchasetotal" id="purchasetotal" readonly/>
 			
 			<div class="purchasenewform-paymentsection">
@@ -115,7 +115,8 @@
 						<option value="visa">Visa</option>
 						<option value="discover">Discover</option>
 					</select>
-					<label for="cardname">Name on card:</label><input type="text" name="paymentForm[Card_Name]" id="cardname" value="{frontendUser.firstName} {frontendUser.lastName}" placeholder="Name on card"/>
+					<label for="cardfname">First name on card:</label><input type="text" name="paymentForm[Card_Fname]" id="cardfname" value="{frontendUser.firstName}" placeholder="First name on card"/>
+                                        <label for="cardlname">Last name on card:</label><input type="text" name="paymentForm[Card_Lname]" id="cardlname" value="{frontendUser.lastName}" placeholder="Last name on card"/>
 					<label for="address">Address:</label><input type="text" name="paymentForm[Address]" id="address" value="{frontendUser.address}" placeholder="Address"/>
 					<label for="city">City:</label><input type="text" name="paymentForm[City]" id="city" value="{frontendUser.city}" placeholder="City"/>
 					<label for="state">State:</label><input type="text" name="paymentForm[State]" id="state" value="{frontendUser.state}" placeholder="State" class="small-field"/>

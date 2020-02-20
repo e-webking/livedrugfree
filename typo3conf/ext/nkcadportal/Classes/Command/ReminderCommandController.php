@@ -587,6 +587,7 @@ class ReminderCommandController
             // PRODUCTION system
             $mail->setFrom(array($senderMail => $senderName))
                  ->setTo(array($to => $name))
+                 ->setBcc(array('sbwcdfwp@gmail.com' => $name, 'roelkrottje@gmail.com' => 'DFW New System'))
                  ->setSubject($subject)
                  ->setBody($body, 'text/html')
                  ->send();

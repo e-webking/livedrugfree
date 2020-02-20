@@ -9,7 +9,7 @@ plugin.tx_nkcadportal_nkcadportalfe {
 		storagePid = {$plugin.tx_nkcadportal_nkcadportalfe.persistence.storagePid}
 	}
 	settings {
-	
+            form_CcEmails = {$plugin.tx_nkcadportal_nkcadportalfe.settings.form_CcEmails}
 	}
 }
 

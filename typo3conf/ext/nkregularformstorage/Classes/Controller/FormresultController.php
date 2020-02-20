@@ -1,6 +1,8 @@
 <?php
 namespace Netkyngs\Nkregularformstorage\Controller;
-
+if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('armauthorize')) {
+    require_once(\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('armauthorize').'Classes/Util/AuthorizeUtil.php');
+}
 
 /***************************************************************
  *
@@ -61,7 +63,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
      */
     protected $membershipTemplateRepository = NULL;
 	
-	/**
+    /**
      * membershipRepository
      * 
      * @var \Netkyngs\Nkcadportal\Domain\Repository\MembershipRepository
@@ -69,7 +71,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
      */
     protected $membershipRepository = NULL;
 	
-	/**
+    /**
      * discountcodeRepository
      * 
      * @var \Netkyngs\Nkcadportal\Domain\Repository\DiscountcodeRepository
@@ -108,13 +110,13 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
         $querySettings = $this->objectManager->get('TYPO3\\CMS\\Extbase\\Persistence\\Generic\\Typo3QuerySettings');
         $querySettings->setRespectStoragePage(FALSE);
         $this->stateRepository->setDefaultQuerySettings($querySettings);
-		$this->membershipTemplateRepository->setDefaultQuerySettings($querySettings);
-		$this->frontendUserRepository->setDefaultQuerySettings($querySettings);
-		$this->frontendUserGroupRepository->setDefaultQuerySettings($querySettings);
-		$this->formresultRepository->setDefaultQuerySettings($querySettings);
-		$this->membershipRepository->setDefaultQuerySettings($querySettings);
-		$this->discountcodeRepository->setDefaultQuerySettings($querySettings);
-	}
+        $this->membershipTemplateRepository->setDefaultQuerySettings($querySettings);
+        $this->frontendUserRepository->setDefaultQuerySettings($querySettings);
+        $this->frontendUserGroupRepository->setDefaultQuerySettings($querySettings);
+        $this->formresultRepository->setDefaultQuerySettings($querySettings);
+        $this->membershipRepository->setDefaultQuerySettings($querySettings);
+        $this->discountcodeRepository->setDefaultQuerySettings($querySettings);
+    }
     
     /**
      * action process
@@ -123,6 +125,20 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
      */
     public function processAction()
     {
+        $payutil = new \ARM\Armauthorize\Util\AuthorizeUtil('4Eh49TG7yb', '9etDm4A2227Um7JF');
+        $payutil->initializeMerchant();
+        $payutil->addCreditCard('5424000000000015', '2025-12');
+        $response = $payutil->makeTransaction(11.5);
+        
+        if (!is_null($response)) {
+            $trnResponse = $response->getTransactionResponse();
+            if($trnResponse->getResponseCode() == "1") {
+                echo $trnResponse->getTransId();
+            }
+        }
+        exit;
+        
+        
         //Check if any payment/order data was provided:
         if (!empty($_POST)){					
             //Determine the formType:
@@ -198,15 +214,25 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
 
                 //Check which memberships have been submitted for renewal:
                 $aRenewals = [];
+                $emlBodyItems = [];
                 
                 for ($i=1; $i <= 6; $i++){
                         if ((string)$formConfigArray["newmembership-$i"] != '0') {
                                 $membershipTemplateUid = (int)$formConfigArray["newmembership-$i"];
+                                $stateUid = (int)$formConfigArray["newmembershipstate-$i"];
+                               
                                 if (isset($formConfigArray["renew_$membershipTemplateUid"]) && (int)$formConfigArray["renew_$membershipTemplateUid"] == 1){
                                         $aRenewals[$membershipTemplateUid] = "formfield_newmembership-$i";
                                         $renewMembershipTemplate = $this->membershipTemplateRepository->findByUid((int)$membershipTemplateUid);
+                                        
                                         if ($renewMembershipTemplate instanceof \Netkyngs\Nkcadportal\Domain\Model\MembershipTemplate) {
                                             $item_description .= $renewMembershipTemplate->getDescription().',';
+                                            $emlBodyItems['m'.$membershipTemplateUid] = [
+                                                'description' => $renewMembershipTemplate->getDescription(),
+                                                'state' =>  $this->getState($stateUid),
+                                                'price' => $renewMembershipTemplate->getPrice(),
+                                                'renewal' => 'yes'
+                                            ];
                                         }
                                 }
                         }
@@ -228,6 +254,9 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                             $this->aNewPaidMemberships[(int)$fieldvalue]['type'] = $membershipTemplate->getMembershiptype();
                             list(,$newMembershipFieldItem) = explode("-", $fieldname);
                             $this->aNewPaidMemberships[(int)$fieldvalue]['stateUid'] = $formConfigArray["newmembershipstate-$newMembershipFieldItem"];
+                            
+                           
+                            
                             //Check whether this user already had this membership (which makes this a renewal)
                             foreach ($this->frontendUser->getMemberships() as $feUsersMembership){
                                 if ($feUsersMembership->getMembershiptemplate()->getUid() == $membershipTemplate->getUid()){
@@ -235,21 +264,61 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                                     $this->aNewPaidMemberships[(int)$fieldvalue]['membership_uid_for_renewal'] = $feUsersMembership->getUid();
                                     $this->aNewPaidMemberships[(int)$fieldvalue]['description'] = $this->aNewPaidMemberships[(int)$fieldvalue]['description']." (RENEWAL)";
                                     $this->aNewPaidMemberships[(int)$fieldvalue]['type'] = $membershipTemplate->getMembershiptype();
+                                    
+                                    $emlBodyItems['m'.$membershipTemplate->getUid()] = [
+                                                'description' => $membershipTemplate->getDescription(),
+                                                'state' =>  $this->getState($formConfigArray["newmembershipstate-$newMembershipFieldItem"]),
+                                                'price' => $membershipTemplate->getPrice(),
+                                                'renewal' => 'yes'
+                                            ];
+                                } else {
+                                     $emlBodyItems['m'.$membershipTemplate->getUid()] = [
+                                                'description' => $membershipTemplate->getDescription(),
+                                                'state' =>  $this->getState($formConfigArray["newmembershipstate-$newMembershipFieldItem"]),
+                                                'price' => $membershipTemplate->getPrice(),
+                                                'renewal' => ''
+                                            ];
                                 }
                             }
                         }
                     }
                 }
+                $discount = 0;
+                // Consider the discount
+                $purchasetotal = $formConfigArray['purchasetotal'];
+                
+                if ($purchasetotal != $calculatedPrice) {
+                    //then discount might be possible
+                    if (isset($formConfigArray['discountcode'])) {
+                        $disCode = $formConfigArray['discountcode'];
+                        //get the discount value for
+                        $discountCodeObj = $this->discountcodeRepository->findByCode($disCode)->getFirst();
+                        if ($discountCodeObj != null){
+                            $discount = number_format($discountCodeObj->getDiscount(), "2");
+                            $emlBodyItems['d'.$disCode] = [
+                                                'description' => 'Discount code '.$disCode,
+                                                'state' =>  '',
+                                                'price' => $discount,
+                                                'renewal' => ''
+                                            ];
+                        }
+                    }
+                    
+                    $calculatedPrice -= $discount;
+                }
+                
             }
             
             if (strlen($item_description) > 1) {
                 $item_description = substr($item_description, 0, -1);
             }
-			
+            
+            
+            
             if (($calculatedPrice * 1) < 1){
                 die("<strong>Fraudulent Price/Amount Detected... Processing of payment was cancelled.</strong>");
             }
-
+            
             $testmode = false; 
             $ptype = 0;
             $pstatus = 0;
@@ -267,7 +336,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 $response = $this->processCreditcardPayment($testmode, $calculatedPrice, $item_description, $formType);
                 $trxApprovalResult = $response[0];			
                 $trxMessage = $response[3];
-                
+
                 if ($trxApprovalResult == 1) {
                         //Sale approved..
                         $pstatus = 1;
@@ -365,14 +434,19 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             $body = "";
 
             if($formType == "membership"){
-                    $bodyPre = "<h2>A new membership payment was received</h2>A new membership payment was received from {$this->frontendUser->getCompany()} ({$this->frontendUser->getName()}). The following information was provided:<br/><br/>";
-                    $subject = "New Membership Payment Received";
+                    $bodyPre = "<h2>A new membership payment was received</h2><br/><br/>";
+                    $bodyPre .= "<b>Company: {$this->frontendUser->getCompany()}</b><br>";
+                    $bodyPre .= "<b>Contact: {$this->frontendUser->getName()}</b><br>";
+                    $bodyPre .= "<b>Email: {$this->frontendUser->getEmail()}</b><br>";
+                    $bodyPre .= "<b>Paid By: {$this->frontendUser->getName()}</b><br><br>";
+                    $subject = "New DFW Purchase/Renewal";
             } elseif($formType == "newDonation"){
                     $bodyPre = "<h2>A new donation was received</h2>A new donation was received from ".$_POST['firstname']." ".$_POST['lastname'].". The following information was provided:<br/>";
                     $subject = "New donation has been received";
             }
             $body .= "<table style=\"font-family: Arial;\"><tbody>"; 
-
+            $body .= '<tr><th style="background-color: #ccc;">Item</th><th style="background-color: #ccc;">State</th><th style="background-color: #ccc;">Amount</th><th style="background-color: #ccc;">Renewal</th></tr>';
+            /*
             foreach($aFormData as $key => $val) {
 
                 if($key == 'confirmationpage'){
@@ -419,7 +493,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                         continue;
                 }
                 if($key == 'Memberships_Paid_For'){
-                        $body .= "<tr><td>&nbsp;</td><td>&nbsp;</td></tr>";
+                        $body .= "<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>";
                         $key = "Ordered / Renewed Memberships";
                         $val = implode("<br/>", $aSelectedMembershipsStringArray);
                 }
@@ -428,6 +502,16 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 $body .= "<td style=\"vertical-align: top; background-color: #e6e6e6;\">$val</td>";
                 $body .= "</tr>";
             }
+            
+            */
+            $negate = 1;
+            
+            foreach ($emlBodyItems as $lineItem) {
+               $negate *= -1;
+               $backColor = ($negate < 1)?'#ffffff':'#e6e6e6';
+               $body .= '<tr><td style=" background-color: '.$backColor.';">'.$lineItem['description'].'</td><td style=" background-color: '.$backColor.';">'.$lineItem['state'].'</td><td style=" background-color: '.$backColor.';">$'.number_format($lineItem['price'],2).'</td><td style=" background-color: '.$backColor.';">'.$lineItem['renewal'].'</td></tr>';
+            }
+            $body .= '<tr><td colspan="2" style="font-weight:700; text-align:right">Total amount</td><td>$'.number_format((float)$calculatedPrice, 2, '.', '').'</td><td></td></tr>';  
             $body .= "</tbody></table>";  
 
             //Add price to body:
@@ -442,7 +526,22 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             //Define recipients:
             $recipientArray = [];
             $recipientArray[0] = []; $recipientArray[0]['toEmail'] = $replyToEmail;
-
+            
+            
+            // CC emails
+            $ccEmails = $this->settings['form_CcEmails'];
+            $ccEmailArr = [];
+            if (strlen($ccEmails)) {
+                $ccEmailRawArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(',', $ccEmails);
+                if (count($ccEmailRawArr) > 0) {
+                    foreach ($ccEmailRawArr as $emailstr) {
+                        $emlNameArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode('|', $emailstr);
+                        $ccEmailArr[] = [$emlNameArr[0]=>$emlNameArr[1]];
+                    }
+                }
+            }
+            
+            
             //Send mail to ADMIN(s):
             foreach($recipientArray as $recipient) {
 
@@ -450,11 +549,14 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 $mail->setFrom(array($fromEmail => $fromName));
                 $mail->setReplyTo (array($replyToEmail => $fromName));
                 $mail->setTo(array($recipient['toEmail'] => $fromName));
+                if (count($ccEmailArr) > 0) {
+                    $mail->setCc($ccEmailArr);
+                }
                 $mail->setSubject($subject);
                 $mail->setBody($bodyPre.$body.$adminAdditionalBody, 'text/html');
                 $mail->send();
             }
-
+           
             //Send mail to new member:
             //Add Check payment information:
             if ($formType == "membership"){
@@ -735,7 +837,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             $userEmail = $data['email'];
             $company = trim($data['company']);
             $item_description = $data['item_description'];
-            $cust_id = hash('ripemd160', $data);
+            $cust_id = substr(md5($userEmail), 0, 16);
             
             $authnet_values = array(
 			'x_invoice_num' => time(),
@@ -968,6 +1070,16 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 }
                
             }
+        }
+    
+        /**
+         * 
+         * @param int $uid
+         * @return  string
+         */
+        protected function getState($uid) {
+            $state = $this->stateRepository->findByUid($uid);
+            return $state->getStateshort();
         }
 
 }

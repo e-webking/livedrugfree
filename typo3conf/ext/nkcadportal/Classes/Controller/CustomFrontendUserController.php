@@ -1158,22 +1158,29 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         $frontendUser = $this->addDocumentsToUser($frontendUser);
 
         //Add download path data to the documents:
-        foreach($frontendUser->documents as $document){
-                $publicUrl = $document->getFile()->getOriginalResource()->getPublicUrl();
-                $aPublicUrlTmp = explode("/", $publicUrl);
-                $document->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
-        }
+         if (is_array($frontendUser->documents)) {
+            foreach($frontendUser->documents as $document){
+                $docFile = $document->getFile();
+                if(is_object($docFile)) {
+                    $publicUrl = $docFile->getOriginalResource()->getPublicUrl();
+                    $aPublicUrlTmp = explode("/", $publicUrl);
+                    $document->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+                }
+            }
+         }
 
         //Add the accessible newsletters to the $frontendUser object:
         $frontendUser = $this->addNewslettersToUser($frontendUser);
 
         //Add download path data to the newsletters:
-        foreach($frontendUser->newsletters as $newsletter){
-            $nlFile =  $newsletter->getFile();
-            if(is_object($nlFile)) {
-                $publicUrl = $nlFile->getOriginalResource()->getPublicUrl();
-                $aPublicUrlTmp = explode("/", $publicUrl);
-                $newsletter->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+        if (is_array($frontendUser->newsletters)) {
+            foreach($frontendUser->newsletters as $newsletter){
+                $nlFile =  $newsletter->getFile();
+                if(is_object($nlFile)) {
+                    $publicUrl = $nlFile->getOriginalResource()->getPublicUrl();
+                    $aPublicUrlTmp = explode("/", $publicUrl);
+                    $newsletter->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+                }
             }
         }
 

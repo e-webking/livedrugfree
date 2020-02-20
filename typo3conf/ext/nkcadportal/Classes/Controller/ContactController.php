@@ -227,6 +227,20 @@ class ContactController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControll
 		$adminName = $this->settings['form_Fromname'];
 		$adminFromEmail = $this->settings['form_Fromemail'];
 		$adminToEmail = $this->settings['form_adminToemail'];
+                
+                // CC emails
+                $ccEmails = $this->settings['form_CcEmails'];
+                $ccEmailArr = [];
+                if (strlen($ccEmails)) {
+                    $ccEmailRawArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(',', $ccEmails);
+                    if (count($ccEmailRawArr) > 0) {
+                        foreach ($ccEmailRawArr as $emailstr) {
+                            $emlNameArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode('|', $emailstr);
+                            $ccEmailArr[] = [$emlNameArr[0]=>$emlNameArr[1]];
+                        }
+                    }
+                }
+                
 		$requestedUsername = filter_input(INPUT_POST, "username", FILTER_SANITIZE_SPECIAL_CHARS);
 		$hostname = "https://".$_SERVER['HTTP_HOST'];
 		$memberName = filter_input(INPUT_POST, "firstname", FILTER_SANITIZE_SPECIAL_CHARS)." ".filter_input(INPUT_POST, "lastname", FILTER_SANITIZE_SPECIAL_CHARS);
@@ -240,12 +254,17 @@ class ContactController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControll
 		$bodyPost = "<p>Note: the member's password has been stored in the 'Staff Comments' field in the member's backend user record.</p>";
 		$recipientArray = [];
 		$recipientArray[0] = []; $recipientArray[0]['toEmail'] = $adminToEmail;
+                
 		
 		foreach($recipientArray as $recipient){
 			$mail = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Mail\\MailMessage');
 			$mail->setFrom(array($adminFromEmail => $adminName));
 			$mail->setReplyTo (array($adminToEmail => $adminName));
 			$mail->setTo(array($recipient['toEmail'] => $adminName));
+                        
+                        if(count($ccEmailArr) > 0) {
+                           $mail->setCc($ccEmailArr);
+                        }
 			$mail->setSubject($subject);
 			$mail->setBody($bodyPre.$body.$bodyPost.$emailSignature, 'text/html');
 			$mail->send();
