@@ -10,6 +10,7 @@ plugin.tx_nkregularformstorage_nkregularformstoragefe {
 	}
         settings {
             form_CcEmails = {$plugin.tx_nkregularformstorage_nkregularformstoragefe.settings.form_CcEmails}
+            livemode = {$plugin.tx_nkregularformstorage_nkregularformstoragefe.settings.livemode}
 	}
 }
 
@@ -23,6 +24,9 @@ module.tx_nkregularformstorage_web_nkregularformstoragenkregularformstoragebe {
 		partialRootPaths.0 = {$module.tx_nkregularformstorage_nkregularformstoragebe.view.partialRootPath}
 		layoutRootPaths.0 = {$module.tx_nkregularformstorage_nkregularformstoragebe.view.layoutRootPath}
 	}
+        settings {
+            livemode = {$module.tx_nkregularformstorage_nkregularformstoragebe.settings.livemode}
+        }
 }
 
 plugin.tx_nkregularformstorage._CSS_DEFAULT_STYLE (

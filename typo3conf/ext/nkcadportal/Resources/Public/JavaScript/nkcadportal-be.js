@@ -31,6 +31,7 @@ function rePolMember() {
 $(document).ready(function(){
         
     $('#memseloption').on('change', function(){
+        pgStart = 0;
         moption = $('#memseloption').val()?$('#memseloption').val():'';
         rePolMember();
     });
@@ -56,7 +57,6 @@ $(document).ready(function(){
         } else {
             if (e.keyCode == 8) {
                 pgStart = 0;
-                
                 rePolMember();
             }
         }

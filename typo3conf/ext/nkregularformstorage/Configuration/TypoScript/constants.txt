@@ -14,6 +14,7 @@ plugin.tx_nkregularformstorage_nkregularformstoragefe {
 	}
         settings {
             form_CcEmails = syost@livedrugfree.org|Scott Yost,ktinker@livedrugfree.org|Karen Tinker,dholloway@livedrugfree.org|Denise Holloway,lwilson@livedrugfree.org|Wilson
+             livemode = 0
         }
 }
 
@@ -31,4 +32,7 @@ module.tx_nkregularformstorage_nkregularformstoragebe {
 		# cat=module.tx_nkregularformstorage_nkregularformstoragebe//a; type=string; label=Default storage PID
 		storagePid =
 	}
+        settings {
+            livemode = 0
+        }
 }

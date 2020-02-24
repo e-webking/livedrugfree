@@ -48,3 +48,12 @@ CREATE TABLE tx_nkregularformstorage_domain_model_formresult (
     KEY language (l10n_parent,sys_language_uid)
 
 );
+
+#
+# Table structure for table 'fe_users'
+#
+CREATE TABLE fe_users (
+
+	authorize_customer_profile varchar(50) DEFAULT '' NOT NULL,
+	authorize_payment_profile varchar(50) DEFAULT '' NOT NULL,
+);

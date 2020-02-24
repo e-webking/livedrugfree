@@ -16,3 +16,7 @@ if (!defined('TYPO3_MODE')) {
 		
 	)
 );
+
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects']['Netkyngs\\Nkcadportal\\Domain\\Model\\CustomFrontendUser'] = array(
+   'className' => 'Netkyngs\\Nkregularformstorage\\Domain\\Model\\CustomFrontendUser'
+);
