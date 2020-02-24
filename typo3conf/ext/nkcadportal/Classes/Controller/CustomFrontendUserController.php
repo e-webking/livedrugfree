@@ -390,12 +390,12 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $andCondCnt->add($exprCnt->lt('local.endtimecustom', $ldNextMnTs));
                 
                $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
-                                    ->from('foreign', 'foreign')
+                                    ->from($foreign, 'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond);
                
                $queryBuilderCnt->count('foreign.uid')
-                                    ->from('foreign', 'foreign')
+                                    ->from($foreign, 'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCondCnt);
                                     
@@ -416,12 +416,12 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $andCondCnt->add($exprCnt->lt('local.endtimecustom', $sixtyDayTs));
                
                $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
-                                    ->from('foreign','foreign')
+                                    ->from($foreign,'foreign')
                                     ->innerJoin('foreign', $local ,'local', $expr->eq('local.customfrontenduser','foreign.uid'))
                                    ->andWhere($andCond);
                
                 $queryBuilderCnt->count('foreign.uid')
-                                    ->from('foreign', 'foreign')
+                                    ->from($foreign, 'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCondCnt);
                                     
@@ -440,12 +440,12 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                
                
                $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
-                                    ->from('foreign','foreign')
+                                    ->from($foreign,'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond);
                
                 $queryBuilderCnt->count('foreign.uid')
-                                    ->from('foreign','foreign')
+                                    ->from($foreign,'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCondCnt);
                                     
@@ -456,7 +456,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $andCondCnt->add($exprCnt->isNull('local.customfrontenduser'));
                  
                $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
-                                    ->from('foreign','foreign')
+                                    ->from($foreign,'foreign')
                                     ->leftJoin('foreign',$local,'local', $expr->eq('local.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond);
                
