@@ -194,11 +194,4 @@ define('TYPO3/CMS/Nkcadportal/BackendDatatables', ['jquery', 'datatables'], func
               }
         });
     };
-    $(document).ready(function() {
-        BackendDatatables.initializeDataTables();
-        $('#memseloption').on('change', function(){
-            $('.beoverlay').show();
-            BackendDatatables.filterDataTables($('#memseloption').val());
-        })
-    });
 });

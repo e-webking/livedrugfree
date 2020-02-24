@@ -1,0 +1,50 @@
+{namespace nk=Netkyngs\Nkcadportal\ViewHelpers}
+
+<f:layout name="Default" />
+
+
+<f:section name="content">
+
+<f:flashMessages />
+<ul class="cad-portal-be-topnav">
+    <li><f:link.action action="list">Members</f:link.action></li>
+    <li><f:link.action action="listmshiptpl">Memberships</f:link.action></li>
+    <li><f:link.action action="listnewsletter">Newsletters</f:link.action></li>
+    <li><f:link.action action="listdocs">Documents</f:link.action></li>
+    <li><f:link.action action="listrem">Reminders</f:link.action></li>
+    <li><f:link.action action="listrpt">Reports</f:link.action></li>
+    <li><f:link.action action="listcodes" class="active">Codes</f:link.action></li>
+</ul>
+
+<!-- CODES -->
+<f:be.widget.paginate objects="{codes}" as="paginatedCode" configuration="{itemsPerPage: 25}">
+<table class="cad-portal-be-table table-codes" id="table-codes" style="width:100%">
+    <caption>Codes</caption>
+    <thead>
+        <tr class="thead">
+                <th class="sorting_disabled">
+                    <nk:be.editLink table="tx_nkcadportal_domain_model_discountcode" uid="24" action="new"><i class="fa fa-plus-circle"></i></nk:be.editLink>
+                </th>
+                <th class="sorting_disabled">Edit options</th>
+                <th>Agency</th>
+                <th>Description</th>
+                <th>Code</th>
+                <th>Discount</th>
+            </tr>
+    </thead>
+    <tbody>
+        <f:for each="{paginatedCode}" as="code">
+            <tr>
+                <td></td>
+                <td><nk:be.editLink table="tx_nkcadportal_domain_model_discountcode" uid="{code.uid}" action="edit"><i class="fa fa-pencil"></i></nk:be.editLink> <i class="fa fa-eye-slash" onclick="performAjaxAction('36', 'hide-code',{code.uid}, true);"></i> <i class="fa fa-trash" onclick="performAjaxAction('36', 'delete-code', {code.uid}, true);"></i></td>
+                <td>{code.agency}</td>
+                <td>{code.description}</td>
+                <td>{code.code}</td>
+                <td><f:format.currency decimalSeparator="." thousandsSeparator="," decimals="2" currencySign="$" prependCurrency="true" separateCurrency="false">{code.discount}</f:format.currency></td>
+            </tr>
+        </f:for>
+    </tbody>
+</table>
+</f:be.widget.paginate>
+</f:section>
+</html>

@@ -117,7 +117,13 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
      * @inject
      */
     protected $membershipRepository = NULL;
-	
+    
+    /**
+     *
+     * @var int 
+     */
+    protected $limit = 50;
+
     /**
      * initialize action
      * 
@@ -144,57 +150,112 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
      */
     public function listAction()
     {
-        $this->view->assign('time', time()); 
-        /*
-	// Now polulated trough AJAX call	
-                //Get members:
-                $members = $this->frontendUserRepository->findAll();
-        $this->view->assign('members', $members);
-		
-		//Get membershiptemplates:
-		$membershiptemplates = $this->membershipTemplateRepository->findAll();
-        $this->view->assign('membershiptemplates', $membershiptemplates);	
-		//Get the newsletters:
-		$newsletters = $this->newsletterRepository->findAll();
-		foreach($newsletters as $newsletter){
-                        $fileObj = $newsletter->getFile();
-                        if (!is_null($fileObj)) {
-                            $publicUrl = $newsletter->getFile()->getOriginalResource()->getPublicUrl();
-                            $aPublicUrlTmp = explode("/", $publicUrl);
-                            $newsletter->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
-                        }
-		}
-        $this->view->assign('newsletters', $newsletters);
+         $queryBuilderCnt =  $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('fe_users');
+         $queryBuilder->getRestrictions()->removeAll();
+        //Get members:
+        $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email')
+                                    ->from('fe_users', 'fe_users')
+                                    ->where(
+                                        $queryBuilder->expr()->eq('fe_users.deleted', 0),
+                                        $queryBuilder->expr()->eq('fe_users.disable', 0)
+                                    )
+                                    ->orderBy('fe_users.company', 'ASC')
+                                    ->setFirstResult(0)
+                                    ->setMaxResults($this->limit )
+                                    ->execute()
+                                    ->fetchAll();
         
-		//Get the documents:
-		$documents = $this->documentRepository->findAll();
-		foreach($documents as $document){
-                    $fileObj = $document->getFile();
-                    if (!is_null($fileObj)) {
-                        $publicUrl = $document->getFile()->getOriginalResource()->getPublicUrl();
-                        $aPublicUrlTmp = explode("/", $publicUrl);
-                        $document->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
-                    }
-		}
-        $this->view->assign('documents', $documents);
-		
-		//Get the reminders:
-		$reminders = $this->reminderRepository->findAll();
-		foreach($reminders as $reminder){
-			$reminder->sendoptionsstring = $reminder->getDaysspan()." days ".$reminder->getWhentosend()." ".$reminder->getFieldcondition()." ".$reminder->getSendtogroup();
-		}
-        $this->view->assign('reminders', $reminders);
-	
-		//Get reports:
-		$reports = $this->reportRepository->findAll();
-        $this->view->assign('reports', $reports);
-	
-		//Get discount codes:
-		$codes = $this->discountcodeRepository->findAll();
-        $this->view->assign('codes', $codes);
-	*/
+        $queryBuilderCnt->count('fe_users.uid')
+                                    ->from('fe_users', 'fe_users')
+                                    ->where(
+                                        $queryBuilder->expr()->eq('fe_users.deleted', 0),
+                                        $queryBuilder->expr()->eq('fe_users.disable', 0)
+                                    );
+        $count = $queryBuilderCnt->execute()->fetchColumn(0);
+        
+        $this->view->assign('members', $rows);
+        $this->view->assign('mempaging', $this->pagingStr($count));
     }
     
+    /**
+     * 
+     * @param int $count
+     * @param int $act
+     */
+    protected function pagingStr($count, $act = 1) {
+        $i = 1;
+        $ret = '';
+        if (intval($count) > $this->limit) {
+            $pageNo = ceil($count/$this->limit);
+             while ($i <= $pageNo) {
+                $ret .= '<a class="nkpg'. ($i==$act?" act":"") .'" href="javascript:void(0);" onclick="_getPage('. ($i-1) .');" data-num="'. ($i-1) .'">'.$i++.'</a>';
+            }
+        }
+       
+        return $ret;
+    }
+
+    public function listmshiptplAction () {
+        //Get membershiptemplates:
+        $membershiptemplates = $this->membershipTemplateRepository->findAll();
+        $this->view->assign('membershiptemplates', $membershiptemplates);	
+    }
+    
+    public function listnewsletterAction() {
+        //Get the newsletters:
+        $newsletters = $this->newsletterRepository->findAll();
+        
+        foreach($newsletters as $newsletter){
+            
+            $fileObj = $newsletter->getFile();
+            if (!is_null($fileObj)) {
+                $publicUrl = $newsletter->getFile()->getOriginalResource()->getPublicUrl();
+                $aPublicUrlTmp = explode("/", $publicUrl);
+                $newsletter->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+            }
+        }
+        
+        $this->view->assign('newsletters', $newsletters);
+    }
+    
+    public function listdocsAction() 
+    {
+        //Get the documents:
+        $documents = $this->documentRepository->findAll();
+        foreach($documents as $document){
+            $fileObj = $document->getFile();
+            if (!is_null($fileObj)) {
+                $publicUrl = $document->getFile()->getOriginalResource()->getPublicUrl();
+                $aPublicUrlTmp = explode("/", $publicUrl);
+                $document->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+            }
+        }
+        $this->view->assign('documents', $documents);
+    }
+    
+    public function listremAction() 
+    {
+        //Get the reminders:
+        $reminders = $this->reminderRepository->findAll();
+        foreach($reminders as $reminder){
+                $reminder->sendoptionsstring = $reminder->getDaysspan()." days ".$reminder->getWhentosend()." ".$reminder->getFieldcondition()." ".$reminder->getSendtogroup();
+        }
+        $this->view->assign('reminders', $reminders);
+    }
+    
+    public function listrptAction()
+    {
+        //Get reports:
+        $reports = $this->reportRepository->findAll();
+        $this->view->assign('reports', $reports);
+    }
+
+    public function listcodesAction()
+    {
+        $codes = $this->discountcodeRepository->findAll();
+        $this->view->assign('codes', $codes);
+    }
+
     /**
      * AJAX action get members
      * @param array $params
@@ -202,140 +263,239 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
      */
     public function getMembersAction(\Psr\Http\Message\ServerRequestInterface $request,
     \Psr\Http\Message\ResponseInterface $response) {
+        
         $params = $request->getParsedBody();
+        
+        $pageNo = GeneralUtility::_GP('pageNo');
+        $pageStart = ($pageNo > 0)?($pageNo * $this->limit + 1):0;
         $option = GeneralUtility::_GP('option');
-        /*
-        $memArr[] = [
-                    'uid' => 1,
-                    'company' => 'Company',
-                    'fein' => 'FEIN1',
-                    'address' => 'Address 1',
-                    'name' => 'Name 1',
-                    'telephone' => 'Tel 1',
-                    'email' => 'email1@email.com'
-                ];
-        */
-        $memArr = [];
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('fe_users');
+        $company = GeneralUtility::_GP('company');
+        $fein = GeneralUtility::_GP('fein');
+        $address = GeneralUtility::_GP('address');
+        $fein = GeneralUtility::_GP('fein');
+        $name = GeneralUtility::_GP('name');
+        $telephone = GeneralUtility::_GP('phone');
+        $email = GeneralUtility::_GP('email');
+        
+        $foreign = 'fe_users';
+        $local = 'tx_nkcadportal_domain_model_membership';
+            
+        
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
+        $queryBuilderCnt = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
         $expr = $queryBuilder->expr();
+        $exprCnt = $queryBuilderCnt->expr();
+        
+       
         $queryBuilder->getRestrictions()->removeAll();
+        $queryBuilderCnt->getRestrictions()->removeAll();
+        
+        $andCond = $queryBuilder->expr()->andx();
+        $andCond->add($expr->eq('foreign.deleted', 0));
+        
+        $andCondCnt = $queryBuilderCnt->expr()->andx();
+        $andCondCnt->add($exprCnt->eq('foreign.deleted', 0));
+        
+        if (trim($name)!= '') {
+            $andCond->add($expr->like('foreign.name', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($name) . '%')));
+            $andCondCnt->add($exprCnt->like('foreign.name', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($name) . '%')));
+        }
+        if (trim($company)!= '') {
+            $andCond->add($expr->like('foreign.company', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($company).'%')));
+            $andCondCnt->add($exprCnt->like('foreign.company', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($company).'%')));
+        }
+        if (trim($fein)!= '') {
+            $andCond->add($expr->like('foreign.fein',  $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($fein). '%')));
+            $andCondCnt->add($exprCnt->like('foreign.fein', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($fein).'%')));
+        }
+        if (trim($address)!= '') {
+            $andCond->add($expr->like('foreign.address', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($address).'%')));
+            $andCondCnt->add($exprCnt->like('foreign.address', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($address).'%')));
+        }
+        if (trim($telephone)!= '') {
+            $andCond->add($expr->like('foreign.telephone', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($telephone).'%')));
+            $andCondCnt->add($exprCnt->like('foreign.telephone', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($telephone).'%')));
+        }
+        if (trim($email)!= '') {
+            $andCond->add($expr->like('foreign.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($email).'%')));
+            $andCondCnt->add($exprCnt->like('foreign.email', $queryBuilderCnt->createNamedParameter('%' .$queryBuilderCnt->escapeLikeWildcards($email).'%')));
+        }
+            
         switch ($option) {
+            
             case 'current':
-               $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email')
-                                    ->from('fe_users','fe_users')
-                                    ->innerJoin('fe_users','tx_nkcadportal_domain_model_membership','tx_nkcadportal_domain_model_membership', $expr->eq('tx_nkcadportal_domain_model_membership.customfrontenduser','fe_users.uid'))
-                                    ->where(
-                                        $queryBuilder->expr()->eq('fe_users.deleted', 0),
-                                        $queryBuilder->expr()->eq('fe_users.disable', 0),
-                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.deleted', 0),
-                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.hidden', 0),
-                                        $queryBuilder->expr()->gt('tx_nkcadportal_domain_model_membership.endtimecustom', time())
-                                    )
-                                    ->execute()
-                                    ->fetchAll();
+                $andCond->add($expr->eq('foreign.disable', 0));
+                $andCond->add($expr->eq('local.deleted', 0));
+                $andCond->add($expr->eq('local.hidden', 0));
+                $andCond->add($expr->gt('local.endtimecustom', time()));
+                
+                $andCondCnt->add($exprCnt->eq('foreign.disable', 0));
+                $andCondCnt->add($exprCnt->eq('local.deleted', 0));
+                $andCondCnt->add($exprCnt->eq('local.hidden', 0));
+                $andCondCnt->add($exprCnt->gt('local.endtimecustom', time()));
+                
+                $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+                                    ->from($foreign,'foreign')
+                                    ->innerJoin('foreign', $local, 'local', $expr->eq('foreign.uid', 'local.customfrontenduser'))
+                                    ->andWhere($andCond);
                                     
+                
+                $queryBuilderCnt->count('foreign.uid')
+                                    ->from($foreign,'foreign')
+                                    ->innerJoin('foreign', $local, 'local', $exprCnt->eq('foreign.uid','local.customfrontenduser'))
+                                    ->andWhere($andCondCnt);           
                 break;
             case 'expiringthismonth':
+                
                $month = date("M", time());
                $ldTs = strtotime('last day of ' . $month);
-
-               $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email')
-                                    ->from('fe_users','fe_users')
-                                    ->innerJoin('fe_users','tx_nkcadportal_domain_model_membership','tx_nkcadportal_domain_model_membership', $expr->eq('tx_nkcadportal_domain_model_membership.customfrontenduser','fe_users.uid'))
-                                    ->where(
-                                        $queryBuilder->expr()->eq('fe_users.deleted', 0),
-                                        $queryBuilder->expr()->eq('fe_users.disable', 0),
-                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.deleted', 0),
-                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.hidden', 0),
-                                        $queryBuilder->expr()->gt('tx_nkcadportal_domain_model_membership.endtimecustom', time()),
-                                        $queryBuilder->expr()->lt('tx_nkcadportal_domain_model_membership.endtimecustom', $ldTs)
-                                    )
-                                    ->execute()
-                                    ->fetchAll();
+               
+               $andCond->add($expr->eq('foreign.disable', 0));
+               $andCond->add($expr->eq('local.deleted', 0));
+               $andCond->add($expr->eq('local.hidden', 0));
+               $andCond->add($expr->gt('local.endtimecustom', time()));
+               $andCond->add($expr->lt('local.endtimecustom', $ldTs));
+               
+               $andCondCnt->add($exprCnt->eq('foreign.disable', 0));
+               $andCondCnt->add($exprCnt->eq('local.deleted', 0));
+               $andCondCnt->add($exprCnt->eq('local.hidden', 0));
+               $andCondCnt->add($exprCnt->gt('local.endtimecustom', time()));
+               $andCondCnt->add($exprCnt->lt('local.endtimecustom', $ldTs));
+               
+                
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+                                    ->from($foreign,'foreign')
+                                    ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->andWhere($andCond);
+                $queryBuilderCnt->count('foreign.uid')
+                                ->from($foreign,'foreign')
+                                ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                ->andWhere($andCondCnt);
                                     
                 break;
             case 'expiringnextmonth':
                $month = date("M", strtotime("+1 month"));
                $ldNextMnTs = strtotime('last day of ' . $month);
-
-               $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email')
-                                    ->from('fe_users', 'fe_users')
-                                    ->innerJoin('fe_users','tx_nkcadportal_domain_model_membership','tx_nkcadportal_domain_model_membership', $expr->eq('tx_nkcadportal_domain_model_membership.customfrontenduser','fe_users.uid'))
-                                    ->where(
-                                        $queryBuilder->expr()->eq('fe_users.deleted', 0),
-                                        $queryBuilder->expr()->eq('fe_users.disable', 0),
-                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.deleted', 0),
-                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.hidden', 0),
-                                        $queryBuilder->expr()->gt('tx_nkcadportal_domain_model_membership.endtimecustom', time()),
-                                        $queryBuilder->expr()->lt('tx_nkcadportal_domain_model_membership.endtimecustom', $ldNextMnTs)
-                                    )
-                                    ->execute()
-                                    ->fetchAll();
+               
+               $andCond->add($expr->eq('foreign.disable', 0));
+               $andCond->add($expr->eq('local.deleted', 0));
+               $andCond->add($expr->eq('local.hidden', 0));
+               $andCond->add($expr->gt('local.endtimecustom', time()));
+               $andCond->add($expr->lt('local.endtimecustom', $ldNextMnTs));
+               
+               $andCondCnt->add($exprCnt->eq('foreign.disable', 0));
+               $andCondCnt->add($exprCnt->eq('local.deleted', 0));
+               $andCondCnt->add($exprCnt->eq('local.hidden', 0));
+               $andCondCnt->add($exprCnt->gt('local.endtimecustom', time()));
+               $andCondCnt->add($exprCnt->lt('local.endtimecustom', $ldNextMnTs));
+                
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+                                    ->from('foreign', 'foreign')
+                                    ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->andWhere($andCond);
+               
+               $queryBuilderCnt->count('foreign.uid')
+                                    ->from('foreign', 'foreign')
+                                    ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->andWhere($andCondCnt);
                                     
                 break;
             case 'expiredwithinxdays':
                $sixtyDayTs = strtotime("+2 months");
-
-               $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email')
-                                    ->from('fe_users','fe_users')
-                                    ->innerJoin('fe_users','tx_nkcadportal_domain_model_membership','tx_nkcadportal_domain_model_membership', $expr->eq('tx_nkcadportal_domain_model_membership.customfrontenduser','fe_users.uid'))
-                                    ->where(
-                                        $queryBuilder->expr()->eq('fe_users.deleted', 0),
-                                        $queryBuilder->expr()->eq('fe_users.disable', 0),
-                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.deleted', 0),
-                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.hidden', 0),                                        
-                                        $queryBuilder->expr()->gt('tx_nkcadportal_domain_model_membership.endtimecustom', time()),
-                                        $queryBuilder->expr()->lt('tx_nkcadportal_domain_model_membership.endtimecustom', $sixtyDayTs)
-                                    )
-                                    ->execute()
-                                    ->fetchAll();
+                
+               $andCond->add($expr->eq('foreign.disable', 0));
+               $andCond->add($expr->eq('local.deleted', 0));
+               $andCond->add($expr->eq('local.hidden', 0));
+               $andCond->add($expr->gt('local.endtimecustom', time()));
+               $andCond->add($expr->lt('local.endtimecustom', $sixtyDayTs));
+               
+               $andCondCnt->add($exprCnt->eq('foreign.disable', 0));
+               $andCondCnt->add($exprCnt->eq('local.deleted', 0));
+               $andCondCnt->add($exprCnt->eq('local.hidden', 0));
+               $andCondCnt->add($exprCnt->gt('local.endtimecustom', time()));
+               $andCondCnt->add($exprCnt->lt('local.endtimecustom', $sixtyDayTs));
+               
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+                                    ->from('foreign','foreign')
+                                    ->innerJoin('foreign', $local ,'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                   ->andWhere($andCond);
+               
+                $queryBuilderCnt->count('foreign.uid')
+                                    ->from('foreign', 'foreign')
+                                    ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->andWhere($andCondCnt);
                                     
                 break;
             case 'expired':
-
-               $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email')
-                                    ->from('fe_users','fe_users')
-                                    ->innerJoin('fe_users','tx_nkcadportal_domain_model_membership','tx_nkcadportal_domain_model_membership', $expr->eq('tx_nkcadportal_domain_model_membership.customfrontenduser','fe_users.uid'))
-                                    ->where(
-                                        $queryBuilder->expr()->eq('fe_users.deleted', 0),
-                                        $queryBuilder->expr()->eq('fe_users.disable', 0),
-                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.deleted', 0),
-                                        $queryBuilder->expr()->eq('tx_nkcadportal_domain_model_membership.hidden', 0),
-                                        $queryBuilder->expr()->lt('tx_nkcadportal_domain_model_membership.endtimecustom', time())
-                                    )
-                                    ->execute()
-                                    ->fetchAll();
+                
+               $andCond->add($expr->eq('foreign.disable', 0));
+               $andCond->add($expr->eq('local.deleted', 0));
+               $andCond->add($expr->eq('local.hidden', 0));
+               $andCond->add($expr->lt('local.endtimecustom', time()));
+               
+               $andCondCnt->add($exprCnt->eq('foreign.disable', 0));
+               $andCondCnt->add($exprCnt->eq('local.deleted', 0));
+               $andCondCnt->add($exprCnt->eq('local.hidden', 0));
+               $andCondCnt->add($exprCnt->lt('local.endtimecustom', time()));
+               
+               
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+                                    ->from('foreign','foreign')
+                                    ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->andWhere($andCond);
+               
+                $queryBuilderCnt->count('foreign.uid')
+                                    ->from('foreign','foreign')
+                                    ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->andWhere($andCondCnt);
                                     
                 break;
              case 'suspendedandnew':
-
-               $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email')
-                                    ->from('fe_users','fe_users')
-                                    ->leftJoin('fe_users','tx_nkcadportal_domain_model_membership','tx_nkcadportal_domain_model_membership', $expr->eq('tx_nkcadportal_domain_model_membership.customfrontenduser','fe_users.uid'))
-                                    ->where(
-                                        $queryBuilder->expr()->eq('fe_users.deleted', 0),
-                                        $queryBuilder->expr()->isNull('tx_nkcadportal_domain_model_membership.customfrontenduser')
-                                    );
-                // echo $queryBuilder->getSQL();
-                                    $rows = $queryBuilder->execute()
-                                    ->fetchAll();
+                 
+               $andCond->add($expr->isNull('local.customfrontenduser'));
+               $andCondCnt->add($exprCnt->isNull('local.customfrontenduser'));
+                 
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+                                    ->from('foreign','foreign')
+                                    ->leftJoin('foreign',$local,'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->andWhere($andCond);
+               
+               $queryBuilderCnt->count('foreign.uid')
+                                    ->from($foreign,'foreign')
+                                    ->leftJoin('foreign',$local,'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->andWhere($andCondCnt);
                                     
                 break;
             default:
-                $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email')
-                                    ->from('fe_users', 'fe_users')
-                                    ->where(
-                                        $queryBuilder->expr()->eq('fe_users.deleted', 0),
-                                        $queryBuilder->expr()->eq('fe_users.disable', 0)
-                                    )
-                                    ->execute()
-                                    ->fetchAll();
+                $andCond->add($expr->eq('foreign.disable', 0));
+                $andCondCnt->add($exprCnt->eq('foreign.disable', 0));
+                
+                $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+                                    ->from($foreign, 'foreign')
+                                    ->andWhere($andCond);
+                
+                $queryBuilderCnt->count('foreign.uid')
+                        ->from($foreign, 'foreign')
+                        ->andWhere($andCondCnt);
         }
-
+        
+//        echo $queryBuilder->setFirstResult($pageStart)->setMaxResults($this->limit)->getSQL();
+//        exit;
+        
+        $rows = $queryBuilder->orderBy('foreign.company', 'ASC')
+                        ->setFirstResult($pageStart)
+                            ->setMaxResults($this->limit)
+                            ->execute()
+                            ->fetchAll();
+        $count = $queryBuilderCnt->execute()->fetchColumn(0);
+        
+        $memHtml = '';
+        
         if (count($rows) > 0) {
             
             foreach ($rows as $data) {
                 
+                /*
                 $contacts = $this->getContactData($data['uid']);
                 $cname = '';
                 $cemail = '';
@@ -360,27 +520,31 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                         }
                     }
                 }
-                $memArr[] = [
-                        'uid' => $data['uid'],
-                        'edit' => $this->getMemberEditUrl($data['uid']),
-                        'option' => $this->getMemberOptionUrl($data['uid']),
-                        'company' => $data['company'],
-                        'fein' => $data['fein'],
-                        'address' => $data['address'],
-                        'name' => $data['first_name'].' '.$data['last_name'],
-                        'telephone' => $data['telephone'],
-                        'email' => '<a href="mailto:'.$data['email'].'">'.$data['email'].'</a>',
-                        'cname' => $cname,
-                        'cemail' => $cemail,
-                        'cphone' => $cphone
-                    ];
+                */
+                $memHtml .= '<tr>'
+                        .'<td><i class="fa fa-user"></i></td>'
+                        .'<td>'.$this->getMemberEditUrl($data['uid']).' '.$this->getMemberOptionUrl($data['uid']).'</td>'
+                        .'<td>'.$data['company'].'</td>'
+                        .'<td>'.$data['fein'].'</td>'
+                        .'<td>'.$data['address'].'</td>'
+                        .'<td>'.$data['first_name'].' '.$data['last_name'].'</td>'
+                        .'<td>'.$data['telephone'].'</td>'
+                        .'<td><a href="mailto:'.$data['email'].'">'.$data['email'].'</a></td>'
+                        . '</tr>';
             }
+
         }
-        $arr['data'] = $memArr;
+        
+        $arr['members'] = $memHtml;
+        $arr['paging'] = $this->pagingStr($count, $pageNo+1);
+        
         $json = $this->array2Json($arr);
         $response->getBody()->write($json);
+        
         $response->withHeader('Cache-Control', 'no-cache, must-revalidate');
         $response->withHeader('Content-Type', 'application/json;charset=utf-8');
+        
+        //echo $json;
         
         return $response;
     }

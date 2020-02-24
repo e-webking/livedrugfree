@@ -1,0 +1,54 @@
+{namespace nk=Netkyngs\Nkcadportal\ViewHelpers}
+
+<f:layout name="Default" />
+
+
+<f:section name="content">
+
+<f:flashMessages />
+<ul class="cad-portal-be-topnav">
+    <li><f:link.action action="list">Members</f:link.action></li>
+    <li><f:link.action action="listmshiptpl" class="active">Memberships</f:link.action></li>
+    <li><f:link.action action="listnewsletter">Newsletters</f:link.action></li>
+    <li><f:link.action action="listdocs">Documents</f:link.action></li>
+    <li><f:link.action action="listrem">Reminders</f:link.action></li>
+    <li><f:link.action action="listrpt">Reports</f:link.action></li>
+    <li><f:link.action action="listcodes">Codes</f:link.action></li>
+</ul>
+
+<!-- MEMBERSHIPS -->
+<f:be.widget.paginate objects="{membershiptemplates}" as="paginatedMemTpl" configuration="{itemsPerPage: 25}">
+    <table class="cad-portal-be-table table-memberships" id="table-memberships" style="width:100%">
+            <caption>Memberships</caption>
+            <thead>
+                    <tr>
+                            <th class="sorting_disabled">
+                                    <nk:be.editLink table="tx_nkcadportal_domain_model_membershiptemplate" uid="19" action="new">
+                                            <i class="fa fa-plus-circle"></i>
+                                    </nk:be.editLink>
+                            </th>
+                            <th class="sorting_disabled">Options</th>
+                            <th>Description</th>
+                            <th>Type</th>
+                            <th>Price</th>
+                            <th class="sorting_disabled">Term (Years)</th>
+                            <th class="sorting_disabled">Includes</th>
+                    </tr>
+            </thead>
+            <tbody>
+            <f:for each="{paginatedMemTpl}" as="memtpl">
+                <tr>
+                    <td><i class="fa fa-bell"></i></td>
+                    <td><nk:be.editLink table="tx_nkcadportal_domain_model_membershiptemplate" uid="{memtpl.uid}" action="edit"><i class="fa fa-pencil"></i></nk:be.editLink> <i class="fa fa-eye-slash" onclick="performAjaxAction('36', 'hide-membership',{memtpl.uid}, true);"></i> <i class="fa fa-trash" onclick="performAjaxAction('36', 'delete-membership', {memtpl.uid}, true);"></i></td>
+                    <td>{memtpl.description}</td>
+                    <td>{memtpl.membershiptype}</td>
+                    <td>{memtpl.price}</td>
+                    <td>{memtpl.term}</td>
+                    <td><f:for each="{memtpl.includednewsletters}" as="nl">{nl.name}<span class="comma-seperator">,</span> </f:for></td>
+                </tr>
+            </f:for>
+        </tbody>
+    </table>
+</f:be.widget.paginate>
+</f:section>
+</html>

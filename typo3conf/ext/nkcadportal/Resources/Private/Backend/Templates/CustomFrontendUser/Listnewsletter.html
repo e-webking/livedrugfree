@@ -1,0 +1,50 @@
+{namespace nk=Netkyngs\Nkcadportal\ViewHelpers}
+
+<f:layout name="Default" />
+
+
+<f:section name="content">
+
+<f:flashMessages />
+<ul class="cad-portal-be-topnav">
+    <li><f:link.action action="list">Members</f:link.action></li>
+    <li><f:link.action action="listmshiptpl">Memberships</f:link.action></li>
+    <li><f:link.action action="listnewsletter" class="active">Newsletters</f:link.action></li>
+    <li><f:link.action action="listdocs">Documents</f:link.action></li>
+    <li><f:link.action action="listrem">Reminders</f:link.action></li>
+    <li><f:link.action action="listrpt">Reports</f:link.action></li>
+    <li><f:link.action action="listcodes">Codes</f:link.action></li>
+</ul>
+
+<!-- NEWSLETTERS -->
+<f:be.widget.paginate objects="{newsletters}" as="paginatedNl" configuration="{itemsPerPage: 25}">
+<table class="cad-portal-be-table table-newsletters" id="table-newsletters" style="width:100%">
+	<caption>Newsletters</caption>
+	<thead>
+		<tr>
+                    <th class="sorting_disabled">
+                        <nk:be.editLink table="tx_nkcadportal_domain_model_newsletter" uid="22" action="new">
+                                <i class="fa fa-plus-circle"></i>
+                        </nk:be.editLink>
+                    </th>
+                    <th class="sorting_disabled">Options</th>
+                    <th>Date / Description</th>
+                    <th>Type</th>
+                    <th>Filename</th>
+		</tr>
+	</thead>
+        <tbody>
+            <f:for each="{paginatedNl}" as="nwslt">
+                <tr>
+                    <td><i class="fa fa-bell"></i></td>
+                    <td><nk:be.editLink table="tx_nkcadportal_domain_model_newsletter" uid="{nwslt.uid}" action="edit"><i class="fa fa-pencil"></i></nk:be.editLink> <i class="fa fa-eye-slash" onclick="performAjaxAction('36', 'hide-newsletter',{nwslt.uid}, true);"></i> <i class="fa fa-trash" onclick="performAjaxAction('36', 'delete-newsletter', {nwslt.uid}, true);"></i></td>
+                    <td>{nwslt.title}</td>
+                    <td>{nwslt.newslettertype.name}</td>
+                    <td><a href="/index.php?id=36&action=serve-download&filepath={nwslt.file.originalResource.publicUrl}&friendlyfilename={nwslt.fileName}">{nwslt.fileName}</a></td>
+                </tr>
+            </f:for>
+        </tbody>
+</table>
+</f:be.widget.paginate>
+</f:section>
+</html>

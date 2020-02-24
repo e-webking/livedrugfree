@@ -1,0 +1,49 @@
+{namespace nk=Netkyngs\Nkcadportal\ViewHelpers}
+
+<f:layout name="Default" />
+
+
+<f:section name="content">
+
+<f:flashMessages />
+<ul class="cad-portal-be-topnav">
+    <li><f:link.action action="list">Members</f:link.action></li>
+    <li><f:link.action action="listmshiptpl">Memberships</f:link.action></li>
+    <li><f:link.action action="listnewsletter">Newsletters</f:link.action></li>
+    <li><f:link.action action="listdocs" class="active">Documents</f:link.action></li>
+    <li><f:link.action action="listrem">Reminders</f:link.action></li>
+    <li><f:link.action action="listrpt">Reports</f:link.action></li>
+    <li><f:link.action action="listcodes">Codes</f:link.action></li>
+</ul>
+
+<!-- DOCUMENTS -->
+<f:be.widget.paginate objects="{documents}" as="paginatedDocs" configuration="{itemsPerPage: 25}">
+<table class="cad-portal-be-table table-documents" id="table-documents" style="width:100%">
+	<caption>Documents</caption>
+	<thead>
+		<tr>
+			<th class="sorting_disabled">
+				<nk:be.editLink table="tx_nkcadportal_domain_model_document" uid="23" action="new">
+					<i class="fa fa-plus-circle"></i>
+				</nk:be.editLink>
+			</th>
+			<th class="sorting_disabled">Options</th>
+			<th>Description</th>
+			<th>Filename</th>
+		</tr>
+	</thead>
+	<tbody>
+            <f:for each="{paginatedDocs}" as="doc">
+                <tr>
+                    <td><i class="fa fa-bell"></i></td>
+                    <td><nk:be.editLink table="tx_nkcadportal_domain_model_document" uid="{doc.uid}" action="edit"><i class="fa fa-pencil"></i></nk:be.editLink> <i class="fa fa-eye-slash" onclick="performAjaxAction('36', 'hide-document',{doc.uid}, true);"></i> <i class="fa fa-trash" onclick="performAjaxAction('36', 'delete-document', {doc.uid}, true);"></i></td>
+                    <td>{doc.title}</td>
+                    <td><f:format.raw><nk:docLink document="{doc.uid}" /></f:format.raw></td>
+                </tr>
+            </f:for>
+        </tbody>
+	
+</table>
+</f:be.widget.paginate>
+</f:section>
+</html>

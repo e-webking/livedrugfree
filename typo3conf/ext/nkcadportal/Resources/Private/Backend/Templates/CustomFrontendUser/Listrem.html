@@ -1,0 +1,47 @@
+{namespace nk=Netkyngs\Nkcadportal\ViewHelpers}
+<f:layout name="Default" />
+
+<f:section name="content">
+<f:flashMessages />
+<ul class="cad-portal-be-topnav">
+    <li><f:link.action action="list">Members</f:link.action></li>
+    <li><f:link.action action="listmshiptpl">Memberships</f:link.action></li>
+    <li><f:link.action action="listnewsletter">Newsletters</f:link.action></li>
+    <li><f:link.action action="listdocs">Documents</f:link.action></li>
+    <li><f:link.action action="listrem" class="active">Reminders</f:link.action></li>
+    <li><f:link.action action="listrpt">Reports</f:link.action></li>
+    <li><f:link.action action="listcodes">Codes</f:link.action></li>
+</ul>
+
+<!-- REMINDER -->
+<f:be.widget.paginate objects="{reminders}" as="paginatedReminders" configuration="{itemsPerPage: 25}">
+    <table class="cad-portal-be-table table-reminders" id="table-reminders" style="width:100%">
+        <caption>Reminders</caption>
+        <thead>
+            <tr class="thead">
+                        <th class="sorting_disabled">
+                                <nk:be.editLink table="tx_nkcadportal_domain_model_reminder" uid="20" action="new">
+                                        <i class="fa fa-plus-circle"></i>
+                                </nk:be.editLink>
+                        </th>
+                        <th class="sorting_disabled">Edit Options</th>
+                        <th  style="width:25%">Subject</th>
+                        <th>Send options</th>
+                        <th style="width:35%">States</th>
+                </tr>
+        </thead>
+        <tbody>
+            <f:for each="{paginatedReminders}" as="reminder">
+                <tr>
+                    <td><i class="fa fa-bell"></i></td>
+                    <td><nk:be.editLink table="tx_nkcadportal_domain_model_reminder" uid="{reminder.uid}" action="edit"><i class="fa fa-pencil"></i></nk:be.editLink> <i class="fa fa-eye-slash" onclick="performAjaxAction('36', 'hide-reminder',{reminder.uid}, true);"></i> <i class="fa fa-trash" onclick="performAjaxAction('36', 'delete-reminder', {reminder.uid}, true);"></i></td>
+                    <td>{reminder.subject}</td>
+                    <td>{reminder.daysspan} days {reminder.whentosend} {reminder.fieldcondition} {reminder.sendtogroup}</td>
+                    <td><nk:reminderStates reminder="{reminder.uid}" /></td>
+                </tr>
+            </f:for>
+        </tbody>
+    </table>
+</f:be.widget.paginate>
+</f:section>
+</html>

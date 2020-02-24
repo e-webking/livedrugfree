@@ -1,0 +1,49 @@
+{namespace nk=Netkyngs\Nkcadportal\ViewHelpers}
+
+<f:layout name="Default" />
+
+
+<f:section name="content">
+
+<f:flashMessages />
+<ul class="cad-portal-be-topnav">
+    <li><f:link.action action="list">Members</f:link.action></li>
+    <li><f:link.action action="listmshiptpl">Memberships</f:link.action></li>
+    <li><f:link.action action="listnewsletter">Newsletters</f:link.action></li>
+    <li><f:link.action action="listdocs">Documents</f:link.action></li>
+    <li><f:link.action action="listrem">Reminders</f:link.action></li>
+    <li><f:link.action action="listrpt" class="active">Reports</f:link.action></li>
+    <li><f:link.action action="listcodes">Codes</f:link.action></li>
+</ul>
+
+
+<!-- REPORTS -->
+<f:be.widget.paginate objects="{reports}" as="paginatedRpt" configuration="{itemsPerPage: 25}">
+<table class="cad-portal-be-table table-reports" id="table-reports" style="width:100%">
+    <caption>Reports</caption>
+    <thead>
+        <tr class="thead">
+            <th class="sorting_disabled">
+                <nk:be.editLink table="tx_nkcadportal_domain_model_report" uid="21" action="new">
+                    <i class="fa fa-plus-circle"></i>
+                </nk:be.editLink>
+            </th>
+            <th class="sorting_disabled">Edit options</th>
+            <th>Report name</th>
+            <th class="sorting_disabled">Download</th>
+        </tr>
+    </thead>
+    <tbody>
+        <f:for each="{paginatedRpt}" as="report">
+            <tr>
+                <td><i class="fa fa-bell"></i></td>
+                <td><nk:be.editLink table="tx_nkcadportal_domain_model_report" uid="{report.uid}" action="edit"><i class="fa fa-pencil"></i></nk:be.editLink>  <i class="fa fa-trash" onclick="performAjaxAction('36', 'delete-report', {report.uid}, true);"></i></td>
+                <td>{report.title}</td>
+                <td><a href="/index.php?id=36&action=serve-csv-report&uid={report.uid}"><i class="fa fa-file"></i></a></td>
+            </tr>
+        </f:for>
+    </tbody>
+</table>
+</f:be.widget.paginate>
+</f:section>
+</html>
