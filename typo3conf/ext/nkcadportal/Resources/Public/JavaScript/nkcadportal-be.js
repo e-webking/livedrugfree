@@ -1,11 +1,5 @@
 var pgStart = '0';
-var moption = '';
-var cname = '';
-var fein = '';
-var address = '';
-var pcontact = '';
-var pphone = '';
-var email = '';
+var qsearch = '';
 
 function rePolMember() {
     var ajaxMemberUrl = TYPO3.settings.ajaxUrls['nkcadportal_members'];
@@ -13,7 +7,7 @@ function rePolMember() {
     $.ajax({
             url: ajaxMemberUrl,
             type: "POST",
-            data: 'pageNo='+pgStart+'&option='+moption+'&company='+cname+'&fein='+fein+'&address='+address+'&name='+pcontact+'&phone='+pphone+'&email='+email,
+            data: 'pageNo='+pgStart+'&qsearch='+qsearch,
             cache:false,
             success: function (response) {
                 $('#nkloader').hide();
@@ -30,14 +24,8 @@ function rePolMember() {
         
 $(document).ready(function(){
         
-    $('#memseloption').on('change', function(){
-        pgStart = 0;
-        moption = $('#memseloption').val()?$('#memseloption').val():'';
-        rePolMember();
-    });
-
-    $('#cname').on('keyup', function (e){
-        cname = $('#cname').val();
+    $('#qsearch').on('keyup', function (e){
+        qsearch = $('#qsearch').val();
         if ($(this).val().length > 2) {
             pgStart = 0;         
             rePolMember();
@@ -48,72 +36,6 @@ $(document).ready(function(){
             }
         }
     });
-    
-    $('#fein').on('keyup', function (e){
-        fein = $('#fein').val();
-        if ($(this).val().length > 0) {
-            pgStart = 0;
-            rePolMember();
-        } else {
-            if (e.keyCode == 8) {
-                pgStart = 0;
-                rePolMember();
-            }
-        }
-    });
-    
-    $('#address').on('keyup', function (e){
-        address = $('#address').val();
-        if ($(this).val().length > 2) {
-            pgStart = 0;         
-            rePolMember();
-        } else {
-            if (e.keyCode == 8) {
-                pgStart = 0;
-                rePolMember();
-            }
-        }
-    });
-    
-    $('#pcontact').on('keyup', function (e){
-        pcontact = $('#pcontact').val();
-        if ($(this).val().length > 2) {
-            pgStart = 0;         
-            rePolMember();
-        } else {
-            if (e.keyCode == 8) {
-                pgStart = 0;
-                rePolMember();
-            }
-        }
-    });
-    
-    $('#pphone').on('keyup', function (e){
-        pphone = $('#pphone').val();
-        if ($(this).val().length > 2) {
-            pgStart = 0;         
-            rePolMember();
-        } else {
-            if (e.keyCode == 8) {
-                pgStart = 0;
-                rePolMember();
-            }
-        }
-    });
-    
-    $('#email').on('keyup', function (e){
-        email = $('#email').val();
-        if ($(this).val().length > 2) {
-            pgStart = 0;         
-            rePolMember();
-        } else {
-            if (e.keyCode == 8) {
-                pgStart = 0;
-                rePolMember();
-            }
-        }
-    });
-        
 });
 
 function _getPage(no) {

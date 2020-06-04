@@ -21,39 +21,26 @@
 <table class="cad-portal-be-table table-members active" id="table-members" style="width:100%">
 	<caption>Members</caption>
 	<thead>
-		<tr>
-			<th class="sorting_disabled">
-				<nk:be.editLink table="fe_users" uid="18" action="new">
-					<i class="fa fa-plus-circle"></i>
-				</nk:be.editLink>
-			</th>
-			<th class="sorting_disabled">Options</th>
-			<th>Company name</th>
-			<th>FEIN</th>
-			<th class="sorting_disabled">Address</th>
-			<th class="sorting_disabled">Primary Contact</th>
-			<th class="sorting_disabled">Primary Phone</th>
-			<th class="sorting_disabled">Email</th>
-		</tr>
-                <tr>
-                    <td colspan="2">
-                        <select name="memseloption" id="memseloption" style="height:30px">
-                                <option value="all">All members</option>
-                                <option value="current">Current members</option>
-                                <option value="expiringthismonth">Expiring this month</option>
-                                <option value="expiringnextmonth">Expiring next month</option>
-                                <option value="expiredwithinxdays">Expired within 60 days</option>
-                                <option value="expired">Expired members</option>
-                                <option value="suspendedandnew">Suspended and New</option>
-                        </select>
+            <tr>
+                <td colspan="8">
+                    <label>Filter records: </label>
+                    <input name="qsearch" id="qsearch" style="width:300px;" placeholder="Type in minimum 3 characters to filter results" />
                     </td>
-                    <td><input name="cname" id="cname" /></td>
-                    <td><input name="fein" id="fein" style="width:100px;" /></td>
-                    <td><input name="address" id="address" /></td>
-                    <td><input name="pcontact" id="pcontact" /></td>
-                    <td><input name="pphone" id="pphone" style="width:110px;" /></td>
-                    <td><input name="email" id="email" /></td>
                 </tr>
+		<tr>
+                    <th class="sorting_disabled" width="20">
+                            <nk:be.editLink table="fe_users" uid="18" action="new">
+                                    <i class="fa fa-plus-circle"></i>
+                            </nk:be.editLink>
+                    </th>
+                    <th class="sorting_disabled" width="100">Options</th>
+                    <th>Company name</th>
+                    <th>FEIN</th>
+                    <th class="sorting_disabled">Address</th>
+                    <th class="sorting_disabled">Primary Contact</th>
+                    <th class="sorting_disabled">Primary Phone</th>
+                    <th class="sorting_disabled">Email</th>
+		</tr>
 	</thead>
         <tbody id="memberList">
             <f:for each="{members}" as="member">

@@ -268,14 +268,9 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         
         $pageNo = GeneralUtility::_GP('pageNo');
         $pageStart = ($pageNo > 0)?($pageNo * $this->limit + 1):0;
-        $option = GeneralUtility::_GP('option');
-        $company = GeneralUtility::_GP('company');
-        $fein = GeneralUtility::_GP('fein');
-        $address = GeneralUtility::_GP('address');
-        $fein = GeneralUtility::_GP('fein');
-        $name = GeneralUtility::_GP('name');
-        $telephone = GeneralUtility::_GP('phone');
-        $email = GeneralUtility::_GP('email');
+        
+        $qsearch = GeneralUtility::_GP('qsearch');
+      
         
         $foreign = 'fe_users';
         $local = 'tx_nkcadportal_domain_model_membership';
@@ -291,35 +286,44 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         $queryBuilderCnt->getRestrictions()->removeAll();
         
         $andCond = $queryBuilder->expr()->andx();
+        $orCond = $queryBuilder->expr()->orx();
         $andCond->add($expr->eq('foreign.deleted', 0));
         
         $andCondCnt = $queryBuilderCnt->expr()->andx();
+        $orCondCnt = $queryBuilderCnt->expr()->orx();
         $andCondCnt->add($exprCnt->eq('foreign.deleted', 0));
         
-        if (trim($name)!= '') {
-            $andCond->add($expr->like('foreign.name', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($name) . '%')));
-            $andCondCnt->add($exprCnt->like('foreign.name', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($name) . '%')));
+        if (trim($qsearch)!= '') {
+            if (strpos($qsearch, '@') > 0) {
+                $orCond->add($expr->like('foreign.company', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch).'%')));
+                $orCondCnt->add($exprCnt->like('foreign.company', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
+
+                $orCond->add($expr->like('foreign.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($qsearch).'%')));
+                $orCondCnt->add($exprCnt->like('foreign.email', $queryBuilderCnt->createNamedParameter('%' .$queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
+            } else {
+            
+                $orCond->add($expr->like('foreign.name', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch) . '%')));
+                $orCondCnt->add($exprCnt->like('foreign.name', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($qsearch) . '%')));
+
+                $orCond->add($expr->like('foreign.company', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch).'%')));
+                $orCondCnt->add($exprCnt->like('foreign.company', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
+
+                $orCond->add($expr->like('foreign.fein',  $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch). '%')));
+                $orCondCnt->add($exprCnt->like('foreign.fein', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
+
+                $orCond->add($expr->like('foreign.address', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch).'%')));
+                $orCondCnt->add($exprCnt->like('foreign.address', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
+
+                $orCond->add($expr->like('foreign.telephone', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch).'%')));
+                $orCondCnt->add($exprCnt->like('foreign.telephone', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
+
+                $orCond->add($expr->like('foreign.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($qsearch).'%')));
+                $orCondCnt->add($exprCnt->like('foreign.email', $queryBuilderCnt->createNamedParameter('%' .$queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
+            }
+            $andCond->add($orCond);
+            $andCondCnt->add($orCondCnt);
         }
-        if (trim($company)!= '') {
-            $andCond->add($expr->like('foreign.company', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($company).'%')));
-            $andCondCnt->add($exprCnt->like('foreign.company', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($company).'%')));
-        }
-        if (trim($fein)!= '') {
-            $andCond->add($expr->like('foreign.fein',  $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($fein). '%')));
-            $andCondCnt->add($exprCnt->like('foreign.fein', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($fein).'%')));
-        }
-        if (trim($address)!= '') {
-            $andCond->add($expr->like('foreign.address', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($address).'%')));
-            $andCondCnt->add($exprCnt->like('foreign.address', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($address).'%')));
-        }
-        if (trim($telephone)!= '') {
-            $andCond->add($expr->like('foreign.telephone', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($telephone).'%')));
-            $andCondCnt->add($exprCnt->like('foreign.telephone', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($telephone).'%')));
-        }
-        if (trim($email)!= '') {
-            $andCond->add($expr->like('foreign.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($email).'%')));
-            $andCondCnt->add($exprCnt->like('foreign.email', $queryBuilderCnt->createNamedParameter('%' .$queryBuilderCnt->escapeLikeWildcards($email).'%')));
-        }
+        
             
         switch ($option) {
             
