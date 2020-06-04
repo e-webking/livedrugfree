@@ -1,5 +1,6 @@
 var pgStart = '0';
 var qsearch = '';
+var moption = '';
 
 function rePolMember() {
     var ajaxMemberUrl = TYPO3.settings.ajaxUrls['nkcadportal_members'];
@@ -7,7 +8,7 @@ function rePolMember() {
     $.ajax({
             url: ajaxMemberUrl,
             type: "POST",
-            data: 'pageNo='+pgStart+'&qsearch='+qsearch,
+            data: 'pageNo='+pgStart+'&option='+moption+'&qsearch='+qsearch,
             cache:false,
             success: function (response) {
                 $('#nkloader').hide();
@@ -23,7 +24,14 @@ function rePolMember() {
 }
         
 $(document).ready(function(){
-        
+    
+    $('#memseloption').on('change', function(){
+        console.log('changed');
+        pgStart = 0;
+        moption = $('#memseloption').val()?$('#memseloption').val():'';
+        rePolMember();
+    });
+    
     $('#qsearch').on('keyup', function (e){
         qsearch = $('#qsearch').val();
         if ($(this).val().length > 2) {

@@ -150,26 +150,38 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
      */
     public function listAction()
     {
-         $queryBuilderCnt =  $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('fe_users');
-         $queryBuilder->getRestrictions()->removeAll();
+        $contact = 'tx_nkcadportal_domain_model_contact';
+        $foreign = 'fe_users';
+        
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
+        $queryBuilderCnt = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
+        $queryBuilder->getRestrictions()->removeAll();
+        $queryBuilderCnt->getRestrictions()->removeAll();
+
         //Get members:
-        $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email')
-                                    ->from('fe_users', 'fe_users')
+        $rows = $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contactbl.firstname','contactbl.lastname','contactbl.phone as cphone','contactbl.email as cemail')
+                                    ->from($foreign, 'foreign')
+                                    ->leftJoin('foreign', $contact, 'contactbl', $queryBuilder->expr()->eq('contactbl.customfrontenduser','foreign.uid'))
                                     ->where(
-                                        $queryBuilder->expr()->eq('fe_users.deleted', 0),
-                                        $queryBuilder->expr()->eq('fe_users.disable', 0)
+                                        $queryBuilder->expr()->eq('contactbl.deleted', 0),
+                                        $queryBuilder->expr()->eq('contactbl.hidden', 0),
+                                        $queryBuilder->expr()->eq('foreign.deleted', 0),
+                                        $queryBuilder->expr()->eq('foreign.disable', 0)
                                     )
-                                    ->orderBy('fe_users.company', 'ASC')
+                                    ->orderBy('foreign.company', 'ASC')
                                     ->setFirstResult(0)
                                     ->setMaxResults($this->limit )
                                     ->execute()
                                     ->fetchAll();
         
-        $queryBuilderCnt->count('fe_users.uid')
-                                    ->from('fe_users', 'fe_users')
+        $queryBuilderCnt->count('foreign.uid')
+                                    ->from($foreign, 'foreign')
+                                    ->leftJoin('foreign', $contact, 'contactbl', $queryBuilderCnt->expr()->eq('contactbl.customfrontenduser','foreign.uid'))
                                     ->where(
-                                        $queryBuilder->expr()->eq('fe_users.deleted', 0),
-                                        $queryBuilder->expr()->eq('fe_users.disable', 0)
+                                        $queryBuilderCnt->expr()->eq('contactbl.deleted', 0),
+                                        $queryBuilderCnt->expr()->eq('contactbl.hidden', 0),
+                                        $queryBuilderCnt->expr()->eq('foreign.deleted', 0),
+                                        $queryBuilderCnt->expr()->eq('foreign.disable', 0)
                                     );
         $count = $queryBuilderCnt->execute()->fetchColumn(0);
         
@@ -270,10 +282,11 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         $pageStart = ($pageNo > 0)?($pageNo * $this->limit + 1):0;
         
         $qsearch = GeneralUtility::_GP('qsearch');
-      
+        $option = GeneralUtility::_GP('option');
         
         $foreign = 'fe_users';
         $local = 'tx_nkcadportal_domain_model_membership';
+        $contact = 'tx_nkcadportal_domain_model_contact';
             
         
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
@@ -288,10 +301,14 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         $andCond = $queryBuilder->expr()->andx();
         $orCond = $queryBuilder->expr()->orx();
         $andCond->add($expr->eq('foreign.deleted', 0));
+        $andCond->add($expr->eq('contact.deleted', 0));
+        $andCond->add($expr->eq('contact.hidden', 0));
         
         $andCondCnt = $queryBuilderCnt->expr()->andx();
         $orCondCnt = $queryBuilderCnt->expr()->orx();
         $andCondCnt->add($exprCnt->eq('foreign.deleted', 0));
+        $andCondCnt->add($exprCnt->eq('contact.deleted', 0));
+        $andCondCnt->add($exprCnt->eq('contact.hidden', 0));
         
         if (trim($qsearch)!= '') {
             if (strpos($qsearch, '@') > 0) {
@@ -300,6 +317,10 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 
                 $orCond->add($expr->like('foreign.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($qsearch).'%')));
                 $orCondCnt->add($exprCnt->like('foreign.email', $queryBuilderCnt->createNamedParameter('%' .$queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
+                
+                $orCond->add($expr->like('contact.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($qsearch).'%')));
+                $orCondCnt->add($exprCnt->like('cotact.email', $queryBuilderCnt->createNamedParameter('%' .$queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
+                
             } else {
             
                 $orCond->add($expr->like('foreign.name', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch) . '%')));
@@ -316,9 +337,23 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 
                 $orCond->add($expr->like('foreign.telephone', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch).'%')));
                 $orCondCnt->add($exprCnt->like('foreign.telephone', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
-
+                
                 $orCond->add($expr->like('foreign.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($qsearch).'%')));
                 $orCondCnt->add($exprCnt->like('foreign.email', $queryBuilderCnt->createNamedParameter('%' .$queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
+                
+                $orCond->add($expr->like('contact.firstname', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch) . '%')));
+                $orCondCnt->add($exprCnt->like('contact.firstname', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($qsearch) . '%')));
+                
+                $orCond->add($expr->like('contact.lastname', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch) . '%')));
+                $orCondCnt->add($exprCnt->like('contact.lastname', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($qsearch) . '%')));
+                
+                $orCond->add($expr->like('contact.phone', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch).'%')));
+                $orCondCnt->add($exprCnt->like('contact.phone', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
+                
+                $orCond->add($expr->like('contact.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($qsearch).'%')));
+                $orCondCnt->add($exprCnt->like('contact.email', $queryBuilderCnt->createNamedParameter('%' .$queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
+               
+
             }
             $andCond->add($orCond);
             $andCondCnt->add($orCondCnt);
@@ -338,15 +373,17 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                 $andCondCnt->add($exprCnt->eq('local.hidden', 0));
                 $andCondCnt->add($exprCnt->gt('local.endtimecustom', time()));
                 
-                $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+                $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail')
                                     ->from($foreign,'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('foreign.uid', 'local.customfrontenduser'))
+                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond);
                                     
                 
                 $queryBuilderCnt->count('foreign.uid')
                                     ->from($foreign,'foreign')
                                     ->innerJoin('foreign', $local, 'local', $exprCnt->eq('foreign.uid','local.customfrontenduser'))
+                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCondCnt);           
                 break;
             case 'expiringthismonth':
@@ -367,13 +404,15 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $andCondCnt->add($exprCnt->lt('local.endtimecustom', $ldTs));
                
                 
-               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail')
                                     ->from($foreign,'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond);
                 $queryBuilderCnt->count('foreign.uid')
                                 ->from($foreign,'foreign')
                                 ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                 ->andWhere($andCondCnt);
                                     
                 break;
@@ -393,14 +432,16 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $andCondCnt->add($exprCnt->gt('local.endtimecustom', time()));
                $andCondCnt->add($exprCnt->lt('local.endtimecustom', $ldNextMnTs));
                 
-               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail')
                                     ->from($foreign, 'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond);
                
                $queryBuilderCnt->count('foreign.uid')
                                     ->from($foreign, 'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCondCnt);
                                     
                 break;
@@ -419,14 +460,16 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $andCondCnt->add($exprCnt->gt('local.endtimecustom', time()));
                $andCondCnt->add($exprCnt->lt('local.endtimecustom', $sixtyDayTs));
                
-               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail')
                                     ->from($foreign,'foreign')
                                     ->innerJoin('foreign', $local ,'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                    ->andWhere($andCond);
                
                 $queryBuilderCnt->count('foreign.uid')
                                     ->from($foreign, 'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCondCnt);
                                     
                 break;
@@ -443,14 +486,16 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $andCondCnt->add($exprCnt->lt('local.endtimecustom', time()));
                
                
-               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail')
                                     ->from($foreign,'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond);
                
                 $queryBuilderCnt->count('foreign.uid')
                                     ->from($foreign,'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCondCnt);
                                     
                 break;
@@ -459,14 +504,16 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $andCond->add($expr->isNull('local.customfrontenduser'));
                $andCondCnt->add($exprCnt->isNull('local.customfrontenduser'));
                  
-               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail')
                                     ->from($foreign,'foreign')
                                     ->leftJoin('foreign',$local,'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond);
                
                $queryBuilderCnt->count('foreign.uid')
                                     ->from($foreign,'foreign')
                                     ->leftJoin('foreign',$local,'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCondCnt);
                                     
                 break;
@@ -474,12 +521,15 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                 $andCond->add($expr->eq('foreign.disable', 0));
                 $andCondCnt->add($exprCnt->eq('foreign.disable', 0));
                 
-                $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+                
+                $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail')
                                     ->from($foreign, 'foreign')
+                                    ->leftJoin('foreign', $contact, 'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond);
                 
                 $queryBuilderCnt->count('foreign.uid')
                         ->from($foreign, 'foreign')
+                        ->leftJoin('foreign', $contact, 'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                         ->andWhere($andCondCnt);
         }
         
@@ -499,32 +549,6 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
             
             foreach ($rows as $data) {
                 
-                /*
-                $contacts = $this->getContactData($data['uid']);
-                $cname = '';
-                $cemail = '';
-                $cphone = '';
-                
-                if (is_array($contacts) && isset($contacts)) {               
-                    if (count($contacts) > 0) {
-                        foreach ($contacts as $contact) {
-                            
-                            $cname .= $contact['firstname'].' '.$contact['lastname'].'|';
-                            $cemail .= $contact['email'].'|';
-                            $cphone .= $contact['phone'].'|';
-                        }
-                        if(strlen($cname) > 0) {
-                            $cname = substr($cname, 0, -1);
-                        }
-                        if(strlen($cemail) > 0) {
-                            $cemail = substr($cemail, 0, -1);
-                        }
-                        if(strlen($cphone) > 0) {
-                            $cphone = substr($cphone, 0, -1);
-                        }
-                    }
-                }
-                */
                 $memHtml .= '<tr>'
                         .'<td><i class="fa fa-user"></i></td>'
                         .'<td>'.$this->getMemberEditUrl($data['uid']).' '.$this->getMemberOptionUrl($data['uid']).'</td>'
@@ -534,6 +558,9 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                         .'<td>'.$data['first_name'].' '.$data['last_name'].'</td>'
                         .'<td>'.$data['telephone'].'</td>'
                         .'<td><a href="mailto:'.$data['email'].'">'.$data['email'].'</a></td>'
+                        .'<td>'.$data['firstname'].' '.$data['lastname'].'</td>'
+                        .'<td>'.$data['cphone'].'</td>'
+                        .'<td><a href="mailto:'.$data['cemail'].'">'.$data['cemail'].'</a></td>'
                         . '</tr>';
             }
 
