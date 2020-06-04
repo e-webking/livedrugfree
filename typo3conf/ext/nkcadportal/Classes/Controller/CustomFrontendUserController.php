@@ -301,14 +301,11 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         $andCond = $queryBuilder->expr()->andx();
         $orCond = $queryBuilder->expr()->orx();
         $andCond->add($expr->eq('foreign.deleted', 0));
-        $andCond->add($expr->eq('contact.deleted', 0));
-        $andCond->add($expr->eq('contact.hidden', 0));
         
         $andCondCnt = $queryBuilderCnt->expr()->andx();
         $orCondCnt = $queryBuilderCnt->expr()->orx();
         $andCondCnt->add($exprCnt->eq('foreign.deleted', 0));
-        $andCondCnt->add($exprCnt->eq('contact.deleted', 0));
-        $andCondCnt->add($exprCnt->eq('contact.hidden', 0));
+
         
         if (trim($qsearch)!= '') {
             if (strpos($qsearch, '@') > 0) {
@@ -319,7 +316,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                 $orCondCnt->add($exprCnt->like('foreign.email', $queryBuilderCnt->createNamedParameter('%' .$queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
                 
                 $orCond->add($expr->like('contact.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($qsearch).'%')));
-                $orCondCnt->add($exprCnt->like('cotact.email', $queryBuilderCnt->createNamedParameter('%' .$queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
+                $orCondCnt->add($exprCnt->like('contact.email', $queryBuilderCnt->createNamedParameter('%' .$queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
                 
             } else {
             
@@ -441,7 +438,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $queryBuilderCnt->count('foreign.uid')
                                     ->from($foreign, 'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
-                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
+                                    ->leftJoin('foreign', $contact, 'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCondCnt);
                                     
                 break;
@@ -533,8 +530,8 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                         ->andWhere($andCondCnt);
         }
         
-//        echo $queryBuilder->setFirstResult($pageStart)->setMaxResults($this->limit)->getSQL();
-//        exit;
+        //echo $queryBuilder->setFirstResult($pageStart)->setMaxResults($this->limit)->getSQL();
+        //exit;
         
         $rows = $queryBuilder->orderBy('foreign.company', 'ASC')
                         ->setFirstResult($pageStart)
@@ -551,7 +548,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                 
                 $memHtml .= '<tr>'
                         .'<td><i class="fa fa-user"></i></td>'
-                        .'<td>'.$this->getMemberEditUrl($data['uid']).' '.$this->getMemberOptionUrl($data['uid']).'</td>'
+                        .'<td style="white-space: nowrap">'.$this->getMemberEditUrl($data['uid']).' '.$this->getMemberOptionUrl($data['uid']).'</td>'
                         .'<td>'.$data['company'].'</td>'
                         .'<td>'.$data['fein'].'</td>'
                         .'<td>'.$data['address'].'</td>'
