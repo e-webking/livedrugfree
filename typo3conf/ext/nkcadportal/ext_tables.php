@@ -1,43 +1,43 @@
 <?php
 if (!defined('TYPO3_MODE')) {
-	die('Access denied.');
+    die('Access denied.');
 }
 
 \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerPlugin(
-	'Netkyngs.' . $_EXTKEY,
-	'Nkcadportalfe',
-	'NK CAD Portal (FE) Plugin'
+    'Netkyngs.' . $_EXTKEY,
+    'Nkcadportalfe',
+    'NK CAD Portal (FE) Plugin'
 );
 
 if (TYPO3_MODE === 'BE') {
 
-	/**
-	 * Registers a Backend Module
-	 */
-	\TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
-		'Netkyngs.' . $_EXTKEY,
-		'web',	 // Make module a submodule of 'web'
-		'nkcadportalbe',	// Submodule key
-		'',						// Position
-		array(
-			'CustomFrontendUser' => 'list,listmshiptpl,listnewsletter,listdocs,listrem,listrpt,listcodes, show, new, create, edit, update, delete',
-                        'MembershipTemplate' => 'list, show, new, create, edit, update, delete',
-                        'Membership' => 'list, show, new, create, edit, update, delete',
-                        'Newslettertype' => 'list',
-                        'Contact' => 'list, show, new, create, edit, update, delete',
-                        'Document' => 'list, show',
-                        'State' => 'list',
-                        'Reminder' => 'list, show, new, create, edit, update, delete',
-                        'Report' => 'list, show, new, create, edit, update, delete',
-                        'Discountcode' => 'list, show, new, create, edit, update, delete',
-		),
-		array(
-			'access' => 'user,group',
-			'icon'   => 'EXT:' . $_EXTKEY . '/ext_icon.gif',
-			'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/locallang_nkcadportalbe.xlf',
-			'navigationComponentId' => '',
-		)
-	);
+    /**
+     * Registers a Backend Module
+     */
+    \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
+            'Netkyngs.' . $_EXTKEY,
+            'web',	 // Make module a submodule of 'web'
+            'nkcadportalbe',	// Submodule key
+            '',						// Position
+            array(
+                    'CustomFrontendUser' => 'list,listmshiptpl,listnewsletter,listdocs,listrem,listrpt,listcodes, show, new, create, edit, update, delete',
+                    'MembershipTemplate' => 'list, show, new, create, edit, update, delete',
+                    'Membership' => 'list, show, new, create, edit, update, delete',
+                    'Newslettertype' => 'list',
+                    'Contact' => 'list, show, new, create, edit, update, delete',
+                    'Document' => 'list, show',
+                    'State' => 'list',
+                    'Reminder' => 'list, show, new, create, edit, update, delete',
+                    'Report' => 'list, show, new, create, edit, update, delete',
+                    'Discountcode' => 'list, show, new, create, edit, update, delete',
+            ),
+            array(
+                    'access' => 'user,group',
+                    'icon'   => 'EXT:' . $_EXTKEY . '/ext_icon.gif',
+                    'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/locallang_nkcadportalbe.xlf',
+                    'navigationComponentId' => '',
+            )
+    );
 
 }
 

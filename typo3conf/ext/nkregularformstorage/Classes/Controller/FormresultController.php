@@ -141,6 +141,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
      */
     public function processAction()
     {
+        $body = "";
         $this->startTransaction();
         
         //Check if any payment/order data was provided:
@@ -203,7 +204,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             $this->selectedPaymentType = $formConfigArray['payment-option'];
             $trxID = '';
             $trxMessage = 'Unknown error'; 
-
+            $emlBodyItems = [];
             if ($formType == "newDonation"){
                 //Single/isolated Donation type:
                 $calculatedPrice = number_format($formConfigArray['amount'], "2");
@@ -213,6 +214,12 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 } else {
                     $this->payutil->createLineItem('don-'. time(),'$'.$formConfigArray['amount'].' Donation', $calculatedPrice, 'Donation given');
                 }
+                $emlBodyItems['don-'. time()] = [
+                    'description' => '$'.$formConfigArray['amount'].' Donation',
+                    'state' =>  '--',
+                    'price' => $calculatedPrice,
+                    'renewal' => ''
+                    ];
                 
             } else {
                 $item_description = '';
@@ -220,14 +227,21 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 $calculatedPrice = 0;
                 $donationAmount = (int)$formConfigArray['donate'];
                 if ($donationAmount > 0) {
+                    
                    $this->payutil->createLineItem('don-'.$feUserUid,'$'.$donationAmount.' Donation', number_format($donationAmount, 2), 'A donation made'); 
                     $item_description .= '$'.$donationAmount.' Donation,';
+                    $emlBodyItems['don-'. $feUserUid] = [
+                    'description' => '$'.$donationAmount.' Donation',
+                    'state' =>  '--',
+                    'price' => number_format($donationAmount, 2),
+                    'renewal' => ''
+                    ];
                 }
                 $calculatedPrice += $donationAmount;
 
                 //Check which memberships have been submitted for renewal:
                 $aRenewals = [];
-                $emlBodyItems = [];
+                
                 
                 for ($i=1; $i <= 6; $i++){
                         if ((string)$formConfigArray["newmembership-$i"] != '0') {
@@ -254,8 +268,6 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 }
 
                 //Process input/provided form (membership) values for NEW memberships (not renewals!):
-                
-                
                 foreach ($formConfigArray as $fieldname => $fieldvalue) {
                     
                     if (strpos($fieldname, "newmembership-") !== FALSE) {
@@ -276,7 +288,12 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                             list(,$newMembershipFieldItem) = explode("-", $fieldname);
                             $this->aNewPaidMemberships[(int)$fieldvalue]['stateUid'] = $formConfigArray["newmembershipstate-$newMembershipFieldItem"];
                             
-                           
+                            $emlBodyItems['m'.$membershipTemplate->getUid()] = [
+                                'description' => $membershipTemplate->getDescription(),
+                                'state' =>  $this->getState((int)$formConfigArray["newmembershipstate-$newMembershipFieldItem"]),
+                                'price' => number_format((float)$membershipTemplate->getPrice(), "2"),
+                                'renewal' => ''
+                                ];
                             
                             //Check whether this user already had this membership (which makes this a renewal)
                             foreach ($this->frontendUser->getMemberships() as $feUsersMembership){
@@ -337,7 +354,6 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             if (strlen($item_description) > 1) {
                 $item_description = substr($item_description, 0, -1);
             }
-            
             
             
             if (($calculatedPrice * 1) < 1){
@@ -421,6 +437,8 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                     $this->enableNewMemberships();
                 }
             }
+            //Check email body
+            
             $cardno = $formConfigArray['paymentForm']['Card_Number'];
             if (strlen($cardno) > 0) {
                 $cardno = $formConfigArray['paymentForm']['cardtype'].' '.substr($cardno, 0,4).'xxxxxxxx'.substr($cardno, -4);
@@ -430,6 +448,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             $aFormData = $formConfigArray;
             unset($aFormData['paymentForm']['Card_Number']);
             unset($aFormData['paymentForm']['CCV_CVV_Code']);
+            
             if ($formType == "membership"){
                 $aSelectedMembershipsStringArray = [];
                 foreach($this->aNewPaidMemberships as $paidMembership){
@@ -483,7 +502,6 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             $replyToEmail = $this->settings['adminemail'];
 
             //Create and send the admin notification mail:
-            $body = "";
 
             if($formType == "membership"){
                     $bodyPre = "<h2>General Information</h2><br/><br/>";
@@ -498,64 +516,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             }
             $body .= "<table style=\"font-family: Arial;\"><tbody>"; 
             $body .= '<tr><th style="background-color: #ccc;">Item</th><th style="background-color: #ccc;">State</th><th style="background-color: #ccc;">Amount</th><th style="background-color: #ccc;">Renewal</th></tr>';
-            /*
-            foreach($aFormData as $key => $val) {
-
-                if($key == 'confirmationpage'){
-                        unset($aFormData[$key]);
-                        continue;
-                }
-                if($key == 'storagepage'){
-                        unset($aFormData[$key]);
-                        continue;
-                }
-                if($key == 'failedReturnFullPageLink'){
-                        unset($aFormData[$key]);
-                        continue;
-                }
-                if(strpos($key, "newmembership") !== FALSE){
-                        unset($aFormData[$key]);
-                        continue;
-                }
-                if($key == 'submit'){
-                        unset($aFormData[$key]);
-                        continue;
-                }
-                if($key == 'paymentForm'){
-                        unset($aFormData[$key]);
-                        continue;
-                }
-                if($key == 'action'){
-                        unset($aFormData[$key]);
-                        continue;
-                }
-                if(strpos($key, "renew") !== FALSE){
-                        unset($aFormData[$key]);
-                        continue;
-                }
-                if($key == 'donate' && ($val == "" || (int)$val == 0)){
-                        unset($aFormData[$key]);
-                        continue;
-                }
-                elseif($key == 'donate'){
-                        $key = "Donated";
-                }
-                if($key == 'discountcode' && $val == ""){
-                        unset($aFormData[$key]);
-                        continue;
-                }
-                if($key == 'Memberships_Paid_For'){
-                        $body .= "<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>";
-                        $key = "Ordered / Renewed Memberships";
-                        $val = implode("<br/>", $aSelectedMembershipsStringArray);
-                }
-                $body .= "<tr>";
-                $body .= "<td style=\"vertical-align: top; background-color: #e6e6e6;\">".ucfirst($key).":</td>";
-                $body .= "<td style=\"vertical-align: top; background-color: #e6e6e6;\">$val</td>";
-                $body .= "</tr>";
-            }
-            
-            */
+           
             $negate = 1;
             
             foreach ($emlBodyItems as $lineItem) {
@@ -563,6 +524,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                $backColor = ($negate < 1)?'#ffffff':'#e6e6e6';
                $body .= '<tr><td style=" background-color: '.$backColor.';">'.$lineItem['description'].'</td><td style=" background-color: '.$backColor.';">'.$lineItem['state'].'</td><td style=" background-color: '.$backColor.';">$'.number_format($lineItem['price'],2).'</td><td style=" background-color: '.$backColor.';">'.$lineItem['renewal'].'</td></tr>';
             }
+            
             $body .= '<tr><td colspan="2" style="font-weight:700; text-align:right">Total amount</td><td>$'.number_format((float)$calculatedPrice, 2, '.', '').'</td><td></td></tr>';  
             $body .= "</tbody></table>";  
 
@@ -571,10 +533,11 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
 
             //Add additional information:
             $adminAdditionalBody = "";
+            
             if($this->selectedPaymentType != "creditcard"){
                     $adminAdditionalBody .= "<br/>AWAITING PAYMENT / PAYMENT STILL NEEDS TO BE CONFIRMED.<br/>";
             }
-
+            
             //Define recipients:
             $recipientArray = [];
             $recipientArray[0] = []; $recipientArray[0]['toEmail'] = $replyToEmail;
@@ -592,7 +555,6 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                     }
                 }
             }
-            
             
             //Send mail to ADMIN(s):
             foreach($recipientArray as $recipient) {
@@ -618,6 +580,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             } elseif($formType == "newDonation") {
                     $bodyPre = "<h2>Thank you for your donation!</h2><p>Thank you so much for your donation. The following information was submitted:</p><br/>";
             }
+
             $mail = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Mail\\MailMessage');
             $mail->setFrom(array($fromEmail => $fromName));
             $mail->setReplyTo(array($replyToEmail => $fromName));
@@ -723,7 +686,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
          * @return array
          */
 	public function processCreditcardPayment($testmode, $calculatedPrice, $item_description, $formType){
-
+            
             if ($this->frontendUser instanceof \Netkyngs\Nkcadportal\Domain\Model\CustomFrontendUser) {
                 $fname = $this->frontendUser->getFirstName();
                 $lname = $this->frontendUser->getLastName();
@@ -910,7 +873,8 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
          */
         protected function makeTransaction($data, $testmode=true, $profiletrn=false)
         {
-            if (!$testmode && $this->setting['livemode'] == "1") {
+            
+            if ($testmode==FALSE && $this->setting['livemode'] == "1") {
                 $this->payutil->makeLive();
             }
             
@@ -947,7 +911,9 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 $this->payutil->makeTransaction($calculatedPrice, 'authCaptureTransaction');
             }
             
-            return $this->payutil->processResponse();
+            $processRet = $this->payutil->processResponse();
+            
+            return $processRet;
 
         }
 

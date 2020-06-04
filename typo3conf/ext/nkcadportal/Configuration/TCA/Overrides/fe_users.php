@@ -24,15 +24,6 @@ if (!isset($GLOBALS['TCA']['fe_users']['ctrl']['type'])) {
 	\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns('fe_users', $tempColumnstx_nkcadportal_fe_users, 1);
 }
 
-/*
-\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
-	'fe_users',
-	$GLOBALS['TCA']['fe_users']['ctrl']['type'],
-	'',
-	'after:' . $GLOBALS['TCA']['fe_users']['ctrl']['label']
-);
-*/
-
 $tmp_nkcadportal_columns = array(
 	'fein' => array(
 		'exclude' => 0,
@@ -228,7 +219,7 @@ $tmp_nkcadportal_columns = array(
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns('fe_users',$tmp_nkcadportal_columns);
 
 
-$showitm = '--div--;Member Info,company,--palette--;;nmblk,--palette--;;addrblk, country, --palette--;;phblk,--div--;Business Info;;;;1-1-1,businesstype,--palette--;;employees,--palette--;;insurance,--palette--;;references,--div--;Membership;;;;1-1-1,memberships,--div--;More contacts;;;;1-1-1,contacts,--div--;Comments;;;;1-1-1,staffcomments,membercomments,--div--;System;;;;1-1-1,username,password,usergroup,tx_extbase_type,t6uid,lastlogin,--div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:access,--palette--;;tacess,';
+$showitm = '--div--;Member Info,company,--palette--;;nmblk,--palette--;;addrblk, country, --palette--;;phblk,--div--;Business Info;;;;1-1-1,businesstype,--palette--;;employees,--palette--;;insurance,--palette--;;references,--div--;Membership;;;;1-1-1,memberships,--div--;More contacts;;;;1-1-1,contacts,--div--;Comments;;;;1-1-1,staffcomments,membercomments,--div--;System;;;;1-1-1,disable,username,password,usergroup,tx_extbase_type,t6uid,lastlogin';
 
 if (isset($GLOBALS['TCA']['fe_users']['types']['0']['showitem'])) {
     $GLOBALS['TCA']['fe_users']['types']['Tx_Nkcadportal_CustomFrontendUser']['showitem'] = $showitm;
@@ -265,7 +256,7 @@ $GLOBALS['TCA']['fe_users']['columns'][$GLOBALS['TCA']['fe_users']['ctrl']['type
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
         'fe_users',
         'nmblk',
-        'first_name, last_name,--linebreak--,title',
+        'first_name, last_name',
         ''
 );
 
@@ -278,7 +269,7 @@ $GLOBALS['TCA']['fe_users']['columns'][$GLOBALS['TCA']['fe_users']['ctrl']['type
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
         'fe_users',
         'phblk',
-        'telephone, cellphone,--linebreak--, fax, www,--linebreak--,email',
+        'telephone, cellphone,--linebreak--,email, fax',
         ''
 );
 
@@ -303,7 +294,7 @@ $GLOBALS['TCA']['fe_users']['columns'][$GLOBALS['TCA']['fe_users']['ctrl']['type
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
         'fe_users',
         'tacess',
-        'disable, starttime, endtime',
+        'starttime, endtime',
         ''
 );
 /*

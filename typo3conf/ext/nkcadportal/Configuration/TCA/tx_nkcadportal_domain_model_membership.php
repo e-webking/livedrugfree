@@ -22,17 +22,19 @@ return array(
 			'starttime' => 'starttime',
 			'endtime' => 'endtime',
 		),
-		'searchFields' => 'membershiptemplate,customfrontenduser,state,mtitle,membershiptype,price,t6uid,',
+		'searchFields' => 'customfrontenduser,state,mtitle,membershiptype,price,t6uid,',
 		'iconfile' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('nkcadportal') . 'Resources/Public/Icons/tx_nkcadportal_domain_model_membership.gif'
 	),
 	'interface' => array(
 		'showRecordFieldList' => 'hidden, membershiptemplate, customfrontenduser, state, mtitle, membershiptype, price, term, t6uid',
 	),
 	'types' => array(
-		'1' => array('showitem' => 'hidden;;1, membershiptemplate, customfrontenduser, state, mtitle, membershiptype, price, term, starttimecustom, endtimecustom, statestarttimecustom, stateendtimecustom, --div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:access, starttime, endtime, t6uid'),
+		'1' => array('showitem' => 'hidden;;1, membershiptemplate, customfrontenduser,--palette--;;mtype,--palette--;;mdates, state, mtitle,--div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:access, starttime, endtime, t6uid'),
 	),
 	'palettes' => array(
 		'1' => array('showitem' => ''),
+                'mtype' => array('showitem' => 'membershiptype,price,term'),
+                'mdates' => array('showitem' => 'starttimecustom,endtimecustom,--linebreak--,statestarttimecustom, stateendtimecustom'),
 	),
 	'columns' => array(
 	
@@ -211,6 +213,7 @@ return array(
 			'label' => 'LLL:EXT:nkcadportal/Resources/Private/Language/locallang_db.xlf:tx_nkcadportal_domain_model_membershiptemplate.description',
 			'config' => array(
 				'type' => 'input',
+                                'renderType' => 'hidden',
 				'size' => 50,
 				'eval' => 'trim,required'
 			),

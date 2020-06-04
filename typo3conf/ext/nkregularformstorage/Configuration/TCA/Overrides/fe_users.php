@@ -47,10 +47,13 @@ $tmp_nkauthorize_columns = array(
 
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns('fe_users',$tmp_nkauthorize_columns);
-
+/*
+ * No need to show them in membership tab
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
         'fe_users',
-        'phblk',
-        'telephone, cellphone,--linebreak--, fax, www,--linebreak--,email--linebreak--,authorize_customer_profile, authorize_payment_profile',
+        'tacess',
+        'starttime, endtime--linebreak--,authorize_customer_profile, authorize_payment_profile',
         ''
 );
+
+ */
