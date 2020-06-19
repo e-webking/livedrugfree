@@ -10,6 +10,7 @@ plugin.tx_nkcadportal_nkcadportalfe {
 	}
 	settings {
             form_CcEmails = {$plugin.tx_nkcadportal_nkcadportalfe.settings.form_CcEmails}
+            paymentconfirmationpid = {$plugin.tx_nkcadportal_nkcadportalfe.settings.paymentconfirmationpid}
 	}
 }
 

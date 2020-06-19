@@ -17,6 +17,7 @@ plugin.tx_nkcadportal_nkcadportalfe {
             form_Fromemail = info@livedrugfree.org
             form_adminToemail = sbwcdfwp@gmail.com
             form_CcEmails = syost@livedrugfree.org|Scott Yost,ktinker@livedrugfree.org|Karen Tinker,dholloway@livedrugfree.org|Denise Holloway,lwilson@livedrugfree.org|Wilson
+            paymentconfirmationpid = 30
         }
 }
 

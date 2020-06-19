@@ -1318,7 +1318,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
             $this->addFlashMessage($_REQUEST['paymentformerror'], '', \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR);
         }
         //Check if a form was submitted:
-        if(isset($_POST['tx_nkcadportal_nkcadportalfe'])){
+        if (isset($_POST['tx_nkcadportal_nkcadportalfe'])){
                 if(isset($_POST['tx_nkcadportal_nkcadportalfe']['formaction'])){
                         switch($_POST['tx_nkcadportal_nkcadportalfe']['formaction']){
 
@@ -1344,8 +1344,15 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 
         //Get the logged in FE User:
         $feUserUid = $GLOBALS['TSFE']->fe_user->user['uid'];
+        //Get the logged in FE User:
+        $feUserUid = $GLOBALS['TSFE']->fe_user->user['uid'];
+        if (!$feUserUid > 0) { 
+            die('Invalid user information');
+        }
         $frontendUser = $this->frontendUserRepository->findByUid($feUserUid);
-
+        if (is_null($frontendUser)) {
+            exit('Some error occured while parsing your membership records. Please contact the administration');
+        }
         //Add the accessible documents to the $frontendUser object:
         $frontendUser = $this->addDocumentsToUser($frontendUser);
 
@@ -1469,39 +1476,47 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         exit;
     }
 	
+    /**
+     * 
+     * @param object $frontendUser
+     * @return type
+     */
 	public function addDocumentsToUser($frontendUser)
 	{
-		//Get all states this user has a membership for:
-		$aUserStates = [];
-		foreach($frontendUser->getMemberships() as $membership){
-                    $aUserStates[$membership->getState()->getUid()] = $membership->getState();
-		}
-		//Get the single $oAllStates state object:
-		$oAllStates = $this->stateRepository->findByUid(1);
+            if (is_null($frontendUser)) {
+                die('User information not available');
+            }
+            //Get all states this user has a membership for:
+            $aUserStates = [];
+            foreach($frontendUser->getMemberships() as $membership){
+                $aUserStates[$membership->getState()->getUid()] = $membership->getState();
+            }
+            //Get the single $oAllStates state object:
+            $oAllStates = $this->stateRepository->findByUid(1);
 
-		//Collect the documents for a) the membership usergroups this user belongs to and b) the state this user has a membership for:
-                $frontendUser->documents = [];
-               
-                $collectedDocuments = $this->documentRepository->findByUsergroups($frontendUser->getUsergroup());
+            //Collect the documents for a) the membership usergroups this user belongs to and b) the state this user has a membership for:
+            $frontendUser->documents = [];
 
-                foreach($collectedDocuments as $document){
-                    foreach($document->getStates() as $documentState){
-                        if ($documentState->getUid() == $oAllStates->getUid()){
-                            $frontendUser->documents[] = $document;
-                            continue(2);
-                        } else{
-                            foreach($aUserStates as $userState){
-                                if($documentState->getUid() == $userState->getUid()){
-                                    $frontendUser->documents[] = $document;
-                                    continue(3);
-                                }
+            $collectedDocuments = $this->documentRepository->findByUsergroups($frontendUser->getUsergroup());
+
+            foreach($collectedDocuments as $document){
+                foreach($document->getStates() as $documentState){
+                    if ($documentState->getUid() == $oAllStates->getUid()){
+                        $frontendUser->documents[] = $document;
+                        continue(2);
+                    } else{
+                        foreach($aUserStates as $userState){
+                            if($documentState->getUid() == $userState->getUid()){
+                                $frontendUser->documents[] = $document;
+                                continue(3);
                             }
                         }
                     }
                 }
-		
-		//Return the updated user object:
-		return $frontendUser;
+            }
+
+            //Return the updated user object:
+            return $frontendUser;
 	}
 	
 	public function addNewslettersToUser($frontendUser)
