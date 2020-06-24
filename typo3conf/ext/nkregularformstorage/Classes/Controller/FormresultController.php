@@ -393,8 +393,9 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             $testmode = false; 
             $ptype = 0;
             $pstatus = 0;
-
+            
             if ($this->selectedPaymentType == "creditcard"){
+                $card_holder_name = $formConfigArray['paymentForm']['Card_Name'];
                 //---------------------------------
                 //Mode is direct credit cad payment
                 //---------------------------------
@@ -463,9 +464,13 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 //Mode is send/print me an invoice/bill
                 //-------------------------------------
                 $trxID = date('Y')."00".$this->formresultRepository->findAll()->count();
+                
                 if ($formType == "membership"){
                     //Add (re)new(ed) memberships to the FE user:
                     $this->enableNewMemberships(1);
+                    $card_holder_name = $this->frontendUser->getFirstName().' '.$this->frontendUser->getLastName();
+                } else {
+                    $card_holder_name = addSlashes($_POST['firstname'])." ".addSlashes($_POST['lastname']);
                 }
             }
             //Check email body
@@ -517,7 +522,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
 
             //Add a new formresult record:
             $newPaymentRecord = new \Netkyngs\Nkregularformstorage\Domain\Model\Formresult();
-            $newPaymentRecord->setName($userCompany." ".($userName));
+            $newPaymentRecord->setName($card_holder_name);
             $newPaymentRecord->setEmail($userEmail);
             $newPaymentRecord->setTrxid($trxID);
             $newPaymentRecord->setCardno($cardno);
@@ -763,16 +768,11 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
          */
 	public function processCreditcardPayment($testmode, $calculatedPrice, $item_description, $formType){
             
-            if ($this->frontendUser instanceof \Netkyngs\Nkcadportal\Domain\Model\CustomFrontendUser) {
-                $fname = $this->frontendUser->getFirstName();
-                $lname = $this->frontendUser->getLastName();
-            } else {
-                $name = $_POST['paymentForm']['Card_Name'];
-                $nameArr = explode(' ',$name);
-                $fname = $nameArr[0];
-                if (count($nameArr) > 1) {
-                    $lname = $nameArr[1];
-                }
+            $name = $_POST['paymentForm']['Card_Name'];
+            $nameArr = explode(' ',$name);
+            $fname = $nameArr[0];
+            if (count($nameArr) > 1) {
+                $lname = $nameArr[1];
             }
             
             $billingaddress = $_POST['paymentForm']['Address'];
@@ -1050,6 +1050,8 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 
             } else {
                 
+                $nameArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(' ', $arguments['name']);
+                
                 $dtArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode('/', $arguments['expdate']);
                 
                 if (count($dtArr) != 2) {
@@ -1098,8 +1100,8 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                     if ($user instanceof \Netkyngs\Nkcadportal\Domain\Model\CustomFrontendUser) {
             
                         $data['feuser'] = $user->getUid();
-                        $data['fname'] = $user->getFirstName();
-                        $data['lname'] = $user->getLastName();
+                        $data['fname'] = $nameArr[0];
+                        $data['lname'] = (isset($nameArr[1])?$nameArr[1]:'');
                         $data['company'] = $arguments['company'];
                         $data['cardno'] = $arguments['cardno'];
                         $data['cvv'] = $arguments['code'];
@@ -1151,7 +1153,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
 
                          //Add a new formresult record:
                         $newPaymentRecord = new \Netkyngs\Nkregularformstorage\Domain\Model\Formresult();
-                        $newPaymentRecord->setName($user->getCompany()." ".$data['fname'].' '.$data['lname']);
+                        $newPaymentRecord->setName($data['fname'].' '.$data['lname']);
                         $newPaymentRecord->setEmail($data['email']);
                         $newPaymentRecord->setTrxid($trxID);
                         $newPaymentRecord->setCardno($data['cardno']);

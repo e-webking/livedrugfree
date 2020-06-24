@@ -57,3 +57,43 @@ CREATE TABLE fe_users (
 	authorize_customer_profile varchar(50) DEFAULT '' NOT NULL,
 	authorize_payment_profile varchar(50) DEFAULT '' NOT NULL,
 );
+
+
+--
+-- Table structure for table `tx_vs_payments_trxlog`
+--
+
+CREATE TABLE tx_vs_payments_trxlog (
+
+    uid int(11) NOT NULL auto_increment,
+    pid int(11) NOT NULL DEFAULT '0',
+
+    tstamp int(11) NOT NULL DEFAULT '0',
+    crdate int(11) NOT NULL DEFAULT '0',
+    cruser_id int(11) NOT NULL DEFAULT '0',
+    deleted tinyint(4) NOT NULL DEFAULT '0',
+    hidden tinyint(4) NOT NULL DEFAULT '0',
+
+    success tinyint(3) NOT NULL DEFAULT '0',
+    trxtype varchar(20) NOT NULL DEFAULT '',
+    status varchar(15) NOT NULL DEFAULT '',
+    refid varchar(50) DEFAULT '',
+    authcode varchar(15) NOT NULL DEFAULT '',
+    profileid varchar(20) NOT NULL DEFAULT '',
+    message text,
+    rawresult text,
+    amount varchar(10) NOT NULL DEFAULT '0.00',
+    cardno varchar(30) NOT NULL DEFAULT '',
+    expires varchar(5) NOT NULL DEFAULT '',
+    csc varchar(4) NOT NULL DEFAULT '',
+    description text,
+    invoiceno varchar(20) NOT NULL DEFAULT '',
+    cardholder varchar(50) NOT NULL DEFAULT '',
+    address varchar(50) NOT NULL DEFAULT '',
+    city varchar(50) NOT NULL DEFAULT '',
+    state char(2) NOT NULL DEFAULT '',
+    zip varchar(10) NOT NULL DEFAULT '',
+
+    PRIMARY KEY (uid),
+    KEY parent (pid)
+);

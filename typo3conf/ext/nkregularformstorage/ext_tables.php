@@ -34,3 +34,6 @@ if (TYPO3_MODE === 'BE') {
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addLLrefForTCAdescr('tx_nkregularformstorage_domain_model_formresult', 'EXT:nkregularformstorage/Resources/Private/Language/locallang_csh_tx_nkregularformstorage_domain_model_formresult.xlf');
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::allowTableOnStandardPages('tx_nkregularformstorage_domain_model_formresult');
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addLLrefForTCAdescr('tx_vs_payments_trxlog', 'EXT:nkregularformstorage/Resources/Private/Language/locallang_csh_tx_vs_payments_trxlog.xlf');
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::allowTableOnStandardPages('tx_vs_payments_trxlog');

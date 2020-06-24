@@ -15,6 +15,14 @@
 			<trans-unit id="tx_nkregularformstorage_domain_model_formresult.form">
 				<source>Form</source>
 			</trans-unit>
+                        
+                        
+                        <trans-unit id="tx_vs_payments_trxlog">
+				<source>Payment Log (Old system)</source>
+			</trans-unit>
+                        <trans-unit id="tx_vs_payments_trxlog.success">
+				<source>Success</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>
