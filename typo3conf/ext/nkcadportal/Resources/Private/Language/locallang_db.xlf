@@ -196,6 +196,25 @@
 			<trans-unit id="tx_nkcadportal_domain_model_discountcode.discount">
 				<source>Discount</source>
 			</trans-unit>
+                        
+                        <trans-unit id="tx_nkcadportal_domain_model_invoice">
+				<source>Invoice</source>
+			</trans-unit>
+			<trans-unit id="tx_nkcadportal_domain_model_invoice.customfrontenduser">
+				<source>Member</source>
+			</trans-unit>
+			<trans-unit id="tx_nkcadportal_domain_model_invoice.membership">
+				<source>Membership(s)</source>
+			</trans-unit>
+			<trans-unit id="tx_nkcadportal_domain_model_invoice.payment">
+				<source>Payment UID</source>
+			</trans-unit>
+			<trans-unit id="tx_nkcadportal_domain_model_invoice.invoicenum">
+				<source>Invoice No.</source>
+			</trans-unit>
+                        <trans-unit id="tx_nkcadportal_domain_model_invoice.invoicedata">
+				<source>Invoice data (serialized)</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

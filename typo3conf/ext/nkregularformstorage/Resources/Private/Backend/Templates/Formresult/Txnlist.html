@@ -10,9 +10,24 @@
     </ul>
 
     <!-- PAYMENTS -->
+    <div class="beoverlay" id="nkloader"><img src="{f:uri.resource(path:'Images/bx_loader.gif')}" /></div>
     <table class="cad-payment-be-table table-payments datatable active" id="table-payments">
         <caption>Payments</caption>
         <thead>
+            <tr>
+                <th colspan="2">Filter:</th>
+                <th colspan="5">
+                        <select name="payseloption" id="payseloption" style="height:30px">
+                                <option value="all">All Payments</option>
+                                <option value="creditcard">Credit Card</option>
+                                <option value="invoice">Invoice/Check</option>
+                                <option value="paid">Paid</option>
+                                <option value="pending">Pending</option>
+                                <option value="failed">Failed</option>
+                        </select>
+                </th>
+                <th colspan="5">&nbsp;</th>
+            </tr>
             <tr>
                 <th width="5%" class="sorting_disabled">Options</th>
                 <th>UID</th>
@@ -21,14 +36,15 @@
                 <th>Mode</th>
                 <th>Status</th>
                 <th class="sorting_disabled">Amount</th>
-                <th class="sorting_disabled">Description</th>
+                <th class="sorting_disabled" width="20%">Description</th>
                 <th class="sorting_disabled">Invoice No.</th>
                 <th class="sorting_disabled">Card Number</th>
                 <th class="sorting_disabled">Name on Card</th>
+                <th></th>
             </tr>
         </thead>
 
-        <tbody>
+        <tbody id="paymentList">
                 <f:for each="{payments}" as="payment">
                     <tr data-row-id="{payment.uid}" class="data">
                         <td>
@@ -75,9 +91,15 @@
                         <td>{payment.invoiceid}</td>
                         <td>{payment.cardno}</td>
                         <td>{payment.name}</td>
+                        <td><a href="javascript:void(0);" onclick="_printInv({payment.uid})"><i class="fa fa-download"></i></a></td>
                     </tr>
                 </f:for>
             </tbody>
+            <tfoot>
+            <tr>
+                <td colspan="12" style="text-align: center" id="payPg"><f:format.raw>{paypaging}</f:format.raw></td>
+            </tr>
+        </tfoot>
     </table>
 
 </f:section>

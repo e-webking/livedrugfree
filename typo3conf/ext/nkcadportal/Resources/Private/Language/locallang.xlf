@@ -10,22 +10,22 @@
 				<source>Fein</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_customfrontenduser.numberofemployees">
-				<source>Numberofemployees</source>
+				<source>Number of Employees</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_customfrontenduser.numberofcdldrivers">
-				<source>Numberofcdldrivers</source>
+				<source>Number of CDL Drivers</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_customfrontenduser.businesstype">
-				<source>Businesstype</source>
+				<source>Business Type</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_customfrontenduser.insurancecarrier">
-				<source>Insurancecarrier</source>
+				<source>Insurance Carrier</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_customfrontenduser.insuranceagent">
-				<source>Insuranceagent</source>
+				<source>Insurance Agent</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_customfrontenduser.hearaboutus">
-				<source>Hearaboutus</source>
+				<source>Hear About Us</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_customfrontenduser.cellphone">
 				<source>Cell-Phone</source>
@@ -34,10 +34,10 @@
 				<source>State</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_customfrontenduser.staffcomments">
-				<source>Staffcomments</source>
+				<source>Staff Comments</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_customfrontenduser.membercomments">
-				<source>Membercomments</source>
+				<source>Member Comments</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_customfrontenduser.memberships">
 				<source>Memberships</source>
@@ -52,7 +52,7 @@
 				<source>Description</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_membershiptemplate.membershiptype">
-				<source>Membershiptype</source>
+				<source>Membership Type</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_membershiptemplate.price">
 				<source>Price</source>
@@ -61,19 +61,19 @@
 				<source>Term</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_membershiptemplate.includednewsletters">
-				<source>Includednewsletters</source>
+				<source>Included Newsletters</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_membership">
 				<source>Membership</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_membership.membershiptemplate">
-				<source>Membershiptemplate</source>
+				<source>Membership Template</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_membership.state">
 				<source>State</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_newslettertype">
-				<source>Newslettertype</source>
+				<source>Newsletter Type</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_newslettertype.name">
 				<source>Name</source>
@@ -88,19 +88,19 @@
 				<source>File</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_newsletter.forperiod">
-				<source>Forperiod</source>
+				<source>For Period</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_newsletter.newslettertype">
-				<source>Newslettertype</source>
+				<source>Newsletter Type</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_contact">
 				<source>Contact</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_contact.lastname">
-				<source>Lastname</source>
+				<source>Last Name</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_contact.firstname">
-				<source>Firstname</source>
+				<source>First Name</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_contact.email">
 				<source>Email</source>
@@ -112,7 +112,7 @@
 				<source>Phone</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_contact.contacttype">
-				<source>Contacttype</source>
+				<source>Contact Type</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_document">
 				<source>Document</source>
@@ -133,22 +133,22 @@
 				<source>State</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_state.stateshort">
-				<source>Stateshort</source>
+				<source>State Short Code</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_reminder">
 				<source>Reminder</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_reminder.daysspan">
-				<source>Daysspan</source>
+				<source>Days Span</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_reminder.whentosend">
-				<source>Whentosend</source>
+				<source>When to send</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_reminder.fieldcondition">
-				<source>Fieldcondition</source>
+				<source>Field condition</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_reminder.sendtogroup">
-				<source>Sendtogroup</source>
+				<source>Send to group</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_reminder.subject">
 				<source>Subject</source>
@@ -166,10 +166,10 @@
 				<source>Title</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_report.sqlquery">
-				<source>Sqlquery</source>
+				<source>SQL query</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_discountcode">
-				<source>Discountcode</source>
+				<source>Discount code</source>
 			</trans-unit>
 			<trans-unit id="tx_nkcadportal_domain_model_discountcode.agency">
 				<source>Agency</source>

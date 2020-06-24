@@ -1,6 +1,7 @@
 var pgStart = '0';
 var qsearch = '';
 var moption = '';
+var poption = '';
 
 function rePolMember() {
     var ajaxMemberUrl = TYPO3.settings.ajaxUrls['nkcadportal_members'];
@@ -22,7 +23,53 @@ function rePolMember() {
             }
     });
 }
-        
+
+function rePolPayment() {
+    var ajaxPayUrl = TYPO3.settings.ajaxUrls['nkregularformstorage_payments'];
+    $('#nkloader').show();
+    $.ajax({
+            url: ajaxPayUrl,
+            type: "POST",
+            data: 'pageNo='+pgStart+'&option='+poption,
+            cache:false,
+            success: function (response) {
+                $('#nkloader').hide();
+                $('#paymentList').html(response.payments);
+                $('#payPg').html(response.paging)
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $('#nkloader').hide();
+                //Give an alert:
+                alert('Error occured:\n'+textStatus);
+            }
+    });
+}
+
+function _printInv(payid) {
+    
+    var ajaxPrintUrl = TYPO3.settings.ajaxUrls['nkregularformstorage_printinv'];
+    var ajaxDwnUrl = TYPO3.settings.ajaxUrls['nkregularformstorage_download'];
+    
+    $('#nkloader').show();
+    $.ajax({
+            url: ajaxPrintUrl,
+            type: "POST",
+            data: 'payment='+payid,
+            cache:false,
+            success: function (response) {
+                $('#nkloader').hide();
+                if (response.success) {
+                    window.location.href = ajaxDwnUrl + '&file=' + response.file;
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $('#nkloader').hide();
+                //Give an alert:
+                alert('Error occured:\n'+textStatus);
+            }
+    });
+}
+
 $(document).ready(function(){
     
     $('#memseloption').on('change', function(){
@@ -30,6 +77,13 @@ $(document).ready(function(){
         pgStart = 0;
         moption = $('#memseloption').val()?$('#memseloption').val():'';
         rePolMember();
+    });
+    
+    $('#payseloption').on('change', function(){
+        console.log('changed');
+        pgStart = 0;
+        poption = $('#payseloption').val()?$('#payseloption').val():'';
+        rePolPayment();
     });
     
     $('#qsearch').on('keyup', function (e){
@@ -50,9 +104,15 @@ function _getPage(no) {
     pgStart = no;
     rePolMember();
 }
+
+function _getPayPage(no) {
+    pgStart = no;
+    rePolPayment();
+}
+
 function insertTypeDropDownIntoDataTables(){
-        $('.temp-dropdown-holder').show();
-        $('.beoverlay').hide();
+    $('.temp-dropdown-holder').show();
+    $('.beoverlay').hide();
 }
 
 function performAjaxAction($ajaxPID, $action, $uid, $needsConfirmation){

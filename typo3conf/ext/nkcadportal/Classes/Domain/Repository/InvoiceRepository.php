@@ -5,7 +5,7 @@ namespace Netkyngs\Nkcadportal\Domain\Repository;
  *
  *  Copyright notice
  *
- *  (c) 2018 Roel Krottje <roel@netkyngs.com>, Netkyngs
+ *  (c) 2020 Anisur Mullick, Roel Krottje <anisur.mullick@gmail.com>, Netkyngs
  *
  *  All rights reserved
  *
@@ -27,16 +27,16 @@ namespace Netkyngs\Nkcadportal\Domain\Repository;
  ***************************************************************/
 
 /**
- * The repository for Memberships
+ * The repository for Invoice
  */
-class MembershipRepository extends \TYPO3\CMS\Extbase\Persistence\Repository
+class InvoiceRepository extends \TYPO3\CMS\Extbase\Persistence\Repository
 {
 
     /**
      * @var array
      */
     protected $defaultOrderings = array(
-        'sorting' => \TYPO3\CMS\Extbase\Persistence\QueryInterface::ORDER_ASCENDING
+        'uid' => \TYPO3\CMS\Extbase\Persistence\QueryInterface::ORDER_DESCENDING
     );
     
     /**

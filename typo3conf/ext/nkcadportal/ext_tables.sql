@@ -120,7 +120,7 @@ CREATE TABLE tx_nkcadportal_domain_model_membership (
 	PRIMARY KEY (uid),
 	KEY parent (pid),
 	KEY t3ver_oid (t3ver_oid,t3ver_wsid),
- KEY language (l10n_parent,sys_language_uid)
+        KEY language (l10n_parent,sys_language_uid)
 
 );
 
@@ -473,6 +473,35 @@ CREATE TABLE tx_nkcadportal_domain_model_discountcode (
 	KEY parent (pid),
 	KEY t3ver_oid (t3ver_oid,t3ver_wsid),
  KEY language (l10n_parent,sys_language_uid)
+
+);
+
+#
+# Table structure for table 'tx_nkcadportal_domain_model_invoice'
+#
+CREATE TABLE tx_nkcadportal_domain_model_invoice (
+
+	uid int(11) NOT NULL auto_increment,
+	pid int(11) DEFAULT '0' NOT NULL,
+
+        customfrontenduser int(11) unsigned DEFAULT '0' NOT NULL,
+        membership varchar(255) DEFAULT '' NOT NULL,
+        payment int(11) unsigned DEFAULT '0' NOT NULL,
+        invoicenum int(11) unsigned DEFAULT '0' NOT NULL,
+        invoicedata text,
+
+	tstamp int(11) unsigned DEFAULT '0' NOT NULL,
+	crdate int(11) unsigned DEFAULT '0' NOT NULL,
+	cruser_id int(11) unsigned DEFAULT '0' NOT NULL,
+	deleted tinyint(4) unsigned DEFAULT '0' NOT NULL,
+	hidden tinyint(4) unsigned DEFAULT '0' NOT NULL,
+	starttime int(11) unsigned DEFAULT '0' NOT NULL,
+	endtime int(11) unsigned DEFAULT '0' NOT NULL,
+
+        t6uid int(11) DEFAULT '0' NOT NULL,
+
+	PRIMARY KEY (uid),
+	KEY parent (pid)
 
 );
 

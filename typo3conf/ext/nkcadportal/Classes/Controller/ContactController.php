@@ -363,7 +363,7 @@ class ContactController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControll
 		$persistenceManager->persistAll();
 		
 		//Return the new user's uid:
-		if((int)$newFrontendUser->getUid() == 0){
+		if ((int)$newFrontendUser->getUid() == 0){
 			die("User could not be saved -- Permanent error. Please consult IT support.");
 		}
 		else{

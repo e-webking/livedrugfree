@@ -157,17 +157,56 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         $queryBuilderCnt = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
         $queryBuilder->getRestrictions()->removeAll();
         $queryBuilderCnt->getRestrictions()->removeAll();
+        $expr = $queryBuilder->expr();
+        $exprCnt = $queryBuilderCnt->expr();
+        
+        $andCond = $queryBuilder->expr()->andx();
+        $orCond = $queryBuilder->expr()->orx();
+        $orContDel = $queryBuilder->expr()->orx();
+        $orContHidden = $queryBuilder->expr()->orx();
+        
+        $andCond->add($expr->eq('foreign.deleted', 0));
+        $orContDel->add($expr->eq('contactbl.deleted', 0));
+        $orContDel->add($expr->isNull("contactbl.deleted"));
+        $andCond->add($orContDel);
+        
+        $orContHidden->add($expr->eq('contactbl.hidden', 0));
+        $orContHidden->add($expr->isNull("contactbl.hidden"));
+        $andCond->add($orContHidden);
+        
+        
+        $andCondCnt = $queryBuilderCnt->expr()->andx();
+        $orCondCnt = $queryBuilderCnt->expr()->orx();
+        $orContDelCnt = $queryBuilderCnt->expr()->orx();
+        $orContHiddenCnt = $queryBuilderCnt->expr()->orx();
+        
+        $andCondCnt->add($exprCnt->eq('foreign.deleted', 0));
+        $orContDelCnt->add($exprCnt->eq('contactbl.deleted', 0));
+        $orContDelCnt->add($exprCnt->isNull('contactbl.deleted'));
+        $andCondCnt->add($orContDelCnt);
+        $orContHiddenCnt->add($exprCnt->eq('contactbl.hidden', 0));
+        $orContHiddenCnt->add($exprCnt->isNull('contactbl.hidden'));
+        $andCondCnt->add($orContHiddenCnt);
+        
 
-        //Get members:
-        $rows = $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contactbl.firstname','contactbl.lastname','contactbl.phone as cphone','contactbl.email as cemail')
+        /*$queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contactbl.firstname','contactbl.lastname','contactbl.phone as cphone','contactbl.email as cemail')
                                     ->from($foreign, 'foreign')
                                     ->leftJoin('foreign', $contact, 'contactbl', $queryBuilder->expr()->eq('contactbl.customfrontenduser','foreign.uid'))
                                     ->where(
                                         $queryBuilder->expr()->eq('contactbl.deleted', 0),
                                         $queryBuilder->expr()->eq('contactbl.hidden', 0),
                                         $queryBuilder->expr()->eq('foreign.deleted', 0),
-                                        $queryBuilder->expr()->eq('foreign.disable', 0)
+                                        $queryBuilder->expr()->eq('foreign.disable', 0),
+                                        $queryBuilder->expr()->eq('foreign.uid', 3136)
                                     )
+                                    ->orderBy('foreign.company', 'ASC')
+                                    ->setFirstResult(0)
+                                    ->setMaxResults($this->limit )->getSQL();*/
+        //Get members:
+        $rows = $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contactbl.firstname','contactbl.lastname','contactbl.phone as cphone','contactbl.email as cemail')
+                                    ->from($foreign, 'foreign')
+                                    ->leftJoin('foreign', $contact, 'contactbl', $queryBuilder->expr()->eq('contactbl.customfrontenduser','foreign.uid'))
+                                    ->andWhere($andCond)
                                     ->orderBy('foreign.company', 'ASC')
                                     ->setFirstResult(0)
                                     ->setMaxResults($this->limit )
@@ -177,12 +216,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         $queryBuilderCnt->count('foreign.uid')
                                     ->from($foreign, 'foreign')
                                     ->leftJoin('foreign', $contact, 'contactbl', $queryBuilderCnt->expr()->eq('contactbl.customfrontenduser','foreign.uid'))
-                                    ->where(
-                                        $queryBuilderCnt->expr()->eq('contactbl.deleted', 0),
-                                        $queryBuilderCnt->expr()->eq('contactbl.hidden', 0),
-                                        $queryBuilderCnt->expr()->eq('foreign.deleted', 0),
-                                        $queryBuilderCnt->expr()->eq('foreign.disable', 0)
-                                    );
+                                    ->andWhere($andCondCnt);;
         $count = $queryBuilderCnt->execute()->fetchColumn(0);
         
         $this->view->assign('members', $rows);
@@ -213,21 +247,38 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         $this->view->assign('membershiptemplates', $membershiptemplates);	
     }
     
+    public function initializeListnewsletterAction () {
+
+        unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_newsletter']['ctrl']['enablecolumns']['starttime']);
+        unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_newsletter']['ctrl']['enablecolumns']['endtime']);
+        
+    }
+
     public function listnewsletterAction() {
+
+        
         //Get the newsletters:
         $newsletters = $this->newsletterRepository->findAll();
-        
+
         foreach($newsletters as $newsletter){
-            
-            $fileObj = $newsletter->getFile();
-            if (!is_null($fileObj)) {
-                $publicUrl = $newsletter->getFile()->getOriginalResource()->getPublicUrl();
-                $aPublicUrlTmp = explode("/", $publicUrl);
-                $newsletter->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
-            }
+            try {
+                $fileObj = $newsletter->getFile();
+                if (!is_null($fileObj)) {
+                    $publicUrl = $newsletter->getFile()->getOriginalResource()->getPublicUrl();
+                    $aPublicUrlTmp = explode("/", $publicUrl);
+                    $newsletter->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+                }
+            } catch(\Exception $e) {}
         }
         
         $this->view->assign('newsletters', $newsletters);
+    }
+    
+    public function initializeListdocsletterAction () {
+
+        unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_document']['ctrl']['enablecolumns']['starttime']);
+        unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_document']['ctrl']['enablecolumns']['endtime']);
+        
     }
     
     public function listdocsAction() 
@@ -300,11 +351,32 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         
         $andCond = $queryBuilder->expr()->andx();
         $orCond = $queryBuilder->expr()->orx();
+        $orContDel = $queryBuilder->expr()->orx();
+        $orContHidden = $queryBuilder->expr()->orx();
+        
         $andCond->add($expr->eq('foreign.deleted', 0));
+        $orContDel->add($expr->eq('contact.deleted', 0));
+        $orContDel->add($expr->isNull("contact.deleted"));
+        $andCond->add($orContDel);
+        
+        $orContHidden->add($expr->eq('contact.hidden', 0));
+        $orContHidden->add($expr->isNull("contact.hidden"));
+        $andCond->add($orContHidden);
         
         $andCondCnt = $queryBuilderCnt->expr()->andx();
         $orCondCnt = $queryBuilderCnt->expr()->orx();
+        $orContDelCnt = $queryBuilderCnt->expr()->orx();
+        $orContHiddenCnt = $queryBuilderCnt->expr()->orx();
+        
         $andCondCnt->add($exprCnt->eq('foreign.deleted', 0));
+        
+        $orContDelCnt->add($exprCnt->eq('contact.deleted', 0));
+        $orContDelCnt->add($exprCnt->isNull('contact.deleted'));
+        $andCondCnt->add($orContDelCnt);
+        
+        $orContHiddenCnt->add($exprCnt->eq('contact.hidden', 0));
+        $orContHiddenCnt->add($exprCnt->isNull('contact.hidden'));
+        $andCondCnt->add($orContHiddenCnt);
 
         
         if (trim($qsearch)!= '') {
@@ -312,6 +384,9 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                 $orCond->add($expr->like('foreign.company', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch).'%')));
                 $orCondCnt->add($exprCnt->like('foreign.company', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
 
+                $orCond->add($expr->like('foreign.username', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch).'%')));
+                $orCondCnt->add($exprCnt->like('foreign.username', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
+                
                 $orCond->add($expr->like('foreign.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($qsearch).'%')));
                 $orCondCnt->add($exprCnt->like('foreign.email', $queryBuilderCnt->createNamedParameter('%' .$queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
                 
@@ -319,7 +394,12 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                 $orCondCnt->add($exprCnt->like('contact.email', $queryBuilderCnt->createNamedParameter('%' .$queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
                 
             } else {
-            
+                $orCond->add($expr->like('foreign.first_name', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch) . '%')));
+                $orCondCnt->add($exprCnt->like('foreign.first_name', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($qsearch) . '%')));
+                
+                $orCond->add($expr->like('foreign.last_name', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch) . '%')));
+                $orCondCnt->add($exprCnt->like('foreign.last_name', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($qsearch) . '%')));
+
                 $orCond->add($expr->like('foreign.name', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch) . '%')));
                 $orCondCnt->add($exprCnt->like('foreign.name', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($qsearch) . '%')));
 
@@ -338,11 +418,11 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                 $orCond->add($expr->like('foreign.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($qsearch).'%')));
                 $orCondCnt->add($exprCnt->like('foreign.email', $queryBuilderCnt->createNamedParameter('%' .$queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
                 
-                $orCond->add($expr->like('contact.firstname', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch) . '%')));
-                $orCondCnt->add($exprCnt->like('contact.firstname', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($qsearch) . '%')));
+                $orCond->add($expr->like('contact.firstname', $queryBuilder->createNamedParameter( $queryBuilder->escapeLikeWildcards($qsearch) . '%')));
+                $orCondCnt->add($exprCnt->like('contact.firstname', $queryBuilderCnt->createNamedParameter( $queryBuilderCnt->escapeLikeWildcards($qsearch) . '%')));
                 
-                $orCond->add($expr->like('contact.lastname', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch) . '%')));
-                $orCondCnt->add($exprCnt->like('contact.lastname', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($qsearch) . '%')));
+                $orCond->add($expr->like('contact.lastname', $queryBuilder->createNamedParameter( $queryBuilder->escapeLikeWildcards($qsearch) . '%')));
+                $orCondCnt->add($exprCnt->like('contact.lastname', $queryBuilderCnt->createNamedParameter( $queryBuilderCnt->escapeLikeWildcards($qsearch) . '%')));
                 
                 $orCond->add($expr->like('contact.phone', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch).'%')));
                 $orCondCnt->add($exprCnt->like('contact.phone', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
@@ -533,11 +613,14 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         //echo $queryBuilder->setFirstResult($pageStart)->setMaxResults($this->limit)->getSQL();
         //exit;
         
+
+        
         $rows = $queryBuilder->orderBy('foreign.company', 'ASC')
                         ->setFirstResult($pageStart)
                             ->setMaxResults($this->limit)
                             ->execute()
                             ->fetchAll();
+        $rows = array_map("unserialize", array_unique(array_map("serialize", $rows)));
         $count = $queryBuilderCnt->execute()->fetchColumn(0);
         
         $memHtml = '';
@@ -754,6 +837,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                     ];
             }
         }
+
         $arr['data'] = $newsArr;
         $json = $this->array2Json($arr);
         $response->getBody()->write($json);
@@ -1245,12 +1329,23 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 
                                 //Get the friendly filename:
                                 $friendlyfilename = filter_input(INPUT_GET, "friendlyfilename", FILTER_SANITIZE_SPECIAL_CHARS);
+                                if (empty($friendlyfilename)) {
+                                    $friendlyfilename = 'newsletter.pdf';
+                                }
+                                
+                                header("Cache-Control: must-revalidate, post-check=0, pre-check=0, max-age=0, public");
+                                header('Content-Description: File Transfer');
+                                header('Content-Type: application/force-download');
+                                header("Content-Type: application/octet-stream");
+                                header("Content-Type: application/download");
                                 header('Content-Disposition: attachment; filename="'.$friendlyfilename.'"');
-
+                                header('Content-Transfer-Encoding: binary');
+                                
                                 //Get the actual file path:
                                 $filePath = filter_input(INPUT_GET, "filepath", FILTER_SANITIZE_SPECIAL_CHARS);
-                                readfile($filePath);
-
+                                if ( isset($filePath)) {
+                                    readfile($filePath);
+                                }
                                 break;
                             
                         case "serve-csv-report":
@@ -1304,7 +1399,15 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         
     }
 	
-	
+    
+//    public function initializeShowAction () {
+//
+//        unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_document']['ctrl']['enablecolumns']['starttime']);
+//        unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_document']['ctrl']['enablecolumns']['endtime']);
+//        unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_newsletter']['ctrl']['enablecolumns']['starttime']);
+//        unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_newsletter']['ctrl']['enablecolumns']['endtime']);
+//        
+//    }
     
     /**
      * action show
@@ -1356,32 +1459,34 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         //Add the accessible documents to the $frontendUser object:
         $frontendUser = $this->addDocumentsToUser($frontendUser);
 
-        //Add download path data to the documents:
-         if (is_array($frontendUser->documents)) {
-            foreach($frontendUser->documents as $document){
-                $docFile = $document->getFile();
-                if(is_object($docFile)) {
-                    $publicUrl = $docFile->getOriginalResource()->getPublicUrl();
-                    $aPublicUrlTmp = explode("/", $publicUrl);
-                    $document->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+        try {
+            //Add download path data to the documents:
+             if (is_array($frontendUser->documents)) {
+                foreach($frontendUser->documents as $document){
+                    $docFile = $document->getFile();
+                    if(is_object($docFile)) {
+                        $publicUrl = $docFile->getOriginalResource()->getPublicUrl();
+                        $aPublicUrlTmp = explode("/", $publicUrl);
+                        $document->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+                    }
+                }
+             }
+
+            //Add the accessible newsletters to the $frontendUser object:
+            $frontendUser = $this->addNewslettersToUser($frontendUser);
+
+            //Add download path data to the newsletters:
+            if (is_array($frontendUser->newsletters)) {
+                foreach($frontendUser->newsletters as $newsletter){
+                    $nlFile =  $newsletter->getFile();
+                    if(is_object($nlFile)) {
+                        $publicUrl = $nlFile->getOriginalResource()->getPublicUrl();
+                        $aPublicUrlTmp = explode("/", $publicUrl);
+                        $newsletter->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+                    }
                 }
             }
-         }
-
-        //Add the accessible newsletters to the $frontendUser object:
-        $frontendUser = $this->addNewslettersToUser($frontendUser);
-
-        //Add download path data to the newsletters:
-        if (is_array($frontendUser->newsletters)) {
-            foreach($frontendUser->newsletters as $newsletter){
-                $nlFile =  $newsletter->getFile();
-                if(is_object($nlFile)) {
-                    $publicUrl = $nlFile->getOriginalResource()->getPublicUrl();
-                    $aPublicUrlTmp = explode("/", $publicUrl);
-                    $newsletter->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
-                }
-            }
-        }
+        } catch (\Exception $e){}
 
         //Prepare profile form hearboutusoptions array:
         $aHearaboutusoptions = array(
@@ -1526,13 +1631,16 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 		$aUserNewsletterTypes = [];
 		foreach($frontendUser->getMemberships() as $membership){
 			$membershipTemplate = $membership->getMembershiptemplate();
-			foreach($membershipTemplate->getIncludednewsletters() as $newsletterType){
-				 $aUserNewsletterTypes[$newsletterType->getUid()] = $newsletterType;
-			}
+                        $nlTypeArr = $membershipTemplate->getIncludednewsletters();
+                        if (count($nlTypeArr) > 0) {
+                            foreach ($nlTypeArr as $newsletterType){
+                                     $aUserNewsletterTypes[$newsletterType->getUid()] = $newsletterType;
+                            }
+                        }
 		}
 	
 		//Collect the newsletters that the user's memberships provide access to:
-		if(!empty($aUserNewsletterTypes)){
+		if (!empty($aUserNewsletterTypes)){
 			$frontendUser->newsletters = $this->newsletterRepository->findByNewslettertypes($aUserNewsletterTypes);
 		}
 
