@@ -1692,6 +1692,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 		$aFormData = $aInputArray['FrontendUser'];
 		$changePW = filter_input(INPUT_POST, 'profile_change_pw', FILTER_SANITIZE_NUMBER_INT);
 		$oldPWValue = filter_input(INPUT_POST, 'oldpassword', FILTER_SANITIZE_SPECIAL_CHARS);
+                
 		
 		//Get the logged in FE User:
 		$feUserUid = $GLOBALS['TSFE']->fe_user->user['uid'];
@@ -1699,37 +1700,49 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 
 		//Update the property values:
 		$currentPassword = "";
-		foreach($aFormData as $formField => $formValue){
-			//Some exceptions/alterations:
-			if($formField == "phone") { $formField = "telephone"; }
-			if($formField == "password") {
-				if($changePW == 1){
-					//Check if the provided old (plain) password matches the stored (salted) password:
-					if($this->testSaltedPasswordAgainstStoredValue($oldPWValue, $frontendUser->getPassword())){
-						//Provided old password correct - Continue and Salt the new password:
-						$newPassword = $this->saltPassword($formValue);
-						$formValue = $newPassword;
-					}
-					else{
-						//Old password incorrect -- Set the flash message & Completely exist the profile update function::
-						$this->addFlashMessage(
-							'The current/old password you entered was incorrect - Nothing updated...! Please re-enter your current password and the new password you would like to change it to.', //Message
-							'Profile saving error', //Title
-							$severity = \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR,
-							FALSE //storeInSession?
-						);
-						return false;
-					}
-				}
-				else{
-					//Skip password change:
-					continue;
-				}
-			}
-			//Define the function to call:
-			$setFunction = "set".ucfirst($formField);
-			$frontendUser->$setFunction($formValue);
-		}
+                
+                if ($changePW == 1){
+                        //Check if the provided old (plain) password matches the stored (salted) password:
+                        if ($this->testSaltedPasswordAgainstStoredValue($oldPWValue, $frontendUser->getPassword())){
+                                //Provided old password correct - Continue and Salt the new password:
+                            $newPwdValue = $aFormData['password'];
+                            $newPassword = $this->saltPassword($newPwdValue);
+                            $frontendUser->setPassword($newPassword);
+                            
+                        } else {
+                                //Old password incorrect -- Set the flash message & Completely exist the profile update function::
+                                $this->addFlashMessage(
+                                        'The current/old password you entered was incorrect - Nothing updated...! Please re-enter your current password and the new password you would like to change it to.', //Message
+                                        'Profile saving error', //Title
+                                        $severity = \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR,
+                                        FALSE //storeInSession?
+                                );
+                                return false;
+                        }
+                }
+                
+                $frontendUser->setFirstName($aFormData['firstname']);
+                $frontendUser->setLastName($aFormData['lastname']);
+                $frontendUser->setName($aFormData['firstname'].' '.$aFormData['lastname']);
+                $frontendUser->setTitle($aFormData['title']);
+                $frontendUser->setCompany($aFormData['company']);
+                $frontendUser->setNumberofemployees($aFormData['numberofemployees']);
+                $frontendUser->setNumberofcdldrivers($aFormData['numberofcdldrivers']);
+                $frontendUser->setAddress($aFormData['address']);
+                $frontendUser->setAdditionaladdress($aFormData['additionaladdress']);
+                $frontendUser->setCity($aFormData['city']);
+                $frontendUser->setState($aFormData['state']);
+                $frontendUser->setZip($aFormData['zip']);
+                $frontendUser->setTelephone($aFormData['phone']);
+                $frontendUser->setCellphone($aFormData['cellphone']);
+                $frontendUser->setFax($aFormData['fax']);
+                $frontendUser->setFein($aFormData['fein']);
+                $frontendUser->setBusinesstype($aFormData['businesstype']);
+                $frontendUser->setInsurancecarrier($aFormData['insurancecarrier']);
+                $frontendUser->setInsuranceagent($aFormData['insuranceagent']);
+                $frontendUser->setHearaboutus($aFormData['hearaboutus']);
+                $frontendUser->setEmail($aFormData['email']);
+
                 $this->frontendUserRepository->update($frontendUser);
 		
 		//Set the flash message:
@@ -1826,15 +1839,18 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 	
 	/* Functiuon that salts a provided, "plain" password */
 	public function saltPassword($password){
-		$saltedPassword = '';
-		$objSalt = \TYPO3\CMS\Saltedpasswords\Salt\SaltFactory::getSaltingInstance(NULL);
-		if (is_object($objSalt)) {
-			$saltedPassword = $objSalt->getHashedPassword($password);
-		}
-		if($saltedPassword != ''){
-			$password = $saltedPassword;
-		}
-		return $password;
+            $saltedPassword = '';
+            if (\TYPO3\CMS\Saltedpasswords\Utility\SaltedPasswordsUtility::isUsageEnabled('FE')) {
+                $objSalt = \TYPO3\CMS\Saltedpasswords\Salt\SaltFactory::getSaltingInstance(NULL);
+                if (is_object($objSalt)) {
+                    $saltedPassword = $objSalt->getHashedPassword($password);
+                }
+            }
+            if ($saltedPassword != ''){
+                $password = $saltedPassword;
+            }
+            
+            return $password;
 	}
 	
 	/* Functiuon that tests a provided, "plain" password against a provided salted password */
@@ -1843,12 +1859,11 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 		if (\TYPO3\CMS\Saltedpasswords\Utility\SaltedPasswordsUtility::isUsageEnabled('FE')) {
 			$objSalt = \TYPO3\CMS\Saltedpasswords\Salt\SaltFactory::getSaltingInstance($saltedPassword);
 			if (is_object($objSalt)) {
-					$result = $objSalt->checkPassword($plainpassword, $saltedPassword);
+                            $result = $objSalt->checkPassword($plainpassword, $saltedPassword);
 			}
 		}
 		return $result;
 	}
-
 
 
         /**
