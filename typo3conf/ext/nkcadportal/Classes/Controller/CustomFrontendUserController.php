@@ -320,7 +320,9 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         $andCond->add($expr->eq('foreign.deleted', 0));
         
         if (trim($qsearch)!= '') {
+            
             if (strpos($qsearch, '@') > 0) {
+                
                 $orCond->add($expr->like('foreign.company', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch).'%')));
 
                 $orCond->add($expr->like('foreign.username', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch).'%')));
@@ -330,11 +332,12 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                 $orCond->add($expr->like('contact.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($qsearch).'%')));
              
             } else {
+                
                 $orCond->add($expr->like('foreign.first_name', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch) . '%')));
           
                 $orCond->add($expr->like('foreign.last_name', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch) . '%')));
 
-                $orCond->add($expr->like('foreign.name', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch) . '%')));
+//                $orCond->add($expr->like('foreign.name', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch) . '%')));
 
                 $orCond->add($expr->like('foreign.company', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch).'%')));
 

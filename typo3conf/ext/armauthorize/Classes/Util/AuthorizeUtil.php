@@ -244,6 +244,7 @@ class AuthorizeUtil {
         } else {
             $this->response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
         }
+        
         return $this->response;
     }
     
