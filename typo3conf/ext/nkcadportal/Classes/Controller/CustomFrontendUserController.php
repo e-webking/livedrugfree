@@ -154,56 +154,14 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         $foreign = 'fe_users';
         
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
-        $queryBuilderCnt = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
         $queryBuilder->getRestrictions()->removeAll();
-        $queryBuilderCnt->getRestrictions()->removeAll();
         $expr = $queryBuilder->expr();
-        $exprCnt = $queryBuilderCnt->expr();
         
         $andCond = $queryBuilder->expr()->andx();
-        $orCond = $queryBuilder->expr()->orx();
-        $orContDel = $queryBuilder->expr()->orx();
-        $orContHidden = $queryBuilder->expr()->orx();
-        
         $andCond->add($expr->eq('foreign.deleted', 0));
-        $orContDel->add($expr->eq('contactbl.deleted', 0));
-        $orContDel->add($expr->isNull("contactbl.deleted"));
-        $andCond->add($orContDel);
         
-        $orContHidden->add($expr->eq('contactbl.hidden', 0));
-        $orContHidden->add($expr->isNull("contactbl.hidden"));
-        $andCond->add($orContHidden);
-        
-        
-        $andCondCnt = $queryBuilderCnt->expr()->andx();
-        $orCondCnt = $queryBuilderCnt->expr()->orx();
-        $orContDelCnt = $queryBuilderCnt->expr()->orx();
-        $orContHiddenCnt = $queryBuilderCnt->expr()->orx();
-        
-        $andCondCnt->add($exprCnt->eq('foreign.deleted', 0));
-        $orContDelCnt->add($exprCnt->eq('contactbl.deleted', 0));
-        $orContDelCnt->add($exprCnt->isNull('contactbl.deleted'));
-        $andCondCnt->add($orContDelCnt);
-        $orContHiddenCnt->add($exprCnt->eq('contactbl.hidden', 0));
-        $orContHiddenCnt->add($exprCnt->isNull('contactbl.hidden'));
-        $andCondCnt->add($orContHiddenCnt);
-        
-
-        /*$queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contactbl.firstname','contactbl.lastname','contactbl.phone as cphone','contactbl.email as cemail')
-                                    ->from($foreign, 'foreign')
-                                    ->leftJoin('foreign', $contact, 'contactbl', $queryBuilder->expr()->eq('contactbl.customfrontenduser','foreign.uid'))
-                                    ->where(
-                                        $queryBuilder->expr()->eq('contactbl.deleted', 0),
-                                        $queryBuilder->expr()->eq('contactbl.hidden', 0),
-                                        $queryBuilder->expr()->eq('foreign.deleted', 0),
-                                        $queryBuilder->expr()->eq('foreign.disable', 0),
-                                        $queryBuilder->expr()->eq('foreign.uid', 3136)
-                                    )
-                                    ->orderBy('foreign.company', 'ASC')
-                                    ->setFirstResult(0)
-                                    ->setMaxResults($this->limit )->getSQL();*/
         //Get members:
-        $rows = $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contactbl.firstname','contactbl.lastname','contactbl.phone as cphone','contactbl.email as cemail')
+        $rows = $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contactbl.firstname','contactbl.lastname','contactbl.phone as cphone','contactbl.email as cemail','contactbl.deleted as cdel','contactbl.hidden as chid')
                                     ->from($foreign, 'foreign')
                                     ->leftJoin('foreign', $contact, 'contactbl', $queryBuilder->expr()->eq('contactbl.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond)
@@ -212,14 +170,25 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                                     ->setMaxResults($this->limit )
                                     ->execute()
                                     ->fetchAll();
+
+        $rows = array_map("unserialize", array_unique(array_map("serialize", $rows)));
+        $filteredRow = [];
         
-        $queryBuilderCnt->count('foreign.uid')
-                                    ->from($foreign, 'foreign')
-                                    ->leftJoin('foreign', $contact, 'contactbl', $queryBuilderCnt->expr()->eq('contactbl.customfrontenduser','foreign.uid'))
-                                    ->andWhere($andCondCnt);;
-        $count = $queryBuilderCnt->execute()->fetchColumn(0);
+        foreach($rows as $rec) {
+            
+            if ($rec['cdel']==1 || $rec['chid']==1) {
+                $rec['firstname'] = '';
+                $rec['lastname'] = '';
+                $rec['cphone'] = '';
+                $rec['cemail'] = '';
+            }
+            
+            $filteredRow[] = $rec;
+        }
         
-        $this->view->assign('members', $rows);
+        $filteredRow = array_map("unserialize", array_unique(array_map("serialize", $filteredRow)));
+        $count = count($filteredRow);
+        $this->view->assign('members', $filteredRow);
         $this->view->assign('mempaging', $this->pagingStr($count));
     }
     
@@ -341,127 +310,70 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
             
         
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
-        $queryBuilderCnt = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
         $expr = $queryBuilder->expr();
-        $exprCnt = $queryBuilderCnt->expr();
-        
-       
         $queryBuilder->getRestrictions()->removeAll();
-        $queryBuilderCnt->getRestrictions()->removeAll();
         
         $andCond = $queryBuilder->expr()->andx();
         $orCond = $queryBuilder->expr()->orx();
-        $orContDel = $queryBuilder->expr()->orx();
-        $orContHidden = $queryBuilder->expr()->orx();
+
         
         $andCond->add($expr->eq('foreign.deleted', 0));
-        $orContDel->add($expr->eq('contact.deleted', 0));
-        $orContDel->add($expr->isNull("contact.deleted"));
-        $andCond->add($orContDel);
-        
-        $orContHidden->add($expr->eq('contact.hidden', 0));
-        $orContHidden->add($expr->isNull("contact.hidden"));
-        $andCond->add($orContHidden);
-        
-        $andCondCnt = $queryBuilderCnt->expr()->andx();
-        $orCondCnt = $queryBuilderCnt->expr()->orx();
-        $orContDelCnt = $queryBuilderCnt->expr()->orx();
-        $orContHiddenCnt = $queryBuilderCnt->expr()->orx();
-        
-        $andCondCnt->add($exprCnt->eq('foreign.deleted', 0));
-        
-        $orContDelCnt->add($exprCnt->eq('contact.deleted', 0));
-        $orContDelCnt->add($exprCnt->isNull('contact.deleted'));
-        $andCondCnt->add($orContDelCnt);
-        
-        $orContHiddenCnt->add($exprCnt->eq('contact.hidden', 0));
-        $orContHiddenCnt->add($exprCnt->isNull('contact.hidden'));
-        $andCondCnt->add($orContHiddenCnt);
-
         
         if (trim($qsearch)!= '') {
             if (strpos($qsearch, '@') > 0) {
                 $orCond->add($expr->like('foreign.company', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch).'%')));
-                $orCondCnt->add($exprCnt->like('foreign.company', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
 
                 $orCond->add($expr->like('foreign.username', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch).'%')));
-                $orCondCnt->add($exprCnt->like('foreign.username', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
-                
+              
                 $orCond->add($expr->like('foreign.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($qsearch).'%')));
-                $orCondCnt->add($exprCnt->like('foreign.email', $queryBuilderCnt->createNamedParameter('%' .$queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
-                
+    
                 $orCond->add($expr->like('contact.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($qsearch).'%')));
-                $orCondCnt->add($exprCnt->like('contact.email', $queryBuilderCnt->createNamedParameter('%' .$queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
-                
+             
             } else {
                 $orCond->add($expr->like('foreign.first_name', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch) . '%')));
-                $orCondCnt->add($exprCnt->like('foreign.first_name', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($qsearch) . '%')));
-                
+          
                 $orCond->add($expr->like('foreign.last_name', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch) . '%')));
-                $orCondCnt->add($exprCnt->like('foreign.last_name', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($qsearch) . '%')));
 
                 $orCond->add($expr->like('foreign.name', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch) . '%')));
-                $orCondCnt->add($exprCnt->like('foreign.name', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($qsearch) . '%')));
 
                 $orCond->add($expr->like('foreign.company', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch).'%')));
-                $orCondCnt->add($exprCnt->like('foreign.company', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
 
                 $orCond->add($expr->like('foreign.fein',  $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch). '%')));
-                $orCondCnt->add($exprCnt->like('foreign.fein', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
 
                 $orCond->add($expr->like('foreign.address', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch).'%')));
-                $orCondCnt->add($exprCnt->like('foreign.address', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
 
                 $orCond->add($expr->like('foreign.telephone', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch).'%')));
-                $orCondCnt->add($exprCnt->like('foreign.telephone', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
-                
+          
                 $orCond->add($expr->like('foreign.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($qsearch).'%')));
-                $orCondCnt->add($exprCnt->like('foreign.email', $queryBuilderCnt->createNamedParameter('%' .$queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
-                
+           
                 $orCond->add($expr->like('contact.firstname', $queryBuilder->createNamedParameter( $queryBuilder->escapeLikeWildcards($qsearch) . '%')));
-                $orCondCnt->add($exprCnt->like('contact.firstname', $queryBuilderCnt->createNamedParameter( $queryBuilderCnt->escapeLikeWildcards($qsearch) . '%')));
-                
+  
                 $orCond->add($expr->like('contact.lastname', $queryBuilder->createNamedParameter( $queryBuilder->escapeLikeWildcards($qsearch) . '%')));
-                $orCondCnt->add($exprCnt->like('contact.lastname', $queryBuilderCnt->createNamedParameter( $queryBuilderCnt->escapeLikeWildcards($qsearch) . '%')));
-                
+
                 $orCond->add($expr->like('contact.phone', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch).'%')));
-                $orCondCnt->add($exprCnt->like('contact.phone', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
                 
                 $orCond->add($expr->like('contact.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($qsearch).'%')));
-                $orCondCnt->add($exprCnt->like('contact.email', $queryBuilderCnt->createNamedParameter('%' .$queryBuilderCnt->escapeLikeWildcards($qsearch).'%')));
-               
-
             }
+            
             $andCond->add($orCond);
-            $andCondCnt->add($orCondCnt);
         }
         
             
         switch ($option) {
             
             case 'current':
+                
                 $andCond->add($expr->eq('foreign.disable', 0));
                 $andCond->add($expr->eq('local.deleted', 0));
                 $andCond->add($expr->eq('local.hidden', 0));
                 $andCond->add($expr->gt('local.endtimecustom', time()));
                 
-                $andCondCnt->add($exprCnt->eq('foreign.disable', 0));
-                $andCondCnt->add($exprCnt->eq('local.deleted', 0));
-                $andCondCnt->add($exprCnt->eq('local.hidden', 0));
-                $andCondCnt->add($exprCnt->gt('local.endtimecustom', time()));
-                
-                $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail')
+                $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail','contact.deleted as cdel','contact.hidden as chid')
                                     ->from($foreign,'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('foreign.uid', 'local.customfrontenduser'))
                                     ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond);
-                                    
-                
-                $queryBuilderCnt->count('foreign.uid')
-                                    ->from($foreign,'foreign')
-                                    ->innerJoin('foreign', $local, 'local', $exprCnt->eq('foreign.uid','local.customfrontenduser'))
-                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
-                                    ->andWhere($andCondCnt);           
+        
                 break;
             case 'expiringthismonth':
                 
@@ -473,24 +385,13 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $andCond->add($expr->eq('local.hidden', 0));
                $andCond->add($expr->gt('local.endtimecustom', time()));
                $andCond->add($expr->lt('local.endtimecustom', $ldTs));
-               
-               $andCondCnt->add($exprCnt->eq('foreign.disable', 0));
-               $andCondCnt->add($exprCnt->eq('local.deleted', 0));
-               $andCondCnt->add($exprCnt->eq('local.hidden', 0));
-               $andCondCnt->add($exprCnt->gt('local.endtimecustom', time()));
-               $andCondCnt->add($exprCnt->lt('local.endtimecustom', $ldTs));
-               
+              
                 
-               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail')
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail','contact.deleted as cdel','contact.hidden as chid')
                                     ->from($foreign,'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
                                     ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond);
-                $queryBuilderCnt->count('foreign.uid')
-                                ->from($foreign,'foreign')
-                                ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
-                                ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
-                                ->andWhere($andCondCnt);
                                     
                 break;
             case 'expiringnextmonth':
@@ -502,24 +403,12 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $andCond->add($expr->eq('local.hidden', 0));
                $andCond->add($expr->gt('local.endtimecustom', time()));
                $andCond->add($expr->lt('local.endtimecustom', $ldNextMnTs));
-               
-               $andCondCnt->add($exprCnt->eq('foreign.disable', 0));
-               $andCondCnt->add($exprCnt->eq('local.deleted', 0));
-               $andCondCnt->add($exprCnt->eq('local.hidden', 0));
-               $andCondCnt->add($exprCnt->gt('local.endtimecustom', time()));
-               $andCondCnt->add($exprCnt->lt('local.endtimecustom', $ldNextMnTs));
                 
-               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail')
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail','contact.deleted as cdel','contact.hidden as chid')
                                     ->from($foreign, 'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
                                     ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond);
-               
-               $queryBuilderCnt->count('foreign.uid')
-                                    ->from($foreign, 'foreign')
-                                    ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
-                                    ->leftJoin('foreign', $contact, 'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
-                                    ->andWhere($andCondCnt);
                                     
                 break;
             case 'expiredwithinxdays':
@@ -531,23 +420,11 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $andCond->add($expr->gt('local.endtimecustom', time()));
                $andCond->add($expr->lt('local.endtimecustom', $sixtyDayTs));
                
-               $andCondCnt->add($exprCnt->eq('foreign.disable', 0));
-               $andCondCnt->add($exprCnt->eq('local.deleted', 0));
-               $andCondCnt->add($exprCnt->eq('local.hidden', 0));
-               $andCondCnt->add($exprCnt->gt('local.endtimecustom', time()));
-               $andCondCnt->add($exprCnt->lt('local.endtimecustom', $sixtyDayTs));
-               
-               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail')
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail','contact.deleted as cdel','contact.hidden as chid')
                                     ->from($foreign,'foreign')
                                     ->innerJoin('foreign', $local ,'local', $expr->eq('local.customfrontenduser','foreign.uid'))
                                     ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                    ->andWhere($andCond);
-               
-                $queryBuilderCnt->count('foreign.uid')
-                                    ->from($foreign, 'foreign')
-                                    ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
-                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
-                                    ->andWhere($andCondCnt);
                                     
                 break;
             case 'expired':
@@ -555,59 +432,30 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $andCond->add($expr->eq('foreign.disable', 0));
                $andCond->add($expr->eq('local.deleted', 0));
                $andCond->add($expr->eq('local.hidden', 0));
-               $andCond->add($expr->lt('local.endtimecustom', time()));
+               $andCond->add($expr->lt('local.endtimecustom', time()));  
                
-               $andCondCnt->add($exprCnt->eq('foreign.disable', 0));
-               $andCondCnt->add($exprCnt->eq('local.deleted', 0));
-               $andCondCnt->add($exprCnt->eq('local.hidden', 0));
-               $andCondCnt->add($exprCnt->lt('local.endtimecustom', time()));
-               
-               
-               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail')
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail','contact.deleted as cdel','contact.hidden as chid')
                                     ->from($foreign,'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
                                     ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond);
-               
-                $queryBuilderCnt->count('foreign.uid')
-                                    ->from($foreign,'foreign')
-                                    ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
-                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
-                                    ->andWhere($andCondCnt);
-                                    
+                                              
                 break;
              case 'suspendedandnew':
                  
                $andCond->add($expr->isNull('local.customfrontenduser'));
-               $andCondCnt->add($exprCnt->isNull('local.customfrontenduser'));
-                 
-               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail')
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail','contact.deleted as cdel','contact.hidden as chid')
                                     ->from($foreign,'foreign')
                                     ->leftJoin('foreign',$local,'local', $expr->eq('local.customfrontenduser','foreign.uid'))
                                     ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
-                                    ->andWhere($andCond);
-               
-               $queryBuilderCnt->count('foreign.uid')
-                                    ->from($foreign,'foreign')
-                                    ->leftJoin('foreign',$local,'local', $expr->eq('local.customfrontenduser','foreign.uid'))
-                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
-                                    ->andWhere($andCondCnt);
-                                    
+                                    ->andWhere($andCond);                              
                 break;
             default:
-                $andCond->add($expr->eq('foreign.disable', 0));
-                $andCondCnt->add($exprCnt->eq('foreign.disable', 0));
-                
-                
-                $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail')
+//                $andCond->add($expr->eq('foreign.disable', 0));
+                $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail','contact.deleted as cdel','contact.hidden as chid')
                                     ->from($foreign, 'foreign')
                                     ->leftJoin('foreign', $contact, 'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond);
-                
-                $queryBuilderCnt->count('foreign.uid')
-                        ->from($foreign, 'foreign')
-                        ->leftJoin('foreign', $contact, 'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
-                        ->andWhere($andCondCnt);
         }
         
         //echo $queryBuilder->setFirstResult($pageStart)->setMaxResults($this->limit)->getSQL();
@@ -621,13 +469,29 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                             ->execute()
                             ->fetchAll();
         $rows = array_map("unserialize", array_unique(array_map("serialize", $rows)));
-        $count = $queryBuilderCnt->execute()->fetchColumn(0);
+        
+        $filteredRow = [];
+        
+        foreach($rows as $rec) {
+            
+            if ($rec['cdel']==1 || $rec['chid']==1) {
+                $rec['firstname'] = '';
+                $rec['lastname'] = '';
+                $rec['cphone'] = '';
+                $rec['cemail'] = '';
+            }
+            $filteredRow[] = $rec;
+        }
+        
+        $filteredRow = array_map("unserialize", array_unique(array_map("serialize", $filteredRow)));
+        $count = count($filteredRow);
+        
         
         $memHtml = '';
         
-        if (count($rows) > 0) {
+        if ($count > 0) {
             
-            foreach ($rows as $data) {
+            foreach ($filteredRow as $data) {
                 
                 $memHtml .= '<tr>'
                         .'<td><i class="fa fa-user"></i></td>'
