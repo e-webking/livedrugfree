@@ -47,3 +47,6 @@ if (TYPO3_MODE === 'BE') {
     $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['extbase']['commandControllers'][$_EXTKEY.'_reminder'] =
         \Netkyngs\Nkcadportal\Command\ReminderCommandController::class;
 }
+
+$GLOBALS ['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processDatamapClass']['nkcadportal'] = \Netkyngs\Nkcadportal\Hook\TCEmainHook::class;
+$GLOBALS ['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processCmdmapClass']['nkcadportal'] = \Netkyngs\Nkcadportal\Hook\TCEmainHook::class;

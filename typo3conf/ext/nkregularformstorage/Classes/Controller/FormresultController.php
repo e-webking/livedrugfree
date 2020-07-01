@@ -394,7 +394,8 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             $ptype = 0;
             $pstatus = 0;
             
-            if ($this->selectedPaymentType == "creditcard"){
+            if ($this->selectedPaymentType == "creditcard") {
+                
                 $card_holder_name = $formConfigArray['paymentForm']['Card_Name'];
                 //---------------------------------
                 //Mode is direct credit cad payment
@@ -546,6 +547,18 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             $fromName = $this->settings['adminname'];
             $fromEmail = $this->settings['fromemail'];
             $replyToEmail = $this->settings['adminemail'];
+            $toEmails = $this->settings['form_adminToemail'];
+            $toEmailArr = [];
+            if (strlen($toEmails)) {
+                $toEmailRawArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(',', $toEmails);
+
+                if (count($toEmailRawArr) > 0) {
+                    foreach ($toEmailRawArr as $emailstr) {
+                        $toEmlNameArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode('|', $emailstr);
+                        $toEmailArr["$toEmlNameArr[0]"] = $toEmlNameArr[1];
+                    }
+                }
+            }
 
             //Create and send the admin notification mail:
 
@@ -606,27 +619,26 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 if (count($ccEmailRawArr) > 0) {
                     foreach ($ccEmailRawArr as $emailstr) {
                         $emlNameArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode('|', $emailstr);
-                        $ccEmailArr[] = array('email'=>$emlNameArr[0], 'name' => $emlNameArr[1]);
+                        $ccEmailArr[] = array('email'=> $emlNameArr[0], 'name' => $emlNameArr[1]);
                     }
                 }
             }
             
             //Send mail to ADMIN(s):
-            foreach($recipientArray as $recipient) {
+            $mail = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Mail\\MailMessage');
+            $mail->setFrom(array($fromEmail => $fromName));
+            $mail->setReplyTo (array($replyToEmail => $fromName));
+            $mail->setTo($toEmailArr);
 
-                $mail = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Mail\\MailMessage');
-                $mail->setFrom(array($fromEmail => $fromName));
-                $mail->setReplyTo (array($replyToEmail => $fromName));
-                $mail->setTo(array($recipient['toEmail'] => $fromName));
-                if (count($ccEmailArr) > 0) {
-                    foreach ($ccEmailArr as $ccEml) {
-                        $mail->setCc($ccEml['email'], $ccEml['name']);
-                    }
+            if (count($ccEmailArr) > 0) {
+                foreach ($ccEmailArr as $ccEml) {
+                    $mail->setCc($ccEml['email'], $ccEml['name']);
                 }
-                $mail->setSubject($subject);
-                $mail->setBody($bodyPre.$body.$adminAdditionalBody, 'text/html');
-                $mail->send();
             }
+            $mail->setSubject($subject);
+            $mail->setBody($bodyPre.$body.$adminAdditionalBody, 'text/html');
+            $mail->send();
+
            
             //Send mail to new member:
             //Add Check payment information:
@@ -797,11 +809,13 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 
                 $userEmail = $this->frontendUser->getEmail();
                 $company = $this->frontendUser->getCompany();
+                $feuser = $this->frontendUser->getUid();
                 
             } elseif($formType == "newDonation"){
                 
                 $userEmail = addSlashes($_POST['email']);
                 $company = addSlashes($_POST['company']);
+                $feuser = 't'.time();
             }
             
             $data['customerprofile'] = $GLOBALS['TSFE']->fe_user->user['authorize_customer_profile'];
@@ -821,6 +835,11 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             $data['email'] = $userEmail;
             $data['phone'] = $phone;
             $data['company'] = $company;
+            
+            if (isset($userEmail) && isset($data['customerprofile'])) {
+                //update the customer profile
+                $this->payutil->updateCustomerProfile($data['customerprofile'], $userEmail, $feuser);
+            }
 
             return $this->makeTransaction($data, $testmode);
 		
@@ -1039,6 +1058,9 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             if (trim($arguments['name']) == '' && isset($arguments['name'])) {
                 $msg .= "Please enter Name on Card\n";
             }
+            if (trim($arguments['email']) == '' && isset($arguments['email'])) {
+                $msg .= "Please enter Email address\n";
+            }
             if (trim($arguments['amount']) == '' && isset($arguments['amount'])) {
                 $msg .= "Please enter Amount\n";
             }
@@ -1115,6 +1137,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                         $data['state'] = $arguments['state'];
                         $data['email'] = $arguments['email'];
                         $data['item_description'] = $arguments['description'];
+                        $authProfile = $this->getAuthProfile($data['feuser']);
                         
                         if ($arguments['name'] == "Testmode123"){
                             $testmode = true;
@@ -1123,20 +1146,23 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                         $this->startTransaction();
                         $this->payutil->createLineItem('adm'.$user->getUid(), substr($data['item_description'],0,30), number_format($data['amount'], 2), substr($data['item_description'],0,255));
                         
+                        if ($authProfile != '' && isset($data['email'])) {
+                            $this->payutil->updateCustomerProfile($authProfile, $data['email'], $data['feuser']);
+                        }
+                        
                         $responseArr = $this->makeTransaction($data, $testmode);
 
                         if ($responseArr['status'] == TRUE) {
                             
-                            $cusProfRes = $this->payutil->createCustomerProfileFromTransaction($responseArr['trnId'], $data['email'], $data['company'], substr(md5($data['feuser']), 0, 16));
-                            $profileResponseArr = $this->payutil->processProfileCreateResponse($cusProfRes);
+                            if ($authProfile == '') {
+                                $cusProfRes = $this->payutil->createCustomerProfileFromTransaction($responseArr['trnId'], $data['email'], $data['company'], substr(md5($data['feuser']), 0, 16));
+                                $profileResponseArr = $this->payutil->processProfileCreateResponse($cusProfRes);
 
-                            if ($profileResponseArr['status'] == TRUE) {
-                                //update user
-                                $this->updateMemberAuthCustomerProfile($data['feuser'],$profileResponseArr['customerProfileId'],$profileResponseArr['paymentProfileId']);                       
+                                if ($profileResponseArr['status'] == TRUE) {
+                                    //update user
+                                    $this->updateMemberAuthCustomerProfile($data['feuser'],$profileResponseArr['customerProfileId'],$profileResponseArr['paymentProfileId']);                       
+                                }
                             }
-                        }
-                        
-                        if ($responseArr['status'] == TRUE){
                             //Sale approved..
                             $pstatus = 1;
                             //$trxID = date('Y')."00".$this->formresultRepository->findAll()->count();
@@ -1150,13 +1176,14 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                             $this->addFlashMessage($responseArr['error'],'Transaction', 
                             \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR, FALSE);
                         }
-
+                        
+                        $cardno = substr($data['cardno'], 0,4).'xxxxxxxx'.substr($data['cardno'], -4);
                          //Add a new formresult record:
                         $newPaymentRecord = new \Netkyngs\Nkregularformstorage\Domain\Model\Formresult();
                         $newPaymentRecord->setName($data['fname'].' '.$data['lname']);
                         $newPaymentRecord->setEmail($data['email']);
                         $newPaymentRecord->setTrxid($trxID);
-                        $newPaymentRecord->setCardno($data['cardno']);
+                        $newPaymentRecord->setCardno($cardno);
                         $newPaymentRecord->setInvoiceid($trxID);
                         $newPaymentRecord->setTrxamount(number_format((float)$data['amount'], 2, '.', ''));
                         $newPaymentRecord->setPstatus($pstatus);
@@ -1186,7 +1213,6 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                         \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR, FALSE);
                         $this->forward('chargecard');
                 }
-               
             }
         }
         
@@ -1601,6 +1627,26 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
 
             return $response;
                 
+        }
+        
+        /**
+         * 
+         * @param int $uid
+         */
+        public function getAuthProfile($uid) {
+            
+            $userTbl = 'fe_users';
+            $qbUser = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($userTbl);            
+            $qbUser->getRestrictions()->removeAll();
+            $row = $qbUser->select('authorize_customer_profile')
+                ->from($userTbl)
+                ->where(
+                    $qbUser->expr()->eq('uid', $uid)
+                )->execute()->fetchAll();
+            
+            if (count($row) > 0) {
+                return $row[0]['authorize_customer_profile'];
+            }
         }
         
         public function downloadFileAction(\Psr\Http\Message\ServerRequestInterface $request,

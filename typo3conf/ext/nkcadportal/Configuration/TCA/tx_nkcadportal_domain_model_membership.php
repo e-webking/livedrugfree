@@ -3,7 +3,7 @@ return array(
 	'ctrl' => array(
 		'title'	=> 'LLL:EXT:nkcadportal/Resources/Private/Language/locallang_db.xlf:tx_nkcadportal_domain_model_membership',
                 'label'=> 'state',
-		'label_alt' => 'mtitle',
+		'label_alt' => 'endtimecustom',
                 'label_alt_force' => true,
 		'tstamp' => 'tstamp',
 		'crdate' => 'crdate',
@@ -29,7 +29,7 @@ return array(
 		'showRecordFieldList' => 'hidden, membershiptemplate, customfrontenduser, state, mtitle, membershiptype, price, term, t6uid',
 	),
 	'types' => array(
-		'1' => array('showitem' => 'hidden;;1, membershiptemplate, customfrontenduser,--palette--;;mtype,--palette--;;mdates, state, mtitle,--div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:access, starttime, endtime, t6uid'),
+		'1' => array('showitem' => 'hidden;;1, mtitle, membershiptemplate, customfrontenduser,--palette--;;mtype,--palette--;;mdates, state,--div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:access, starttime, endtime, t6uid'),
 	),
 	'palettes' => array(
 		'1' => array('showitem' => ''),
@@ -153,7 +153,6 @@ return array(
 				'default' => 0,
 			),
 		),
-		
 		'statestarttimecustom' => array(
 			'exclude' => 1,
 			'l10n_mode' => 'mergeIfNotBlank',
@@ -210,12 +209,13 @@ return array(
 		),
 		'mtitle' => array(
 			'exclude' => 0,
-			'label' => 'LLL:EXT:nkcadportal/Resources/Private/Language/locallang_db.xlf:tx_nkcadportal_domain_model_membershiptemplate.description',
+			'label' => 'Title / Heading',
 			'config' => array(
 				'type' => 'input',
-                                'renderType' => 'hidden',
+                                /*'renderType' => 'hidden',*/
 				'size' => 50,
-				'eval' => 'trim,required'
+				'eval' => 'trim,required',
+                                'readOnly' => true
 			),
 		),
                 'membershiptype' => array(

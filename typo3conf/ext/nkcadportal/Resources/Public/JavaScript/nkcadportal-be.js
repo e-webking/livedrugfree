@@ -9,7 +9,7 @@ function rePolMember() {
     $.ajax({
             url: ajaxMemberUrl,
             type: "POST",
-            data: 'pageNo='+pgStart+'&option='+moption+'&qsearch='+qsearch,
+            data: 'pageNo='+pgStart+'&option='+moption+'&qsearch='+ encodeURIComponent(qsearch),
             cache:false,
             success: function (response) {
                 $('#nkloader').hide();

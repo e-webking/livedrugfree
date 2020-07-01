@@ -301,9 +301,8 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         $pageNo = GeneralUtility::_GP('pageNo');
         $pageStart = ($pageNo > 0)?($pageNo * $this->limit + 1):0;
         
-        $qsearch = GeneralUtility::_GP('qsearch');
+        $qsearch = urldecode(GeneralUtility::_GP('qsearch'));
         $option = GeneralUtility::_GP('option');
-        
         $foreign = 'fe_users';
         $local = 'tx_nkcadportal_domain_model_membership';
         $contact = 'tx_nkcadportal_domain_model_contact';
@@ -1191,9 +1190,6 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 
                         case "serve-download":
 
-                                // We'll be outputting a PDF
-                                //header('Content-type: application/pdf');
-
                                 //Get the friendly filename:
                                 $friendlyfilename = filter_input(INPUT_GET, "friendlyfilename", FILTER_SANITIZE_SPECIAL_CHARS);
                                 if (empty($friendlyfilename)) {
@@ -1202,16 +1198,19 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                                 
                                 header("Cache-Control: must-revalidate, post-check=0, pre-check=0, max-age=0, public");
                                 header('Content-Description: File Transfer');
-                                header('Content-Type: application/force-download');
                                 header("Content-Type: application/octet-stream");
-                                header("Content-Type: application/download");
                                 header('Content-Disposition: attachment; filename="'.$friendlyfilename.'"');
                                 header('Content-Transfer-Encoding: binary');
-                                
                                 //Get the actual file path:
                                 $filePath = filter_input(INPUT_GET, "filepath", FILTER_SANITIZE_SPECIAL_CHARS);
                                 if ( isset($filePath)) {
+                                    header('Content-Length: ' . filesize($filePath));
+                                    flush(); 
                                     readfile($filePath);
+                                    die();
+                                } else {
+                                    http_response_code(404);
+                                        die();
                                 }
                                 break;
                             

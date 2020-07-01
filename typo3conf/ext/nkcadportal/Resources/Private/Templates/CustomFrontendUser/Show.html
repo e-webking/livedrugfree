@@ -236,9 +236,9 @@
                                             <td><f:format.date format="F Y">{newsletter.forperiod}</f:format.date></td>
                                             <td><f:format.date format="m/d/Y">{newsletter.tstamp}</f:format.date></td>
                                             <td>                                          
-                                                    <a href="/index.php?id=36&action=serve-download&filepath={newsletter.file.originalResource.publicUrl}&friendlyfilename={newsletter.file.originalResource.originalFile.name}">
-                                                            <i class="fa fa-pdf fa-file"></i>
-                                                    </a>
+                                                <a class="nldown" href="javascript:void(0);" data-href="/index.php?id=36&action=serve-download&filepath={newsletter.file.originalResource.publicUrl}&friendlyfilename={newsletter.file.originalResource.originalFile.name}">
+                                                    <i class="fa fa-pdf fa-file"></i>
+                                                </a>
                                             </td>
                                         </tr>
                                     </f:for>

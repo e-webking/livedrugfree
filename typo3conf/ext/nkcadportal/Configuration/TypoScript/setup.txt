@@ -9,6 +9,9 @@ plugin.tx_nkcadportal_nkcadportalfe {
 		storagePid = {$plugin.tx_nkcadportal_nkcadportalfe.persistence.storagePid}
 	}
 	settings {
+            form_Fromname = {$plugin.tx_nkcadportal_nkcadportalfe.settings.form_Fromname}
+            form_Fromemail = {$plugin.tx_nkcadportal_nkcadportalfe.settings.form_Fromemail}
+            form_adminToemail = {$plugin.tx_nkcadportal_nkcadportalfe.settings.form_adminToemail}
             form_CcEmails = {$plugin.tx_nkcadportal_nkcadportalfe.settings.form_CcEmails}
             paymentconfirmationpid = {$plugin.tx_nkcadportal_nkcadportalfe.settings.paymentconfirmationpid}
 	}

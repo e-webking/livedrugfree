@@ -74,6 +74,22 @@ $(function(){
 			$(".new_passw_wrapper").slideUp();
 		}
 	});
+        
+        $('.nldown').on('click', function(){
+            //Get the page uid to call:
+            $ajaxUrl = $(this).attr("data-href");
+            $.ajax({
+                    url: $ajaxUrl,
+                    type: "POST",
+                    success: function () {
+                         location.href = $ajaxUrl;
+                    },
+                    error: function () {
+                        //Give an alert:
+                        alert('There was an error getting the requested file.\n');
+                    }
+            });
+        });
 });
 
 function checkProfileForm(){
@@ -162,6 +178,8 @@ function performAjaxCall($requestType, $requestValue){
 	//Return the acquired data:
 	return returnValue;
 }
+
+
 
 function editContact($contactUid){
 	

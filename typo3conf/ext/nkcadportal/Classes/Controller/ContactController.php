@@ -76,50 +76,49 @@ class ContactController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControll
      * @return void
      */
     public function dwfregistrationformAction()
-    {		
+    {
 	
-		//Check for submitted form action:
-		if(isset($_GET['addusergrouptonewuser']) && (int)$_GET['addusergrouptonewuser'] == "1"){
-			//Add the usergroup to the new user:
-			$newUserUid = (int)$_GET['useruid'];
-			$newUserGroupUid = (int)$_GET['usergroupuid'];
-			$this->customFrontendUserRepository->findByUid($newUserUid)->addUsergroup($this->frontendUserGroupRepository->findByUid($newUserGroupUid));
-			$this->customFrontendUserRepository->update($this->customFrontendUserRepository->findByUid($newUserUid));
-			
-			//Permantently save all database (model) changes:
-			$persistenceManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance("TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager");
-			$persistenceManager->persistAll();
-			
-			//Forward to registration page:
-			$registrationPagePid = $this->settings['registrationcomfirmationpid'];
-			header("Location: /index.php?id=$registrationPagePid");die();
-		}
-		
-		elseif ($action = filter_input(INPUT_POST, "formAction", FILTER_SANITIZE_SPECIAL_CHARS)) {
-					
-			if($action == "new_DFW_Registration"){
-				if($newUserUid = $this->createNewUser("DFW")){
-					//Send required emails:
-					$this->sendEmailsAfterAccountCreation("DFW");
-					
-					//Reload page and store usergroup (required to reload page!):
-					$newUserGroupUid = $this->frontendUserGroupRepository->findByTitle("DFW")->getFirst()->getUid();
-					$formpid = $this->settings['formpid'];
-					header("Location: /index.php?id=$formpid&addusergrouptonewuser=1&useruid=$newUserUid&usergroupuid=$newUserGroupUid");
-				}
-				else{
-					//There was an input error ($this->aFormErrors) - Load page (form) as normal, include error array and filled out values:
-					$this->view->assign('formErrors', $this->aFormErrors);
-					$this->view->assign('formValues', $_POST);
-				}
-			}
-		}
+            //Check for submitted form action:
+            if(isset($_GET['addusergrouptonewuser']) && (int)$_GET['addusergrouptonewuser'] == "1"){
+                    //Add the usergroup to the new user:
+                    $newUserUid = (int)$_GET['useruid'];
+                    $newUserGroupUid = (int)$_GET['usergroupuid'];
+                    $this->customFrontendUserRepository->findByUid($newUserUid)->addUsergroup($this->frontendUserGroupRepository->findByUid($newUserGroupUid));
+                    $this->customFrontendUserRepository->update($this->customFrontendUserRepository->findByUid($newUserUid));
+
+                    //Permantently save all database (model) changes:
+                    $persistenceManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance("TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager");
+                    $persistenceManager->persistAll();
+
+                    //Forward to registration page:
+                    $registrationPagePid = $this->settings['registrationcomfirmationpid'];
+                    header("Location: /index.php?id=$registrationPagePid");die();
+            }
+            elseif ($action = filter_input(INPUT_POST, "formAction", FILTER_SANITIZE_SPECIAL_CHARS)) {
+
+                    if($action == "new_DFW_Registration"){
+                            if($newUserUid = $this->createNewUser("DFW")){
+                                    //Send required emails:
+                                    $this->sendEmailsAfterAccountCreation("DFW");
+
+                                    //Reload page and store usergroup (required to reload page!):
+                                    $newUserGroupUid = $this->frontendUserGroupRepository->findByTitle("DFW")->getFirst()->getUid();
+                                    $formpid = $this->settings['formpid'];
+                                    header("Location: /index.php?id=$formpid&addusergrouptonewuser=1&useruid=$newUserUid&usergroupuid=$newUserGroupUid");
+                            }
+                            else{
+                                    //There was an input error ($this->aFormErrors) - Load page (form) as normal, include error array and filled out values:
+                                    $this->view->assign('formErrors', $this->aFormErrors);
+                                    $this->view->assign('formValues', $_POST);
+                            }
+                    }
+            }
 		
         //Add CSS and JS:
-		$this->addCssAndJsToFE();
-		
-		//Add ReCaptcha JS To page:
-		$this->addReCaptchaToFE();
+            $this->addCssAndJsToFE();
+
+            //Add ReCaptcha JS To page:
+            $this->addReCaptchaToFE();
     }
 	
 	/**
@@ -236,7 +235,7 @@ class ContactController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControll
                     if (count($ccEmailRawArr) > 0) {
                         foreach ($ccEmailRawArr as $emailstr) {
                             $emlNameArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode('|', $emailstr);
-                            $ccEmailArr[] = [$emlNameArr[0]=>$emlNameArr[1]];
+                            $ccEmailArr["$emlNameArr[0]"] = $emlNameArr[1];
                         }
                     }
                 }
@@ -252,23 +251,32 @@ class ContactController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControll
 		$subject = "$memberName created a new \"$type\" membership";
 		$bodyPre = "<h3>$memberName created a new \"$type\" account with username \"$requestedUsername\".</h3><br/>The following details were submitted:</p><br/>";
 		$bodyPost = "<p>Note: the member's password has been stored in the 'Staff Comments' field in the member's backend user record.</p>";
-		$recipientArray = [];
-		$recipientArray[0] = []; $recipientArray[0]['toEmail'] = $adminToEmail;
-                
 		
-		foreach($recipientArray as $recipient){
-			$mail = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Mail\\MailMessage');
-			$mail->setFrom(array($adminFromEmail => $adminName));
-			$mail->setReplyTo (array($adminToEmail => $adminName));
-			$mail->setTo(array($recipient['toEmail'] => $adminName));
-                        
-                        if(count($ccEmailArr) > 0) {
-                           $mail->setCc($ccEmailArr);
+                $toEmails = $this->settings['form_adminToemail'];
+                $toEmailArr = [];
+                if (strlen($toEmails)) {
+                    $toEmailRawArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(',', $toEmails);
+
+                    if (count($toEmailRawArr) > 0) {
+                        foreach ($toEmailRawArr as $emailstr) {
+                            $toEmlNameArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode('|', $emailstr);
+                            $toEmailArr["$toEmlNameArr[0]"] = $toEmlNameArr[1];
                         }
-			$mail->setSubject($subject);
-			$mail->setBody($bodyPre.$body.$bodyPost.$emailSignature, 'text/html');
-			$mail->send();
-		}
+                    }
+                }
+               
+                $mail = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Mail\\MailMessage');
+                $mail->setFrom(array($adminFromEmail => $adminName));
+                $mail->setReplyTo (array($adminFromEmail => $adminName));
+                $mail->setTo($toEmailArr);
+                if (count($ccEmailArr) > 0) {
+                   $mail->setCc($ccEmailArr);
+                }
+                
+                $mail->setSubject($subject);
+                $mail->setBody($bodyPre.$body.$bodyPost.$emailSignature, 'text/html');
+                $mail->send();  
+		
 		//**********************************************
 		
 		//**********************************************
@@ -280,7 +288,7 @@ class ContactController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControll
 
 		$mail = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Mail\\MailMessage');
 		$mail->setFrom(array($adminFromEmail => $adminName));
-		$mail->setReplyTo (array($adminToEmail => $adminName));
+		$mail->setReplyTo (array($adminFromEmail => $adminName));
 		$mail->setTo(array($memberEmail => $$memberName));
 		$mail->setSubject($subject);
 		$mail->setBody($bodyPre.$emailSignature, 'text/html');
