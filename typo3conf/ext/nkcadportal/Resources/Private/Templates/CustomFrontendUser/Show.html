@@ -192,12 +192,13 @@
 								<td>{contact.email}</td>
 								<td>{contact.phone}</td>
 								<td>{contact.contacttype}</td>
-								<td><i class="fa fa-pencil" title="Edit this contact" onclick="editContact('{contact.uid}');"></i></td>
+								<td><i class="fa fa-pencil" title="Edit this contact" onclick="editContact('{contact.uid}','{contact.firstname}','{contact.lastname}','{contact.title}','{contact.email}','{contact.phone}','{contact.contacttype}');"></i></td>
 								<td><i class="fa fa-trash" title="Delete this contact" onclick="removeContact('{contact.uid}');"></i></td>
 							</tr>
 						</f:for>
 					</tbody>
 				</table>
+                                
 			</f:then>
 			<f:else>
 				You have no contacts yet...<br/>
@@ -205,13 +206,17 @@
 		</f:if>
 	
 		<!-- Create new contact form -->
-		<br/><h3>Add a new contact</h3>
-		<f:render partial="FormErrors" arguments="{object:newContact}" />
-		<f:form class="tinted-form" action="show" controller="CustomFrontendUser" enctype="multipart/form-data" name="newContact" object="{newContact}" method="post">
-		<f:render partial="Contact/FormFields" arguments="{formdata: formdata}" />
-			<f:form.submit value="Add contact" />
-			<div class="clearfix"></div>
-		</f:form>
+                    <br/>
+                    <h3 class="add-contact-form">Add a new contact</h3>
+                    <h3 class="edit-contact-form">Edit contact</h3>
+                    <f:render partial="FormErrors" arguments="{object:newContact}" />
+                    <f:form class="tinted-form" action="show" controller="CustomFrontendUser" enctype="multipart/form-data" name="newContact" object="{newContact}" method="post">
+                    <f:render partial="Contact/FormFields" arguments="{formdata: formdata}" />
+                            <f:form.submit class="add-contact-form" value="Add contact" />
+                            <f:form.submit class="edit-contact-form" value="Update contact" />  <a class="edit-contact-form buttonleft" href="javascript:void(0);" onclick="cancelAcForm()">Cancel</a> &nbsp;&nbsp; 
+                            <div class="clearfix"></div>
+                    </f:form>
+                </div>
 	</div>
 	
 	<!-- NEWSLETTERS TAB -->

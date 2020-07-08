@@ -1294,7 +1294,10 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                                 case "createcontact":
                                         $this->createContact();
                                         break;
-
+                                case "updatecontact":
+                                        $this->updateContact();
+                                        break;
+                                    
                                 case "updatefrontenduser":
                                         $this->updateFrontendUser();
                                         break;
@@ -1322,6 +1325,8 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         if (is_null($frontendUser)) {
             exit('Some error occured while parsing your membership records. Please contact the administration');
         }
+        // get contact details of the user
+        //$addContacts = $this->contactRepository->findByCustomfrontenduser($feUserUid);
         //Add the accessible documents to the $frontendUser object:
         $frontendUser = $this->addDocumentsToUser($frontendUser);
 
@@ -1388,11 +1393,11 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 		
 		//Assign the required variables to the template:
         $this->view->assign('frontendUser', $frontendUser);
-		$this->view->assign('formdata', $aFormdata);
-		$this->view->assign('allStates', $allStates);
-		$this->view->assign('allMemberships', $allMemberships);
-		$this->view->assign('feUserMembershipsCount', $frontendUser->getMemberships()->count());
-		$this->view->assign('feMessage', $feMessage);
+        $this->view->assign('formdata', $aFormdata);
+        $this->view->assign('allStates', $allStates);
+        $this->view->assign('allMemberships', $allMemberships);
+        $this->view->assign('feUserMembershipsCount', $frontendUser->getMemberships()->count());
+        $this->view->assign('feMessage', $feMessage);
     }
     
     /**
@@ -1659,15 +1664,15 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 		}
 		
 		//Continue only if contact doesnt exist yet...
-		if($contactAlreadyExists == 0){
-		
+		if ($contactAlreadyExists == 0) {
+                        $phone = $this->formatPhone($aFormData['phone']);
 			//Create the new contact:
 			$newContact = new \Netkyngs\Nkcadportal\Domain\Model\Contact();
 			$newContact->setFirstname(trim($aFormData['firstname']));
 			$newContact->setLastname(trim($aFormData['lastname']));
 			$newContact->setTitle(trim($aFormData['title']));
 			$newContact->setEmail(trim($aFormData['email']));
-			$newContact->setPhone(trim($aFormData['phone']));
+			$newContact->setPhone($phone);
 			$newContact->setContacttype($aFormData['contacttype']);
 			$newContact->setPid($this->settings['contactspid']);
 			$this->contactRepository->add($newContact);
@@ -1691,8 +1696,87 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 		}
 		
     }
+    
+    /**
+     * function createContact
+     * 
+     * @return void
+     */
+    public function updateContact()
+    {
+		
+        //Get the form input data:
+        $aInputArray = filter_input(INPUT_POST, 'tx_nkcadportal_nkcadportalfe', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
+        $aFormData = $aInputArray['newContact'];
+        
+        if ($aFormData['cuid'] != '') {
+            
+            $phone = $this->formatPhone($aFormData['phone']);
+            
+            $contactObj = $this->contactRepository->findByUid($aFormData['cuid']);
+            $contactObj->setFirstname(trim($aFormData['firstname']));
+            $contactObj->setLastname(trim($aFormData['lastname']));
+            $contactObj->setTitle(trim($aFormData['title']));
+            $contactObj->setEmail(trim($aFormData['email']));
+            $contactObj->setPhone($phone);
+            $contactObj->setContacttype($aFormData['contacttype']);
+            
+            $this->contactRepository->update($contactObj);
+            
+            $this->addFlashMessage(
+				'Contact update successful', //Message
+				'Contact saved', //Title
+				$severity = \TYPO3\CMS\Core\Messaging\AbstractMessage::OK,
+				FALSE //storeInSession?
+			);
+            $persistenceManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance("TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager");
+            $persistenceManager->persistAll();
+            
+        } else {
+            $this->addFlashMessage(
+					'Contact data not found... Nothing added.', //Message
+					'Contact data', //Title
+					$severity = \TYPO3\CMS\Core\Messaging\AbstractMessage::WARNING,
+					FALSE //storeInSession?
+				);
+        }
+		
+    }
 	
-	/* Function that adds the FE CSS and JS required by this extension to the FD */
+    /**
+     * 
+     * @param string $phone
+     * @return string
+     */
+    protected function formatPhone($phone) 
+    {
+        if (isset($phone)) {
+            
+            $trimmedPh = preg_replace('/[^0-9]/', '', $phone);
+            $phArr = str_split($trimmedPh, 3);
+            
+            if (count($phArr) > 2) {
+                $formattedPhone = $phArr[0].'-'.$phArr[1].'-';
+                for($i=2; $i < count($phArr); $i++) {
+                    $formattedPhone .= $phArr[$i];
+                }
+                
+                if (strlen($formattedPhone) > 12) { //extension
+                    $phExtArr = str_split($formattedPhone, 12);
+                    
+                    return $phExtArr[0].'('. $phExtArr[1] .')';
+                    
+                } else {
+                    
+                    return $formattedPhone;
+                }
+            }
+        }
+        
+        return $phone;
+    }
+    
+    /* Function that adds the FE CSS and JS required by this extension to the FD */
 	public function addCssAndJsToFE(){
 		//Add Extension's JS file(s)
 		$this->response->addAdditionalHeaderData('<script type="text/javascript" src="' . 'typo3conf/ext/nkcadportal/Resources/Public/JavaScript/datatables.min.js' . '"></script>');

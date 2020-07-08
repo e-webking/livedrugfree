@@ -90,6 +90,8 @@ $(function(){
                     }
             });
         });
+        
+        
 });
 
 function checkProfileForm(){
@@ -181,8 +183,30 @@ function performAjaxCall($requestType, $requestValue){
 
 
 
-function editContact($contactUid){
-	
+function editContact(uid,fname,lname,title,email,phn,ct){
+    $('#cuid').val(uid);
+    $('#cfname').val(fname);
+    $('#clname').val(lname);
+    $('#ctitle').val(title);
+    $('#cemail').val(email);
+    $('#cphone').val(phn);
+    $('#ctype').val(ct);
+    $('#ctformaction').val('updatecontact');
+    $('.add-contact-form').hide();
+    $('.edit-contact-form').show();
+}
+
+function cancelAcForm() {
+    $('#ctformaction').val('createcontact');
+    $('#cuid').val('');
+    $('#cfname').val('');
+    $('#clname').val('');
+    $('#ctitle').val('');
+    $('#cemail').val('');
+    $('#cphone').val('');
+    $('#ctype').val('');
+    $('.edit-contact-form').hide();
+    $('.add-contact-form').show();
 }
 
 function removeContact($contactUid){

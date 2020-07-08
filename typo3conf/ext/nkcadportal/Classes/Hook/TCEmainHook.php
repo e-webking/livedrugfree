@@ -16,18 +16,21 @@ class TCEmainHook {
     public function processDatamap_preProcessFieldArray(array &$fieldArray, $table, $id, \TYPO3\CMS\Core\DataHandling\DataHandler &$pObj) {
         if ( $table == 'tx_nkcadportal_domain_model_membership') {
             $muid = intval($fieldArray['membershiptemplate']);
+            $dateArr = explode('/', $fieldArray['starttimecustom']);
             if ($muid > 0) {
                 $mshipTpl = 'tx_nkcadportal_domain_model_membershiptemplate';
                 $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($mshipTpl);
                 $queryBuilder->getRestrictions()->removeAll();
                 $expr = $queryBuilder->expr();
 
-                $dbMmTplRw = $queryBuilder->select('description')
+                $dbMmTplRw = $queryBuilder->select('description','term')
                                 ->from($mshipTpl)
                                 ->where(
                                         $expr->eq('uid', $muid)
                                 )->execute()->fetchAll();
                 $fieldArray['mtitle'] = $dbMmTplRw[0]['description'];
+                $fieldArray['term'] = $dbMmTplRw[0]['term'];
+               // $fieldArray['endtimecustom'] = strtotime("+".$dbMmTplRw[0]['term']." year", mktime(0, 0, 1, $dateArr[0], $dateArr[1], $dateArr[2]));
             }
         }
     }

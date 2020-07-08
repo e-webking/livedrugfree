@@ -7,7 +7,7 @@ if (!defined('TYPO3_MODE')) {
 	'Netkyngs.' . $_EXTKEY,
 	'Nkcadportalfe',
 	array(
-		'CustomFrontendUser' => 'list, show, new, create, edit, update, delete, ajaxbe, certdwn',
+		'CustomFrontendUser' => 'list, show, ajaxbe, certdwn',
 		'MembershipTemplate' => 'list, show, new, create, edit, update, delete',
 		'Membership' => 'list, show, new, create, edit, update, delete',
 		'Newslettertype' => 'list',
@@ -22,7 +22,7 @@ if (!defined('TYPO3_MODE')) {
 	),
 	// non-cacheable actions
 	array(
-		'CustomFrontendUser' => 'create, update, delete, ajaxbe, certdwn',
+		'CustomFrontendUser' => 'ajaxbe, certdwn',
 		'MembershipTemplate' => 'create, update, delete',
 		'Membership' => 'create, update, delete',
 		'Newslettertype' => '',
