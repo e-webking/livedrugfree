@@ -7,10 +7,12 @@
     <ul class="cad-payment-be-topnav">
         <li><f:link.action action="txnlist">Payments</f:link.action></li>
         <li><a href="#" class="active">Charge a Card</a></li>
+        <li><f:link.action action="deleteAuthorizeProfile">Delete Payment Profile</f:link.action></li>
     </ul>
 
     <!-- CHARGE A CARD -->
     <div id="table-chargecard">
+        <p><br />Except email, all '*' fields to be filled exactly same as the credit card billing account</p>
         <f:form action="capturepay" method="post">
             <table class="cad-payment-be-table table-chargecard">
                 <caption>Charge a Credit Card</caption>
@@ -31,7 +33,7 @@
                         <td><f:form.textfield name="company" class="wider" /></td>
                     </tr>
                     <tr>
-                        <td></td>
+                        <td>*</td>
                         <td>Phone:</td>
                         <td><f:form.textfield name="phone" /></td>
                     </tr>
@@ -46,12 +48,12 @@
                         <td><f:form.textfield name="amount" /></td>
                     </tr>
                     <tr>
-                        <td></td>
-                        <td>Billing Address:</td>
+                        <td>*</td>
+                        <td>Billing Address (credit card account):</td>
                         <td><f:form.textfield name="address" class="wider" /></td>
                     </tr>
                      <tr>
-                        <td></td>
+                        <td>*</td>
                         <td>City/State/Zip:</td>
                         <td><f:form.textfield name="city" />&nbsp;<f:form.textfield name="state" class="narrow" />&nbsp;<f:form.textfield name="zip" class="narrow" /></td>
                     </tr>
@@ -62,8 +64,13 @@
                     </tr>
                     <tr>
                         <td>*</td>
-                        <td>Expiration Date:</td>
-                        <td><f:form.textfield name="expdate" /> (MM/YYYY)</td>
+                        <td>Expiration Month:</td>
+                        <td><f:form.textfield name="expmn" /> (MM)</td>
+                    </tr>
+                    <tr>
+                        <td>*</td>
+                        <td>Expiration Year:</td>
+                        <td><f:form.textfield name="expyr" /> (YYYY)</td>
                     </tr>
                     <tr>
                         <td>*</td>

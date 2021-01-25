@@ -191,7 +191,7 @@ return array(
 				'items' => array(
 					array('Pending', 0),
                                         array('Paid', 1),
-                                        array('Failed', -1),
+                                        array('Failed', 2),
 				),
 			),
 		),

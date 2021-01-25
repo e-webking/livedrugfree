@@ -13,12 +13,13 @@ plugin.tx_nkregularformstorage_nkregularformstoragefe {
 		storagePid =
 	}
         settings {
+            paymentPID = 37
             adminname = Council on Alcohol and Drugs
             fromemail = swade@livedrugfree.org
             adminemail = swade@livedrugfree.org
             form_adminToemail = swade@livedrugfree.org|Staci Wade,syost@livedrugfree.org|Scott Yost,ktinker@livedrugfree.org|Karen Tinker,dholloway@livedrugfree.org|Denise Holloway
             form_CcEmails = lwilson@livedrugfree.org|Wilson
-            livemode = 0
+            livemode = 1
         }
 }
 
@@ -37,6 +38,6 @@ module.tx_nkregularformstorage_nkregularformstoragebe {
 		storagePid =
 	}
         settings {
-            livemode = 0
+            livemode = 1
         }
 }

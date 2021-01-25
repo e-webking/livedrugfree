@@ -23,6 +23,23 @@
                         <trans-unit id="tx_vs_payments_trxlog.success">
 				<source>Success</source>
 			</trans-unit>
+                        
+                        <trans-unit id="tx_nkregularformstorage_domain_model_paymentprofile">
+				<source>Authorize.net Payment Profile</source>
+			</trans-unit>
+			<trans-unit id="tx_nkregularformstorage_domain_model_paymentprofile.feuser">
+				<source>Member</source>
+			</trans-unit>
+			<trans-unit id="tx_nkregularformstorage_domain_model_paymentprofile.cusprofile">
+				<source>Authorize Customer Profile</source>
+			</trans-unit>
+			<trans-unit id="tx_nkregularformstorage_domain_model_paymentprofile.payprofile">
+				<source>Authorize Payment Profile</source>
+			</trans-unit>
+                        <trans-unit id="tx_nkregularformstorage_domain_model_paymentprofile.card">
+				<source>C Hash</source>
+			</trans-unit>
+                        
 		</body>
 	</file>
 </xliff>

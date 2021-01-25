@@ -49,15 +49,34 @@ CREATE TABLE tx_nkregularformstorage_domain_model_formresult (
 
 );
 
+
 #
 # Table structure for table 'fe_users'
 #
 CREATE TABLE fe_users (
 
 	authorize_customer_profile varchar(50) DEFAULT '' NOT NULL,
-	authorize_payment_profile varchar(50) DEFAULT '' NOT NULL,
 );
 
+CREATE TABLE tx_nkregularformstorage_domain_model_paymentprofile
+(
+    uid int(11) NOT NULL auto_increment,
+    pid int(11) NOT NULL DEFAULT '0',
+
+    tstamp int(11) NOT NULL DEFAULT '0',
+    crdate int(11) NOT NULL DEFAULT '0',
+    cruser_id int(11) NOT NULL DEFAULT '0',
+    deleted tinyint(4) NOT NULL DEFAULT '0',
+    hidden tinyint(4) NOT NULL DEFAULT '0',
+
+    feuser int(11) NOT NULL DEFAULT '0',
+    cusprofile int(11) NOT NULL DEFAULT '0',
+    payprofile int(11) NOT NULL DEFAULT '0',
+    card varchar(250) NOT NULL DEFAULT '',
+
+    PRIMARY KEY (uid),
+    KEY parent (pid)
+);
 
 --
 -- Table structure for table `tx_vs_payments_trxlog`

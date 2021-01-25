@@ -7,6 +7,7 @@
     <ul class="cad-payment-be-topnav">
         <li><a href="#" class="active">Payments</a></li>
         <li><f:link.action action="chargecard">Charge a Card</f:link.action></li>
+        <li><f:link.action action="deleteAuthorizeProfile">Delete Payment Profile</f:link.action></li>
     </ul>
 
     <!-- PAYMENTS -->
@@ -75,7 +76,7 @@
                         </td>
                         <td>
                             <f:switch expression="{payment.pstatus}">
-                                <f:case value="-1">
+                                <f:case value="2">
                                     ERROR
                                 </f:case>
                                 <f:case value="1">

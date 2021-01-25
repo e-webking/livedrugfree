@@ -1,0 +1,34 @@
+{namespace customViewHelper=Netkyngs\Nkcadportal\ViewHelpers}
+<f:layout name="Default" />
+
+<f:section name="content">
+    <f:flashMessages />
+
+    <ul class="cad-payment-be-topnav">
+        <li><f:link.action action="txnlist">Payments</f:link.action></li>
+        <li><f:link.action action="chargecard">Charge a Card</f:link.action></li>
+        <li><a href="#" class="active">Delete Payment Profile</a></li>
+    </ul>
+
+    <!-- CHARGE A CARD -->
+    <div id="table-delete-profile">
+        <f:form action="deleteProfile" method="post">
+            
+             
+            <table class="cad-payment-be-table table-deleteprofile">
+                <tr>
+                    <td>
+                        <h3>Delete Payment Profile: Confirmation</h3>
+            <f:form.hidden name="customerid" value="{customerid}" />
+             <f:form.hidden name="payprofile" value="{payprofile}" />
+             <p>Please confirm that you are sure to delete the payment profile on Authorize.net with the following details:</p>
+             <p><span>Customer Profile:</span> <strong>{customerid}</strong><br>
+                 <span>Payment Profile:</span> <strong>{payprofile}</strong></p>
+             <f:link.action action="deleteAuthorizeProfile">Cancel</f:link.action>&nbsp;&nbsp;&nbsp;&nbsp;<f:form.submit name="btnsub" value="Confirm Delete" />
+                    </td>
+                </tr>
+            </table>
+        </f:form>
+    </div>
+</f:section>
+</html>
