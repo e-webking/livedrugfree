@@ -97,6 +97,17 @@ class AuthorizeUtil {
      */
     protected $response;
 
+    /**
+     *
+     * @var AnetAPI\CustomerPaymentProfileType
+     */
+    protected $paymentProfile;
+    
+    /**
+     *
+     * @var AnetAPI\CustomerProfileType
+     */
+    protected $customerProfile;
 
     /**
      *
@@ -172,7 +183,6 @@ class AuthorizeUtil {
      * @param string $country
      */
     public function createBilling($email, $fname, $lname, $phone, $company, $address, $city, $state, $zip, $country='USA') {
-        
         $this->billingAddress = new AnetAPI\CustomerAddressType();
         $this->billingAddress->setEmail($email);
         $this->billingAddress->setFirstName($fname);
@@ -229,12 +239,13 @@ class AuthorizeUtil {
      * @return AnetAPI\AnetApiResponseType 
      */
     public function makeTransaction($amount, $type='authCaptureTransaction', $profile='', $payprofile='') {
-        
+        /*
         if ($profile != '' && $payprofile != '') {
             $trnType = $this->createProfileTransactionType($profile, $payprofile, $type, $amount);
         } else {
             $trnType = $this->createTransactionType($type, $amount);
-        }
+        }*/
+        $trnType = $this->createTransactionType($type, $amount);
         $this->createTransRequest($trnType);
         
         $controller = new AnetController\CreateTransactionController($this->request);
@@ -276,6 +287,8 @@ class AuthorizeUtil {
             } else {
                 
                 $trnResponse = $this->response->getTransactionResponse();
+                //echo '<pre>';
+                //var_dump($trnResponse);
 
                 if ($trnResponse != null && $trnResponse->getMessages() != null) {
                     $error = '['.$trnResponse->getErrors()[0]->getErrorCode().'] ' . $trnResponse->getErrors()[0]->getErrorText();
@@ -294,6 +307,29 @@ class AuthorizeUtil {
     
     /**
      * 
+     * @param int $customerid
+     * @param int $paymentprofile
+     */
+    public function deletePaymentProfile($customerid,$paymentprofile) {
+        
+        $request = new AnetAPI\DeleteCustomerPaymentProfileRequest();
+        $request->setMerchantAuthentication($this->merchAuthentication);
+        $request->setCustomerProfileId($customerid);
+        $request->setCustomerPaymentProfileId($paymentprofile);
+        
+        $controller = new AnetController\DeleteCustomerPaymentProfileController($request);
+        
+        if ($this->testMode) {
+            $this->response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+        } else {
+            $this->response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+        }
+        
+        return $this->response;
+    }
+    
+    /**
+     * 
      * @param string $type
      * @param float $amount
      * @return AnetAPI\TransactionRequestType
@@ -308,11 +344,108 @@ class AuthorizeUtil {
         $transactionRequestType->setBillTo($this->billingAddress);
         $transactionRequestType->setCustomer($this->customer);
         
+        /*
         if (count($this->lineItems) > 0) {
-            $transactionRequestType->setLineItems($this->lineItems);
+           $this->lineItems = array_unique($this->lineItems, SORT_REGULAR);
+           $transactionRequestType->setLineItems($this->lineItems);
         }
+        *
+        */
         
         return $transactionRequestType;
+    }
+    
+    /**
+     * 
+     */
+    public function createPaymentProfile() {
+        $this->paymentProfile = new AnetAPI\CustomerPaymentProfileType();
+        $this->paymentProfile->setCustomerType('individual');
+        $this->paymentProfile->setBillTo($this->billingAddress);
+        $this->paymentProfile->setPayment($this->payment);
+        $this->paymentProfile->setDefaultPaymentProfile(true);
+    }
+    
+    /**
+     * 
+     * @param int $customerid
+     * @return AnetAPI\AnetApiResponseType 
+     */
+    public function createPaymentProfileToCustomer($customerid) {
+        $paymentprofiles[] = $this->paymentProfile;
+        $paymentprofilerequest = new AnetAPI\CreateCustomerPaymentProfileRequest();
+        $paymentprofilerequest->setMerchantAuthentication($this->merchAuthentication);
+        $paymentprofilerequest->setCustomerProfileId($customerid);
+        $paymentprofilerequest->setPaymentProfile($this->paymentProfile);
+        
+        $controller = new AnetController\CreateCustomerPaymentProfileController($paymentprofilerequest);
+        
+        if ($this->testMode) {
+            
+            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+            
+        } else {
+            
+            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+        }
+        
+        return $response;
+    }
+    
+    /**
+     * 
+     * @param string $email
+     * @param string $company
+     * @param int $feuser
+     */
+    public function createCustomerProfileType($email,$company,$feuser='') {
+        $this->customerProfile = new AnetAPI\CustomerProfileType();
+        $this->customerProfile->setDescription($company);
+        $this->customerProfile->setMerchantCustomerId(empty($feuser)?"M_" . time():$feuser);
+        $this->customerProfile->setEmail($email);
+        $this->customerProfile->setpaymentProfiles([$this->paymentProfile]);
+        //$this->customerProfile->setShipToList([$this->billingAddress]);
+    }
+    
+    /**
+     * 
+     * @param int $cusprofileid
+     * @param int $paymentprofileid
+     * @param float $amount
+     * @return AnetAPI\AnetApiResponseType 
+     */
+    public function chargeCustomerProfile($cusprofileid, $paymentprofileid, $amount) {
+        
+        $profileToCharge = new AnetAPI\CustomerProfilePaymentType();
+        $profileToCharge->setCustomerProfileId($cusprofileid);
+        $paymentProfile = new AnetAPI\PaymentProfileType();
+        $paymentProfile->setPaymentProfileId($paymentprofileid);
+        $profileToCharge->setPaymentProfile($paymentProfile);
+        
+        $transactionRequestType = new AnetAPI\TransactionRequestType();
+        $transactionRequestType->setTransactionType("authCaptureTransaction"); 
+        $transactionRequestType->setAmount($amount);
+        $transactionRequestType->setProfile($profileToCharge);
+        $transactionRequestType->setOrder($this->order);
+        /*
+        if (count($this->lineItems) > 0) {
+           $lineItems = array_unique($this->lineItems, SORT_REGULAR);
+           $transactionRequestType->setLineItems($lineItems);
+        }
+        
+        */
+        $this->createTransRequest($transactionRequestType);
+        
+        $controller = new AnetController\CreateTransactionController($this->request);
+        
+        if ($this->testMode) {
+           $this->response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+        } else {
+           $this->response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+        }
+        
+        return $this->response;
+
     }
     
     /**
@@ -358,6 +491,51 @@ class AuthorizeUtil {
         $this->request->setMerchantAuthentication($this->merchAuthentication);
         $this->request->setRefId($this->refId);
         $this->request->setTransactionRequest($transaction);
+    }
+    
+    /**
+     * @return AnetAPI\CreateCustomerProfileResponse
+     */
+    public function createProfileTransRequest()
+    {
+        $request = new AnetAPI\CreateCustomerProfileRequest();
+        $request->setMerchantAuthentication($this->merchAuthentication);
+        $request->setRefId($this->refId);
+        $request->setProfile($this->customerProfile);
+        $controller = new AnetController\CreateCustomerProfileController($request);
+         
+        if ($this->testMode) {
+            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::SANDBOX);
+        } else {
+            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+        }
+        
+        return $response;
+    }
+    
+    /**
+     * 
+     * @param string $email
+     * @param string $cusprofile
+     * @return AnetAPI\GetCustomerProfileResponse
+     */
+    public function getCustomerProfile($email, $cusprofile) {
+        
+        $request = new AnetAPI\GetCustomerProfileRequest();
+        $request->setMerchantAuthentication($this->merchAuthentication);
+        $request->setEmail($email);
+        $request->setCustomerProfileId($cusprofile);
+        
+        $controller = new AnetController\GetCustomerProfileController($request);
+        
+        if ($this->testMode) {
+            $response = $controller->executeWithApiResponse( \net\authorize\api\constants\ANetEnvironment::SANDBOX);
+        } else {
+            $response = $controller->executeWithApiResponse(\net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+        }
+	
+        return $response;
+        
     }
     
     /**
@@ -492,11 +670,11 @@ class AuthorizeUtil {
     public function updateCustomerProfile($customerProfileId, $email, $feuserId) {
         
         $updatecustomer = new AnetAPI\CustomerProfileExType();
-        
         $updatecustomer->setCustomerProfileId($customerProfileId);
         $updatecustomer->setEmail($email);
         $updatecustomer->setMerchantCustomerId($feuserId);
         
+        $request = new AnetAPI\UpdateCustomerProfileRequest();
         $request->setMerchantAuthentication($this->merchAuthentication);
         $request->setRefId($this->refId);
         $request->setProfile($updatecustomer);
