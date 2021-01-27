@@ -52,8 +52,13 @@ class Paymentprofile extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * @var string
      */
     protected $card = '';
-	
-	
+    
+    /**
+     *
+     * @var string
+     */
+    protected $email = '';
+
     /**
      * feuser
      *
@@ -145,5 +150,26 @@ class Paymentprofile extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     {
         $this->feuser = $feuser;
     }
+    
+    /**
+     * Returns the card
+     *
+     * @return string $card
+     */
+    public function getEmail()
+    {
+        return $this->email;
+    }
+    
+    /**
+     * Sets the card
+     *
+     * @param string $email
+     * @return void
+     */
+    public function setEmail($email)
+    {
+        $this->email = $email;
+    }	
     
 }

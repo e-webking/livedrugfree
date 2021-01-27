@@ -38,9 +38,10 @@ class PaymentprofileRepository extends \TYPO3\CMS\Extbase\Persistence\Repository
      * @param int $feuser
      * @param int $cusprofile
      * @param string $card
+     * @param string $email
      * @return \Netkyngs\Nkregularformstorage\Domain\Model\Paymentprofile
      */
-    public function getProfile($feuser, $cusprofile, $card) {
+    public function getProfile($feuser, $cusprofile, $card, $email=NULL) {
         
         $query = $this->createQuery();
         
@@ -48,6 +49,9 @@ class PaymentprofileRepository extends \TYPO3\CMS\Extbase\Persistence\Repository
         $constraints[] = $query->equals('feuser', $feuser);
         $constraints[] = $query->equals('cusprofile', $cusprofile);
         $constraints[] = $query->equals('card', md5($card));
+        if (!is_null($email)) {
+             $constraints[] = $query->equals('email', $email);
+        }
         
         $query->matching(
             $query->logicalAnd($constraints)

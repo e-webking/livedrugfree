@@ -73,6 +73,7 @@ CREATE TABLE tx_nkregularformstorage_domain_model_paymentprofile
     cusprofile int(11) NOT NULL DEFAULT '0',
     payprofile int(11) NOT NULL DEFAULT '0',
     card varchar(250) NOT NULL DEFAULT '',
+    email varchar(250) NOT NULL DEFAULT '',
 
     PRIMARY KEY (uid),
     KEY parent (pid)

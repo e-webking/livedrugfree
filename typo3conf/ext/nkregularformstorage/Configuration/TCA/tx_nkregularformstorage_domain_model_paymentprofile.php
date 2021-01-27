@@ -16,14 +16,14 @@ return array(
 		'enablecolumns' => array(
 			'disabled' => 'hidden',
 		),
-		'searchFields' => 'feuser,cusprofile,payprofile,',
+		'searchFields' => 'feuser,cusprofile,payprofile,email,',
 		'iconfile' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('nkregularformstorage') . 'Resources/Public/Icons/tx_nkregularformstorage_domain_model_paymentprofile.gif'
 	),
 	'interface' => array(
-		'showRecordFieldList' => 'hidden, feuser, cusprofile, payprofile, card',
+		'showRecordFieldList' => 'hidden, feuser, cusprofile, payprofile, card, email',
 	),
 	'types' => array(
-		'1' => array('showitem' => 'hidden;;1, feuser, cusprofile, payprofile, card'),
+		'1' => array('showitem' => 'hidden;;1, feuser, cusprofile, payprofile, card, email'),
 	),
 	'palettes' => array(
 		'1' => array('showitem' => ''),
@@ -70,6 +70,16 @@ return array(
 		'card' => array(
 			'exclude' => 1,
 			'label' => 'LLL:EXT:nkregularformstorage/Resources/Private/Language/locallang_db.xlf:tx_nkregularformstorage_domain_model_paymentprofile.card',
+			'config' => array(
+				'type' => 'input',
+				'size' => 30,
+				'eval' => 'trim',
+                                'readOnly' => 1,
+			),
+		),
+                'email' => array(
+			'exclude' => 1,
+			'label' => 'Email',
 			'config' => array(
 				'type' => 'input',
 				'size' => 30,
