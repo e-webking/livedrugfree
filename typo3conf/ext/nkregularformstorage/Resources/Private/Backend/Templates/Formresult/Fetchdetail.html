@@ -1,0 +1,115 @@
+{namespace customViewHelper=Netkyngs\Nkcadportal\ViewHelpers}
+<f:layout name="Default" />
+
+<f:section name="content">
+    <f:flashMessages />
+
+    <ul class="cad-payment-be-topnav">
+        <li><f:link.action action="txnlist">Payments</f:link.action></li>
+        <li><a href="#" class="active">Charge a Card</a></li>
+        <li><f:link.action action="deleteAuthorizeProfile">Delete Payment Profile</f:link.action></li>
+    </ul>
+
+    <!-- CHARGE A CARD -->
+    <div id="table-chargecard">
+        <f:if condition="{feuser}">
+            <p><br />Except username (Login ID), all '*' fields to be filled exactly same as the credit card billing account</p>
+            <f:form action="capturepay" method="post">
+                <f:form.hidden name="fuid" value="{feuser.uid}" />
+                <table class="cad-payment-be-table table-chargecard">
+                    <caption>Charge a Credit Card</caption>
+                    <tbody>
+                        <f:if condition="{payprofiles}">
+                            <tr>
+                                <td></td>
+                                <td>Existing payment profile(s)</td>
+                                <td>
+                                    <f:for each="{payprofiles}" as="pf">
+                                        <f:form.radio name="pprof" value="{pf.uid}" /> {pf.email} | {pf.card} [{pf.payprofile}] - Customer: {pf.cusprofile}<br>
+                                    </f:for>
+                                    
+                                </td>
+                            </tr>
+                        </f:if>
+                        <tr>
+                            <td></td>
+                            <td colspan="2"><f:form.radio name="pprof" value="new" checked="1" /> Create new payment profile</td>
+                        </tr>
+                        <tr>
+                            <td>*</td>
+                            <td>Username (Login ID):</td>
+                            <td><f:form.textfield name="username" class="wider" value="{feuser.username}" readonly="1" /></td>
+                        </tr>
+                        <tr>
+                            <td>*</td>
+                            <td>Name on card:</td>
+                            <td><f:form.textfield name="name" class="wider" value="{feuser.name}" /></td>
+                        </tr>
+                        <tr>
+                            <td>*</td>
+                            <td>Email (credit card):</td>
+                            <td><f:form.textfield name="email" class="wider" value="{feuser.email}" /></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Company:</td>
+                            <td><f:form.textfield name="company" class="wider" value="{feuser.company}" /></td>
+                        </tr>
+                        <tr>
+                            <td>*</td>
+                            <td>Phone:</td>
+                            <td><f:form.textfield name="phone" value="{feuser.telephone}" /></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Description:</td>
+                            <td><f:form.textarea name="description" class="wider"></f:form.textarea></td>
+                        </tr>
+                        <tr>
+                            <td>*</td>
+                            <td>Amount:</td>
+                            <td><f:form.textfield name="amount" /></td>
+                        </tr>
+                        <tr>
+                            <td>*</td>
+                            <td>Billing Address (credit card account):</td>
+                            <td><f:form.textfield name="address" class="wider" value="{feuser.address}" /></td>
+                        </tr>
+                         <tr>
+                            <td>*</td>
+                            <td>City/State/Zip:</td>
+                            <td><f:form.textfield name="city" value="{feuser.city}" />&nbsp;<f:form.textfield name="state" value="{feuser.state}" class="narrow" />&nbsp;<f:form.textfield name="zip" value="{feuser.zip}" class="narrow" /></td>
+                        </tr>
+                        <tr>
+                            <td>*</td>
+                            <td>Credit Card Number:</td>
+                            <td><f:form.textfield name="cardno" class="wider" /></td>
+                        </tr>
+                        <tr>
+                            <td>*</td>
+                            <td>Expiration Month:</td>
+                            <td><f:form.textfield name="expmn" /> (MM)</td>
+                        </tr>
+                        <tr>
+                            <td>*</td>
+                            <td>Expiration Year:</td>
+                            <td><f:form.textfield name="expyr" /> (YYYY)</td>
+                        </tr>
+                        <tr>
+                            <td>*</td>
+                            <td>Security code:</td>
+                            <td><f:form.textfield name="code" class="narrow" /></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td><f:form.submit name="btnsub" value="Submit transaction" /></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </f:form>
+        </f:if>
+    </div>
+
+</f:section>
+</html>

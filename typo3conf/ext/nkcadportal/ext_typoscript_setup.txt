@@ -7,12 +7,20 @@ config.tx_extbase{
                 subclasses {
                     Tx_Nkcadportal_CustomFrontendUser = Netkyngs\Nkcadportal\Domain\Model\CustomFrontendUser
 					
-          		}
+          	}
             }
             Netkyngs\Nkcadportal\Domain\Model\CustomFrontendUser {
                 mapping {
                     tableName = fe_users
                     recordType = Tx_Nkcadportal_CustomFrontendUser
+                }
+            }
+            Netkyngs\Nkcadportal\Domain\Model\Membership {
+                mapping {
+                    tableName = tx_nkcadportal_domain_model_membership
+                    columns {
+                        hidden.mapOnProperty = hidden
+                    }
                 }
             }
             

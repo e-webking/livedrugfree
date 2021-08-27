@@ -7,73 +7,25 @@
     <ul class="cad-payment-be-topnav">
         <li><f:link.action action="txnlist">Payments</f:link.action></li>
         <li><a href="#" class="active">Charge a Card</a></li>
+        <li><f:link.action action="deleteAuthorizeProfile">Delete Payment Profile</f:link.action></li>
     </ul>
 
     <!-- CHARGE A CARD -->
     <div id="table-chargecard">
-        <f:form action="capturepay" method="post">
+        <p><br /></p>
+        <f:form action="fetchdetail" method="post">
             <table class="cad-payment-be-table table-chargecard">
                 <caption>Charge a Credit Card</caption>
                 <tbody>
                     <tr>
                         <td>*</td>
-                        <td>Name on card:</td>
-                        <td><f:form.textfield name="name" class="wider" /></td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td>Email:</td>
-                        <td><f:form.textfield name="email" class="wider" /></td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td>Company:</td>
-                        <td><f:form.textfield name="company" class="wider" /></td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td>Phone:</td>
-                        <td><f:form.textfield name="phone" /></td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td>Description:</td>
-                        <td><f:form.textarea name="description" class="wider"></f:form.textarea></td>
-                    </tr>
-                    <tr>
-                        <td>*</td>
-                        <td>Amount:</td>
-                        <td><f:form.textfield name="amount" /></td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td>Billing Address:</td>
-                        <td><f:form.textfield name="address" class="wider" /></td>
-                    </tr>
-                     <tr>
-                        <td></td>
-                        <td>City/State/Zip:</td>
-                        <td><f:form.textfield name="city" />&nbsp;<f:form.textfield name="state" class="narrow" />&nbsp;<f:form.textfield name="zip" class="narrow" /></td>
-                    </tr>
-                    <tr>
-                        <td>*</td>
-                        <td>Credit Card Number:</td>
-                        <td><f:form.textfield name="cardno" class="wider" /></td>
-                    </tr>
-                    <tr>
-                        <td>*</td>
-                        <td>Expiration Date:</td>
-                        <td><f:form.textfield name="expdate" /> (MM/YYYY)</td>
-                    </tr>
-                    <tr>
-                        <td>*</td>
-                        <td>Security code:</td>
-                        <td><f:form.textfield name="code" class="narrow" /></td>
+                        <td>Username (Login ID):</td>
+                        <td><f:form.textfield name="username" class="wider" /></td>
                     </tr>
                     <tr>
                         <td></td>
                         <td></td>
-                        <td><f:form.submit name="btnsub" value="Submit transaction" /></td>
+                        <td><f:form.submit name="btnsub" value="Fetch Detail" /></td>
                     </tr>
                 </tbody>
             </table>

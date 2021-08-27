@@ -150,30 +150,45 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
      */
     public function listAction()
     {
-         $queryBuilderCnt =  $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('fe_users');
-         $queryBuilder->getRestrictions()->removeAll();
+        $contact = 'tx_nkcadportal_domain_model_contact';
+        $foreign = 'fe_users';
+        
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
+        $queryBuilder->getRestrictions()->removeAll();
+        $expr = $queryBuilder->expr();
+        
+        $andCond = $queryBuilder->expr()->andx();
+        $andCond->add($expr->eq('foreign.deleted', 0));
+        
         //Get members:
-        $rows = $queryBuilder->select('fe_users.uid','fe_users.company','fe_users.fein','fe_users.address','fe_users.first_name','fe_users.last_name','fe_users.telephone','fe_users.email')
-                                    ->from('fe_users', 'fe_users')
-                                    ->where(
-                                        $queryBuilder->expr()->eq('fe_users.deleted', 0),
-                                        $queryBuilder->expr()->eq('fe_users.disable', 0)
-                                    )
-                                    ->orderBy('fe_users.company', 'ASC')
+        $rows = $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contactbl.firstname','contactbl.lastname','contactbl.phone as cphone','contactbl.email as cemail','contactbl.deleted as cdel','contactbl.hidden as chid')
+                                    ->from($foreign, 'foreign')
+                                    ->leftJoin('foreign', $contact, 'contactbl', $queryBuilder->expr()->eq('contactbl.customfrontenduser','foreign.uid'))
+                                    ->andWhere($andCond)
+                                    ->orderBy('foreign.company', 'ASC')
                                     ->setFirstResult(0)
                                     ->setMaxResults($this->limit )
                                     ->execute()
                                     ->fetchAll();
+
+        $rows = array_map("unserialize", array_unique(array_map("serialize", $rows)));
+        $filteredRow = [];
         
-        $queryBuilderCnt->count('fe_users.uid')
-                                    ->from('fe_users', 'fe_users')
-                                    ->where(
-                                        $queryBuilder->expr()->eq('fe_users.deleted', 0),
-                                        $queryBuilder->expr()->eq('fe_users.disable', 0)
-                                    );
-        $count = $queryBuilderCnt->execute()->fetchColumn(0);
+        foreach($rows as $rec) {
+            
+            if ($rec['cdel']==1 || $rec['chid']==1) {
+                $rec['firstname'] = '';
+                $rec['lastname'] = '';
+                $rec['cphone'] = '';
+                $rec['cemail'] = '';
+            }
+            
+            $filteredRow[] = $rec;
+        }
         
-        $this->view->assign('members', $rows);
+        $filteredRow = array_map("unserialize", array_unique(array_map("serialize", $filteredRow)));
+        $count = count($filteredRow);
+        $this->view->assign('members', $filteredRow);
         $this->view->assign('mempaging', $this->pagingStr($count));
     }
     
@@ -201,21 +216,38 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         $this->view->assign('membershiptemplates', $membershiptemplates);	
     }
     
+    public function initializeListnewsletterAction () {
+
+        unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_newsletter']['ctrl']['enablecolumns']['starttime']);
+        unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_newsletter']['ctrl']['enablecolumns']['endtime']);
+        
+    }
+
     public function listnewsletterAction() {
+
+        
         //Get the newsletters:
         $newsletters = $this->newsletterRepository->findAll();
-        
+
         foreach($newsletters as $newsletter){
-            
-            $fileObj = $newsletter->getFile();
-            if (!is_null($fileObj)) {
-                $publicUrl = $newsletter->getFile()->getOriginalResource()->getPublicUrl();
-                $aPublicUrlTmp = explode("/", $publicUrl);
-                $newsletter->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
-            }
+            try {
+                $fileObj = $newsletter->getFile();
+                if (!is_null($fileObj)) {
+                    $publicUrl = $newsletter->getFile()->getOriginalResource()->getPublicUrl();
+                    $aPublicUrlTmp = explode("/", $publicUrl);
+                    $newsletter->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+                }
+            } catch(\Exception $e) {}
         }
         
         $this->view->assign('newsletters', $newsletters);
+    }
+    
+    public function initializeListdocsletterAction () {
+
+        unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_document']['ctrl']['enablecolumns']['starttime']);
+        unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_document']['ctrl']['enablecolumns']['endtime']);
+        
     }
     
     public function listdocsAction() 
@@ -268,82 +300,82 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         
         $pageNo = GeneralUtility::_GP('pageNo');
         $pageStart = ($pageNo > 0)?($pageNo * $this->limit + 1):0;
-        $option = GeneralUtility::_GP('option');
-        $company = GeneralUtility::_GP('company');
-        $fein = GeneralUtility::_GP('fein');
-        $address = GeneralUtility::_GP('address');
-        $fein = GeneralUtility::_GP('fein');
-        $name = GeneralUtility::_GP('name');
-        $telephone = GeneralUtility::_GP('phone');
-        $email = GeneralUtility::_GP('email');
         
+        $qsearch = urldecode(GeneralUtility::_GP('qsearch'));
+        $option = GeneralUtility::_GP('option');
         $foreign = 'fe_users';
         $local = 'tx_nkcadportal_domain_model_membership';
+        $contact = 'tx_nkcadportal_domain_model_contact';
             
         
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
-        $queryBuilderCnt = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreign);
         $expr = $queryBuilder->expr();
-        $exprCnt = $queryBuilderCnt->expr();
-        
-       
         $queryBuilder->getRestrictions()->removeAll();
-        $queryBuilderCnt->getRestrictions()->removeAll();
         
         $andCond = $queryBuilder->expr()->andx();
+        $orCond = $queryBuilder->expr()->orx();
+
+        
         $andCond->add($expr->eq('foreign.deleted', 0));
         
-        $andCondCnt = $queryBuilderCnt->expr()->andx();
-        $andCondCnt->add($exprCnt->eq('foreign.deleted', 0));
+        if (trim($qsearch)!= '') {
+            
+            if (strpos($qsearch, '@') > 0) {
+                
+                $orCond->add($expr->like('foreign.company', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch).'%')));
+
+                $orCond->add($expr->like('foreign.username', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch).'%')));
+              
+                $orCond->add($expr->like('foreign.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($qsearch).'%')));
+    
+                $orCond->add($expr->like('contact.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($qsearch).'%')));
+             
+            } else {
+                
+                $orCond->add($expr->like('foreign.first_name', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch) . '%')));
+          
+                $orCond->add($expr->like('foreign.last_name', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch) . '%')));
+
+//                $orCond->add($expr->like('foreign.name', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch) . '%')));
+
+                $orCond->add($expr->like('foreign.company', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch).'%')));
+
+                $orCond->add($expr->like('foreign.fein',  $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch). '%')));
+
+                $orCond->add($expr->like('foreign.address', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($qsearch).'%')));
+
+                $orCond->add($expr->like('foreign.telephone', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch).'%')));
+          
+                $orCond->add($expr->like('foreign.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($qsearch).'%')));
+           
+                $orCond->add($expr->like('contact.firstname', $queryBuilder->createNamedParameter( $queryBuilder->escapeLikeWildcards($qsearch) . '%')));
+  
+                $orCond->add($expr->like('contact.lastname', $queryBuilder->createNamedParameter( $queryBuilder->escapeLikeWildcards($qsearch) . '%')));
+
+                $orCond->add($expr->like('contact.phone', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($qsearch).'%')));
+                
+                $orCond->add($expr->like('contact.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($qsearch).'%')));
+            }
+            
+            $andCond->add($orCond);
+        }
         
-        if (trim($name)!= '') {
-            $andCond->add($expr->like('foreign.name', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($name) . '%')));
-            $andCondCnt->add($exprCnt->like('foreign.name', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($name) . '%')));
-        }
-        if (trim($company)!= '') {
-            $andCond->add($expr->like('foreign.company', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($company).'%')));
-            $andCondCnt->add($exprCnt->like('foreign.company', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($company).'%')));
-        }
-        if (trim($fein)!= '') {
-            $andCond->add($expr->like('foreign.fein',  $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($fein). '%')));
-            $andCondCnt->add($exprCnt->like('foreign.fein', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($fein).'%')));
-        }
-        if (trim($address)!= '') {
-            $andCond->add($expr->like('foreign.address', $queryBuilder->createNamedParameter('%' . $queryBuilder->escapeLikeWildcards($address).'%')));
-            $andCondCnt->add($exprCnt->like('foreign.address', $queryBuilderCnt->createNamedParameter('%' . $queryBuilderCnt->escapeLikeWildcards($address).'%')));
-        }
-        if (trim($telephone)!= '') {
-            $andCond->add($expr->like('foreign.telephone', $queryBuilder->createNamedParameter($queryBuilder->escapeLikeWildcards($telephone).'%')));
-            $andCondCnt->add($exprCnt->like('foreign.telephone', $queryBuilderCnt->createNamedParameter($queryBuilderCnt->escapeLikeWildcards($telephone).'%')));
-        }
-        if (trim($email)!= '') {
-            $andCond->add($expr->like('foreign.email', $queryBuilder->createNamedParameter('%' .$queryBuilder->escapeLikeWildcards($email).'%')));
-            $andCondCnt->add($exprCnt->like('foreign.email', $queryBuilderCnt->createNamedParameter('%' .$queryBuilderCnt->escapeLikeWildcards($email).'%')));
-        }
             
         switch ($option) {
             
             case 'current':
+                
                 $andCond->add($expr->eq('foreign.disable', 0));
                 $andCond->add($expr->eq('local.deleted', 0));
                 $andCond->add($expr->eq('local.hidden', 0));
                 $andCond->add($expr->gt('local.endtimecustom', time()));
                 
-                $andCondCnt->add($exprCnt->eq('foreign.disable', 0));
-                $andCondCnt->add($exprCnt->eq('local.deleted', 0));
-                $andCondCnt->add($exprCnt->eq('local.hidden', 0));
-                $andCondCnt->add($exprCnt->gt('local.endtimecustom', time()));
-                
-                $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+                $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail','contact.deleted as cdel','contact.hidden as chid')
                                     ->from($foreign,'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('foreign.uid', 'local.customfrontenduser'))
+                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond);
-                                    
-                
-                $queryBuilderCnt->count('foreign.uid')
-                                    ->from($foreign,'foreign')
-                                    ->innerJoin('foreign', $local, 'local', $exprCnt->eq('foreign.uid','local.customfrontenduser'))
-                                    ->andWhere($andCondCnt);           
+        
                 break;
             case 'expiringthismonth':
                 
@@ -355,22 +387,13 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $andCond->add($expr->eq('local.hidden', 0));
                $andCond->add($expr->gt('local.endtimecustom', time()));
                $andCond->add($expr->lt('local.endtimecustom', $ldTs));
-               
-               $andCondCnt->add($exprCnt->eq('foreign.disable', 0));
-               $andCondCnt->add($exprCnt->eq('local.deleted', 0));
-               $andCondCnt->add($exprCnt->eq('local.hidden', 0));
-               $andCondCnt->add($exprCnt->gt('local.endtimecustom', time()));
-               $andCondCnt->add($exprCnt->lt('local.endtimecustom', $ldTs));
-               
+              
                 
-               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail','contact.deleted as cdel','contact.hidden as chid')
                                     ->from($foreign,'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond);
-                $queryBuilderCnt->count('foreign.uid')
-                                ->from($foreign,'foreign')
-                                ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
-                                ->andWhere($andCondCnt);
                                     
                 break;
             case 'expiringnextmonth':
@@ -382,22 +405,12 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $andCond->add($expr->eq('local.hidden', 0));
                $andCond->add($expr->gt('local.endtimecustom', time()));
                $andCond->add($expr->lt('local.endtimecustom', $ldNextMnTs));
-               
-               $andCondCnt->add($exprCnt->eq('foreign.disable', 0));
-               $andCondCnt->add($exprCnt->eq('local.deleted', 0));
-               $andCondCnt->add($exprCnt->eq('local.hidden', 0));
-               $andCondCnt->add($exprCnt->gt('local.endtimecustom', time()));
-               $andCondCnt->add($exprCnt->lt('local.endtimecustom', $ldNextMnTs));
                 
-               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail','contact.deleted as cdel','contact.hidden as chid')
                                     ->from($foreign, 'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond);
-               
-               $queryBuilderCnt->count('foreign.uid')
-                                    ->from($foreign, 'foreign')
-                                    ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
-                                    ->andWhere($andCondCnt);
                                     
                 break;
             case 'expiredwithinxdays':
@@ -409,21 +422,11 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $andCond->add($expr->gt('local.endtimecustom', time()));
                $andCond->add($expr->lt('local.endtimecustom', $sixtyDayTs));
                
-               $andCondCnt->add($exprCnt->eq('foreign.disable', 0));
-               $andCondCnt->add($exprCnt->eq('local.deleted', 0));
-               $andCondCnt->add($exprCnt->eq('local.hidden', 0));
-               $andCondCnt->add($exprCnt->gt('local.endtimecustom', time()));
-               $andCondCnt->add($exprCnt->lt('local.endtimecustom', $sixtyDayTs));
-               
-               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail','contact.deleted as cdel','contact.hidden as chid')
                                     ->from($foreign,'foreign')
                                     ->innerJoin('foreign', $local ,'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                    ->andWhere($andCond);
-               
-                $queryBuilderCnt->count('foreign.uid')
-                                    ->from($foreign, 'foreign')
-                                    ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
-                                    ->andWhere($andCondCnt);
                                     
                 break;
             case 'expired':
@@ -431,105 +434,79 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                $andCond->add($expr->eq('foreign.disable', 0));
                $andCond->add($expr->eq('local.deleted', 0));
                $andCond->add($expr->eq('local.hidden', 0));
-               $andCond->add($expr->lt('local.endtimecustom', time()));
+               $andCond->add($expr->lt('local.endtimecustom', time()));  
                
-               $andCondCnt->add($exprCnt->eq('foreign.disable', 0));
-               $andCondCnt->add($exprCnt->eq('local.deleted', 0));
-               $andCondCnt->add($exprCnt->eq('local.hidden', 0));
-               $andCondCnt->add($exprCnt->lt('local.endtimecustom', time()));
-               
-               
-               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail','contact.deleted as cdel','contact.hidden as chid')
                                     ->from($foreign,'foreign')
                                     ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
+                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond);
-               
-                $queryBuilderCnt->count('foreign.uid')
-                                    ->from($foreign,'foreign')
-                                    ->innerJoin('foreign', $local, 'local', $expr->eq('local.customfrontenduser','foreign.uid'))
-                                    ->andWhere($andCondCnt);
-                                    
+                                              
                 break;
              case 'suspendedandnew':
                  
                $andCond->add($expr->isNull('local.customfrontenduser'));
-               $andCondCnt->add($exprCnt->isNull('local.customfrontenduser'));
-                 
-               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+               $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail','contact.deleted as cdel','contact.hidden as chid')
                                     ->from($foreign,'foreign')
                                     ->leftJoin('foreign',$local,'local', $expr->eq('local.customfrontenduser','foreign.uid'))
-                                    ->andWhere($andCond);
-               
-               $queryBuilderCnt->count('foreign.uid')
-                                    ->from($foreign,'foreign')
-                                    ->leftJoin('foreign',$local,'local', $expr->eq('local.customfrontenduser','foreign.uid'))
-                                    ->andWhere($andCondCnt);
-                                    
+                                    ->leftJoin('foreign',$contact,'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
+                                    ->andWhere($andCond);                              
                 break;
             default:
-                $andCond->add($expr->eq('foreign.disable', 0));
-                $andCondCnt->add($exprCnt->eq('foreign.disable', 0));
-                
-                $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email')
+//                $andCond->add($expr->eq('foreign.disable', 0));
+                $queryBuilder->select('foreign.uid','foreign.company','foreign.fein','foreign.address','foreign.first_name','foreign.last_name','foreign.telephone','foreign.email','contact.firstname','contact.lastname','contact.phone as cphone','contact.email as cemail','contact.deleted as cdel','contact.hidden as chid')
                                     ->from($foreign, 'foreign')
+                                    ->leftJoin('foreign', $contact, 'contact', $expr->eq('contact.customfrontenduser','foreign.uid'))
                                     ->andWhere($andCond);
-                
-                $queryBuilderCnt->count('foreign.uid')
-                        ->from($foreign, 'foreign')
-                        ->andWhere($andCondCnt);
         }
         
-//        echo $queryBuilder->setFirstResult($pageStart)->setMaxResults($this->limit)->getSQL();
-//        exit;
+        //echo $queryBuilder->setFirstResult($pageStart)->setMaxResults($this->limit)->getSQL();
+        //exit;
+        
+
         
         $rows = $queryBuilder->orderBy('foreign.company', 'ASC')
                         ->setFirstResult($pageStart)
                             ->setMaxResults($this->limit)
                             ->execute()
                             ->fetchAll();
-        $count = $queryBuilderCnt->execute()->fetchColumn(0);
+        $rows = array_map("unserialize", array_unique(array_map("serialize", $rows)));
+        
+        $filteredRow = [];
+        
+        foreach($rows as $rec) {
+            
+            if ($rec['cdel']==1 || $rec['chid']==1) {
+                $rec['firstname'] = '';
+                $rec['lastname'] = '';
+                $rec['cphone'] = '';
+                $rec['cemail'] = '';
+            }
+            $filteredRow[] = $rec;
+        }
+        
+        $filteredRow = array_map("unserialize", array_unique(array_map("serialize", $filteredRow)));
+        $count = count($filteredRow);
+        
         
         $memHtml = '';
         
-        if (count($rows) > 0) {
+        if ($count > 0) {
             
-            foreach ($rows as $data) {
+            foreach ($filteredRow as $data) {
                 
-                /*
-                $contacts = $this->getContactData($data['uid']);
-                $cname = '';
-                $cemail = '';
-                $cphone = '';
-                
-                if (is_array($contacts) && isset($contacts)) {               
-                    if (count($contacts) > 0) {
-                        foreach ($contacts as $contact) {
-                            
-                            $cname .= $contact['firstname'].' '.$contact['lastname'].'|';
-                            $cemail .= $contact['email'].'|';
-                            $cphone .= $contact['phone'].'|';
-                        }
-                        if(strlen($cname) > 0) {
-                            $cname = substr($cname, 0, -1);
-                        }
-                        if(strlen($cemail) > 0) {
-                            $cemail = substr($cemail, 0, -1);
-                        }
-                        if(strlen($cphone) > 0) {
-                            $cphone = substr($cphone, 0, -1);
-                        }
-                    }
-                }
-                */
                 $memHtml .= '<tr>'
                         .'<td><i class="fa fa-user"></i></td>'
-                        .'<td>'.$this->getMemberEditUrl($data['uid']).' '.$this->getMemberOptionUrl($data['uid']).'</td>'
+                        .'<td style="white-space: nowrap">'.$this->getMemberEditUrl($data['uid']).' '.$this->getMemberOptionUrl($data['uid']).'</td>'
                         .'<td>'.$data['company'].'</td>'
                         .'<td>'.$data['fein'].'</td>'
                         .'<td>'.$data['address'].'</td>'
                         .'<td>'.$data['first_name'].' '.$data['last_name'].'</td>'
                         .'<td>'.$data['telephone'].'</td>'
                         .'<td><a href="mailto:'.$data['email'].'">'.$data['email'].'</a></td>'
+                        .'<td>'.$data['firstname'].' '.$data['lastname'].'</td>'
+                        .'<td>'.$data['cphone'].'</td>'
+                        .'<td><a href="mailto:'.$data['cemail'].'">'.$data['cemail'].'</a></td>'
                         . '</tr>';
             }
 
@@ -726,6 +703,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                     ];
             }
         }
+
         $arr['data'] = $newsArr;
         $json = $this->array2Json($arr);
         $response->getBody()->write($json);
@@ -1212,17 +1190,28 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 
                         case "serve-download":
 
-                                // We'll be outputting a PDF
-                                //header('Content-type: application/pdf');
-
                                 //Get the friendly filename:
                                 $friendlyfilename = filter_input(INPUT_GET, "friendlyfilename", FILTER_SANITIZE_SPECIAL_CHARS);
+                                if (empty($friendlyfilename)) {
+                                    $friendlyfilename = 'newsletter.pdf';
+                                }
+                                
+                                header("Cache-Control: must-revalidate, post-check=0, pre-check=0, max-age=0, public");
+                                header('Content-Description: File Transfer');
+                                header("Content-Type: application/octet-stream");
                                 header('Content-Disposition: attachment; filename="'.$friendlyfilename.'"');
-
+                                header('Content-Transfer-Encoding: binary');
                                 //Get the actual file path:
                                 $filePath = filter_input(INPUT_GET, "filepath", FILTER_SANITIZE_SPECIAL_CHARS);
-                                readfile($filePath);
-
+                                if ( isset($filePath)) {
+                                    header('Content-Length: ' . filesize($filePath));
+                                    flush(); 
+                                    readfile($filePath);
+                                    die();
+                                } else {
+                                    http_response_code(404);
+                                    die();
+                                }
                                 break;
                             
                         case "serve-csv-report":
@@ -1276,7 +1265,15 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         
     }
 	
-	
+    
+//    public function initializeShowAction () {
+//
+//        unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_document']['ctrl']['enablecolumns']['starttime']);
+//        unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_document']['ctrl']['enablecolumns']['endtime']);
+//        unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_newsletter']['ctrl']['enablecolumns']['starttime']);
+//        unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_newsletter']['ctrl']['enablecolumns']['endtime']);
+//        
+//    }
     
     /**
      * action show
@@ -1290,25 +1287,30 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
             $this->addFlashMessage($_REQUEST['paymentformerror'], '', \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR);
         }
         //Check if a form was submitted:
-        if(isset($_POST['tx_nkcadportal_nkcadportalfe'])){
-                if(isset($_POST['tx_nkcadportal_nkcadportalfe']['formaction'])){
-                        switch($_POST['tx_nkcadportal_nkcadportalfe']['formaction']){
+        if (isset($_POST['tx_nkcadportal_nkcadportalfe'])){
+            
+            if (isset($_POST['tx_nkcadportal_nkcadportalfe']['formaction'])){
+                
+                switch($_POST['tx_nkcadportal_nkcadportalfe']['formaction']){
 
-                                case "createcontact":
-                                        $this->createContact();
-                                        break;
+                    case "createcontact":
+                            $this->createContact();
+                            break;
+                    case "updatecontact":
+                            $this->updateContact();
+                            break;
 
-                                case "updatefrontenduser":
-                                        $this->updateFrontendUser();
-                                        break;
-                        }
+                    case "updatefrontenduser":
+                            $this->updateFrontendUser();
+                            break;
                 }
+            }
         }
 
         //Check if an AJAX request was made:
         if ($action = filter_input(INPUT_GET, "action", FILTER_SANITIZE_SPECIAL_CHARS)) {
-                $this->performAjaxRequest($action);
-                die();
+            $this->performAjaxRequest($action);
+            die();
         }
 
         //Add CSS and JS:
@@ -1316,36 +1318,78 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 
         //Get the logged in FE User:
         $feUserUid = $GLOBALS['TSFE']->fe_user->user['uid'];
+        //Get the logged in FE User:
+        $feUserUid = $GLOBALS['TSFE']->fe_user->user['uid'];
+        if (!$feUserUid > 0) { 
+            die('Invalid user information');
+        }
         $frontendUser = $this->frontendUserRepository->findByUid($feUserUid);
+        if (is_null($frontendUser)) {
+            exit('Some error occured while parsing your membership records. Please contact the administration');
+        }
+        // get contact details of the user
+        //$addContacts = $this->contactRepository->findByCustomfrontenduser($feUserUid);
+        
+        //check is user is active or expired
+        $hasActiveMembership = false;
+        $memberShips = $frontendUser->getMemberships();
+        
+        if ($memberShips->count() > 0) {
+        
+            foreach ($memberShips as $usermship) {
 
-        //Add the accessible documents to the $frontendUser object:
-        $frontendUser = $this->addDocumentsToUser($frontendUser);
-
-        //Add download path data to the documents:
-         if (is_array($frontendUser->documents)) {
-            foreach($frontendUser->documents as $document){
-                $docFile = $document->getFile();
-                if(is_object($docFile)) {
-                    $publicUrl = $docFile->getOriginalResource()->getPublicUrl();
-                    $aPublicUrlTmp = explode("/", $publicUrl);
-                    $document->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+                $starttime = $usermship->getStarttime();
+                $customStart = $usermship->getStarttimecustom();
+                $endTime = $usermship->getEndtime();
+                $customEnd = $usermship->getEndtimecustom();
+                
+                if ($starttime instanceof \DateTime && $endTime instanceof \DateTime) {
+                    if ($starttime->getTimestamp() <= time() && $endTime->getTimestamp() >= time()) {
+                        $hasActiveMembership = TRUE;
+                        break;
+                    }
+                }
+                if ($customStart instanceof \DateTime && $customEnd instanceof \DateTime) {
+                    if ($customStart->getTimestamp() <= time() && $customEnd->getTimestamp() >= time()) {
+                        $hasActiveMembership = TRUE;
+                        break;
+                    }
                 }
             }
-         }
+        }
+        if ($hasActiveMembership) {
+            
+            try {
+                //Add the accessible documents to the $frontendUser object:
+                $frontendUser = $this->addDocumentsToUser($frontendUser);
+            
+                //Add download path data to the documents:
+                 if (is_array($frontendUser->documents)) {
+                    foreach($frontendUser->documents as $document){
+                        $docFile = $document->getFile();
+                        if(is_object($docFile)) {
+                            $publicUrl = $docFile->getOriginalResource()->getPublicUrl();
+                            $aPublicUrlTmp = explode("/", $publicUrl);
+                            $document->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+                        }
+                    }
+                 }
 
-        //Add the accessible newsletters to the $frontendUser object:
-        $frontendUser = $this->addNewslettersToUser($frontendUser);
+                //Add the accessible newsletters to the $frontendUser object:
+                $frontendUser = $this->addNewslettersToUser($frontendUser);
 
-        //Add download path data to the newsletters:
-        if (is_array($frontendUser->newsletters)) {
-            foreach($frontendUser->newsletters as $newsletter){
-                $nlFile =  $newsletter->getFile();
-                if(is_object($nlFile)) {
-                    $publicUrl = $nlFile->getOriginalResource()->getPublicUrl();
-                    $aPublicUrlTmp = explode("/", $publicUrl);
-                    $newsletter->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+                //Add download path data to the newsletters:
+                if (is_array($frontendUser->newsletters)) {
+                    foreach($frontendUser->newsletters as $newsletter){
+                        $nlFile =  $newsletter->getFile();
+                        if(is_object($nlFile)) {
+                            $publicUrl = $nlFile->getOriginalResource()->getPublicUrl();
+                            $aPublicUrlTmp = explode("/", $publicUrl);
+                            $newsletter->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+                        }
+                    }
                 }
-            }
+            } catch (\Exception $e){}
         }
 
         //Prepare profile form hearboutusoptions array:
@@ -1382,11 +1426,11 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 		
 		//Assign the required variables to the template:
         $this->view->assign('frontendUser', $frontendUser);
-		$this->view->assign('formdata', $aFormdata);
-		$this->view->assign('allStates', $allStates);
-		$this->view->assign('allMemberships', $allMemberships);
-		$this->view->assign('feUserMembershipsCount', $frontendUser->getMemberships()->count());
-		$this->view->assign('feMessage', $feMessage);
+        $this->view->assign('formdata', $aFormdata);
+        $this->view->assign('allStates', $allStates);
+        $this->view->assign('allMemberships', $allMemberships);
+        $this->view->assign('feUserMembershipsCount', $frontendUser->getMemberships()->count());
+        $this->view->assign('feMessage', $feMessage);
     }
     
     /**
@@ -1441,39 +1485,56 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         exit;
     }
 	
+    /**
+     * 
+     * @param object $frontendUser
+     * @return type
+     */
 	public function addDocumentsToUser($frontendUser)
 	{
-		//Get all states this user has a membership for:
-		$aUserStates = [];
-		foreach($frontendUser->getMemberships() as $membership){
-                    $aUserStates[$membership->getState()->getUid()] = $membership->getState();
-		}
-		//Get the single $oAllStates state object:
-		$oAllStates = $this->stateRepository->findByUid(1);
+            if (is_null($frontendUser)) {
+                die('User information not available');
+            }
+            //Get all states this user has a membership for:
+            $aUserStates = [];
+            
+            foreach($frontendUser->getMemberships() as $membership){
+                
+                if ($membership instanceof  \Netkyngs\Nkcadportal\Domain\Model\Membership) {
+                    $tState = $membership->getState();
+                    if ($tState instanceof \TYPO3\CMS\Extbase\Persistence\Generic\LazyLoadingProxy) {
+                        $aUserStates[$tState->getUid()] = $tState;
+                    }
+                }
+            }
+   
+            
+            //Get the single $oAllStates state object:
+            $oAllStates = $this->stateRepository->findByUid(1);
 
-		//Collect the documents for a) the membership usergroups this user belongs to and b) the state this user has a membership for:
-                $frontendUser->documents = [];
-               
-                $collectedDocuments = $this->documentRepository->findByUsergroups($frontendUser->getUsergroup());
+            //Collect the documents for a) the membership usergroups this user belongs to and b) the state this user has a membership for:
+            $frontendUser->documents = [];
 
-                foreach($collectedDocuments as $document){
-                    foreach($document->getStates() as $documentState){
-                        if ($documentState->getUid() == $oAllStates->getUid()){
-                            $frontendUser->documents[] = $document;
-                            continue(2);
-                        } else{
-                            foreach($aUserStates as $userState){
-                                if($documentState->getUid() == $userState->getUid()){
-                                    $frontendUser->documents[] = $document;
-                                    continue(3);
-                                }
+            $collectedDocuments = $this->documentRepository->findByUsergroups($frontendUser->getUsergroup());
+
+            foreach($collectedDocuments as $document){
+                foreach($document->getStates() as $documentState){
+                    if ($documentState->getUid() == $oAllStates->getUid()){
+                        $frontendUser->documents[] = $document;
+                        continue(2);
+                    } else{
+                        foreach($aUserStates as $userState){
+                            if($documentState->getUid() == $userState->getUid()){
+                                $frontendUser->documents[] = $document;
+                                continue(3);
                             }
                         }
                     }
                 }
-		
-		//Return the updated user object:
-		return $frontendUser;
+            }
+
+            //Return the updated user object:
+            return $frontendUser;
 	}
 	
 	public function addNewslettersToUser($frontendUser)
@@ -1483,13 +1544,16 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 		$aUserNewsletterTypes = [];
 		foreach($frontendUser->getMemberships() as $membership){
 			$membershipTemplate = $membership->getMembershiptemplate();
-			foreach($membershipTemplate->getIncludednewsletters() as $newsletterType){
-				 $aUserNewsletterTypes[$newsletterType->getUid()] = $newsletterType;
-			}
+                        $nlTypeArr = $membershipTemplate->getIncludednewsletters();
+                        if (count($nlTypeArr) > 0) {
+                            foreach ($nlTypeArr as $newsletterType){
+                                     $aUserNewsletterTypes[$newsletterType->getUid()] = $newsletterType;
+                            }
+                        }
 		}
 	
 		//Collect the newsletters that the user's memberships provide access to:
-		if(!empty($aUserNewsletterTypes)){
+		if (!empty($aUserNewsletterTypes)){
 			$frontendUser->newsletters = $this->newsletterRepository->findByNewslettertypes($aUserNewsletterTypes);
 		}
 
@@ -1541,6 +1605,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 		$aFormData = $aInputArray['FrontendUser'];
 		$changePW = filter_input(INPUT_POST, 'profile_change_pw', FILTER_SANITIZE_NUMBER_INT);
 		$oldPWValue = filter_input(INPUT_POST, 'oldpassword', FILTER_SANITIZE_SPECIAL_CHARS);
+                
 		
 		//Get the logged in FE User:
 		$feUserUid = $GLOBALS['TSFE']->fe_user->user['uid'];
@@ -1548,37 +1613,49 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 
 		//Update the property values:
 		$currentPassword = "";
-		foreach($aFormData as $formField => $formValue){
-			//Some exceptions/alterations:
-			if($formField == "phone") { $formField = "telephone"; }
-			if($formField == "password") {
-				if($changePW == 1){
-					//Check if the provided old (plain) password matches the stored (salted) password:
-					if($this->testSaltedPasswordAgainstStoredValue($oldPWValue, $frontendUser->getPassword())){
-						//Provided old password correct - Continue and Salt the new password:
-						$newPassword = $this->saltPassword($formValue);
-						$formValue = $newPassword;
-					}
-					else{
-						//Old password incorrect -- Set the flash message & Completely exist the profile update function::
-						$this->addFlashMessage(
-							'The current/old password you entered was incorrect - Nothing updated...! Please re-enter your current password and the new password you would like to change it to.', //Message
-							'Profile saving error', //Title
-							$severity = \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR,
-							FALSE //storeInSession?
-						);
-						return false;
-					}
-				}
-				else{
-					//Skip password change:
-					continue;
-				}
-			}
-			//Define the function to call:
-			$setFunction = "set".ucfirst($formField);
-			$frontendUser->$setFunction($formValue);
-		}
+                
+                if ($changePW == 1){
+                        //Check if the provided old (plain) password matches the stored (salted) password:
+                        if ($this->testSaltedPasswordAgainstStoredValue($oldPWValue, $frontendUser->getPassword())){
+                                //Provided old password correct - Continue and Salt the new password:
+                            $newPwdValue = $aFormData['password'];
+                            $newPassword = $this->saltPassword($newPwdValue);
+                            $frontendUser->setPassword($newPassword);
+                            
+                        } else {
+                                //Old password incorrect -- Set the flash message & Completely exist the profile update function::
+                                $this->addFlashMessage(
+                                        'The current/old password you entered was incorrect - Nothing updated...! Please re-enter your current password and the new password you would like to change it to.', //Message
+                                        'Profile saving error', //Title
+                                        $severity = \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR,
+                                        FALSE //storeInSession?
+                                );
+                                return false;
+                        }
+                }
+                
+                $frontendUser->setFirstName($aFormData['firstname']);
+                $frontendUser->setLastName($aFormData['lastname']);
+                $frontendUser->setName($aFormData['firstname'].' '.$aFormData['lastname']);
+                $frontendUser->setTitle($aFormData['title']);
+                $frontendUser->setCompany($aFormData['company']);
+                $frontendUser->setNumberofemployees($aFormData['numberofemployees']);
+                $frontendUser->setNumberofcdldrivers($aFormData['numberofcdldrivers']);
+                $frontendUser->setAddress($aFormData['address']);
+                $frontendUser->setAdditionaladdress($aFormData['additionaladdress']);
+                $frontendUser->setCity($aFormData['city']);
+                $frontendUser->setState($aFormData['state']);
+                $frontendUser->setZip($aFormData['zip']);
+                $frontendUser->setTelephone($aFormData['phone']);
+                $frontendUser->setCellphone($aFormData['cellphone']);
+                $frontendUser->setFax($aFormData['fax']);
+                $frontendUser->setFein($aFormData['fein']);
+                $frontendUser->setBusinesstype($aFormData['businesstype']);
+                $frontendUser->setInsurancecarrier($aFormData['insurancecarrier']);
+                $frontendUser->setInsuranceagent($aFormData['insuranceagent']);
+                $frontendUser->setHearaboutus($aFormData['hearaboutus']);
+                $frontendUser->setEmail($aFormData['email']);
+
                 $this->frontendUserRepository->update($frontendUser);
 		
 		//Set the flash message:
@@ -1629,15 +1706,15 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 		}
 		
 		//Continue only if contact doesnt exist yet...
-		if($contactAlreadyExists == 0){
-		
+		if ($contactAlreadyExists == 0) {
+                        $phone = $this->formatPhone($aFormData['phone']);
 			//Create the new contact:
 			$newContact = new \Netkyngs\Nkcadportal\Domain\Model\Contact();
 			$newContact->setFirstname(trim($aFormData['firstname']));
 			$newContact->setLastname(trim($aFormData['lastname']));
 			$newContact->setTitle(trim($aFormData['title']));
 			$newContact->setEmail(trim($aFormData['email']));
-			$newContact->setPhone(trim($aFormData['phone']));
+			$newContact->setPhone($phone);
 			$newContact->setContacttype($aFormData['contacttype']);
 			$newContact->setPid($this->settings['contactspid']);
 			$this->contactRepository->add($newContact);
@@ -1661,8 +1738,87 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 		}
 		
     }
+    
+    /**
+     * function createContact
+     * 
+     * @return void
+     */
+    public function updateContact()
+    {
+		
+        //Get the form input data:
+        $aInputArray = filter_input(INPUT_POST, 'tx_nkcadportal_nkcadportalfe', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
+        $aFormData = $aInputArray['newContact'];
+        
+        if ($aFormData['cuid'] != '') {
+            
+            $phone = $this->formatPhone($aFormData['phone']);
+            
+            $contactObj = $this->contactRepository->findByUid($aFormData['cuid']);
+            $contactObj->setFirstname(trim($aFormData['firstname']));
+            $contactObj->setLastname(trim($aFormData['lastname']));
+            $contactObj->setTitle(trim($aFormData['title']));
+            $contactObj->setEmail(trim($aFormData['email']));
+            $contactObj->setPhone($phone);
+            $contactObj->setContacttype($aFormData['contacttype']);
+            
+            $this->contactRepository->update($contactObj);
+            
+            $this->addFlashMessage(
+				'Contact update successful', //Message
+				'Contact saved', //Title
+				$severity = \TYPO3\CMS\Core\Messaging\AbstractMessage::OK,
+				FALSE //storeInSession?
+			);
+            $persistenceManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance("TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager");
+            $persistenceManager->persistAll();
+            
+        } else {
+            $this->addFlashMessage(
+					'Contact data not found... Nothing added.', //Message
+					'Contact data', //Title
+					$severity = \TYPO3\CMS\Core\Messaging\AbstractMessage::WARNING,
+					FALSE //storeInSession?
+				);
+        }
+		
+    }
 	
-	/* Function that adds the FE CSS and JS required by this extension to the FD */
+    /**
+     * 
+     * @param string $phone
+     * @return string
+     */
+    protected function formatPhone($phone) 
+    {
+        if (isset($phone)) {
+            
+            $trimmedPh = preg_replace('/[^0-9]/', '', $phone);
+            $phArr = str_split($trimmedPh, 3);
+            
+            if (count($phArr) > 2) {
+                $formattedPhone = $phArr[0].'-'.$phArr[1].'-';
+                for($i=2; $i < count($phArr); $i++) {
+                    $formattedPhone .= $phArr[$i];
+                }
+                
+                if (strlen($formattedPhone) > 12) { //extension
+                    $phExtArr = str_split($formattedPhone, 12);
+                    
+                    return $phExtArr[0].'('. $phExtArr[1] .')';
+                    
+                } else {
+                    
+                    return $formattedPhone;
+                }
+            }
+        }
+        
+        return $phone;
+    }
+    
+    /* Function that adds the FE CSS and JS required by this extension to the FD */
 	public function addCssAndJsToFE(){
 		//Add Extension's JS file(s)
 		$this->response->addAdditionalHeaderData('<script type="text/javascript" src="' . 'typo3conf/ext/nkcadportal/Resources/Public/JavaScript/datatables.min.js' . '"></script>');
@@ -1675,15 +1831,18 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 	
 	/* Functiuon that salts a provided, "plain" password */
 	public function saltPassword($password){
-		$saltedPassword = '';
-		$objSalt = \TYPO3\CMS\Saltedpasswords\Salt\SaltFactory::getSaltingInstance(NULL);
-		if (is_object($objSalt)) {
-			$saltedPassword = $objSalt->getHashedPassword($password);
-		}
-		if($saltedPassword != ''){
-			$password = $saltedPassword;
-		}
-		return $password;
+            $saltedPassword = '';
+            if (\TYPO3\CMS\Saltedpasswords\Utility\SaltedPasswordsUtility::isUsageEnabled('FE')) {
+                $objSalt = \TYPO3\CMS\Saltedpasswords\Salt\SaltFactory::getSaltingInstance(NULL);
+                if (is_object($objSalt)) {
+                    $saltedPassword = $objSalt->getHashedPassword($password);
+                }
+            }
+            if ($saltedPassword != ''){
+                $password = $saltedPassword;
+            }
+            
+            return $password;
 	}
 	
 	/* Functiuon that tests a provided, "plain" password against a provided salted password */
@@ -1692,12 +1851,11 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
 		if (\TYPO3\CMS\Saltedpasswords\Utility\SaltedPasswordsUtility::isUsageEnabled('FE')) {
 			$objSalt = \TYPO3\CMS\Saltedpasswords\Salt\SaltFactory::getSaltingInstance($saltedPassword);
 			if (is_object($objSalt)) {
-					$result = $objSalt->checkPassword($plainpassword, $saltedPassword);
+                            $result = $objSalt->checkPassword($plainpassword, $saltedPassword);
 			}
 		}
 		return $result;
 	}
-
 
 
         /**

@@ -29,6 +29,11 @@ if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('armauthorize')
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use \TYPO3\CMS\Backend\Utility\BackendUtility;
+use \TYPO3\CMS\Core\Utility\GeneralUtility;
+use \TYPO3\CMS\Core\Database\ConnectionPool;
+
+
 /**
  * FormresultController
  */
@@ -42,6 +47,12 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
      */
     protected $storageFeuserRepository;
 
+    /**
+     *
+     * @var \Netkyngs\Nkregularformstorage\Domain\Repository\LogRepository
+     * @inject
+     */
+    protected $logRepository;
 
     /**
      * @var \TYPO3\CMS\Extbase\Domain\Repository\FrontendUserRepository
@@ -86,6 +97,14 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
      * @inject
      */
     protected $discountcodeRepository = NULL;
+    
+    /**
+     * invoiceRepository
+     * 
+     * @var \Netkyngs\Nkcadportal\Domain\Repository\InvoiceRepository
+     * @inject
+     */
+    protected $invoiceRepository = NULL;
 
     /**
      * formresultRepository
@@ -94,6 +113,14 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
      * @inject
      */
     protected $formresultRepository = NULL;
+    
+    /**
+     * payprofileRepository
+     *
+     * @var \Netkyngs\Nkregularformstorage\Domain\Repository\PaymentprofileRepository
+     * @inject
+     */
+    protected $payprofileRepository = NULL;
 	
 	
     protected $confirmationPage = 0;
@@ -107,7 +134,14 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
     protected $senderAssociation = '';
     protected $aNewPaidMemberships = [];
     protected $frontendUser = null;
+    protected $membershipUids = '';
     
+    /**
+     *
+     * @var int 
+     */
+    protected $limit = 20;
+
     /**
      *
      * @var \ARM\Armauthorize\Util\AuthorizeUtil 
@@ -131,7 +165,13 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
         $this->formresultRepository->setDefaultQuerySettings($querySettings);
         $this->membershipRepository->setDefaultQuerySettings($querySettings);
         $this->discountcodeRepository->setDefaultQuerySettings($querySettings);
+        $this->invoiceRepository->setDefaultQuerySettings($querySettings);
         $this->storageFeuserRepository->setDefaultQuerySettings($querySettings);
+    }
+    
+    protected function getPayMethod() {
+        
+        return ($this->selectedPaymentType == "creditcard") ? 'Credit Card': 'Invoice';
     }
     
     /**
@@ -145,12 +185,14 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
         $this->startTransaction();
         
         //Check if any payment/order data was provided:
-        if (!empty($_POST)){					
+        if (!empty($_POST)) {			
             //Determine the formType:
             $formType = "membership";
             
-            if (isset($_POST['formType'])){
+            if (isset($_POST['formType'])) {
+                
                 $formType = addSlashes($_POST['formType']);
+                
             } else {
                 //Get the logged in FE User:
                 $feUserUid = $GLOBALS['TSFE']->fe_user->user['uid'];
@@ -158,6 +200,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             }
 
             //ReCaptcha v3 Validation Start:
+            /*
             if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['recaptcha_response'])) {
 
                 // Make and decode POST request:
@@ -174,19 +217,20 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 $jsonresponse = json_decode(curl_exec($verify));
 
                 // Take action based on the score returned:
-                if ($jsonresponse->score >= 0.5) {
-                        // Verified.... Continue.
-                } else {
-                        die("ReCaptcha Test Failed... Please go back and try again.<br/><br/><a href=\"javascript:history.back();\">Return to form</a>");
+                if ($jsonresponse->score < 0.3) {
+                    die("ReCaptcha Test Failed... Please go back and try again.<br/><br/><a href=\"javascript:history.back();\">Return to form</a>");
                 }
             }
+            */
+            
             //ReCaptcha v3 Validation End
 
             //Create form config array from POST array:
             $formConfigArray = $_POST;
+            
 
             //Check for presence of POST->confirmationpage
-            if(isset($_POST['confirmationpage'])){
+            if (isset($_POST['confirmationpage'])){
                 $this->confirmationPage = $_POST['confirmationpage'];
             }
 
@@ -205,15 +249,19 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             $trxID = '';
             $trxMessage = 'Unknown error'; 
             $emlBodyItems = [];
+            $authTransaction = [];
+            
             if ($formType == "newDonation"){
                 //Single/isolated Donation type:
-                $calculatedPrice = number_format($formConfigArray['amount'], "2");
-                $item_description = '$'.$formConfigArray['amount'].' Donation,';
+                $calculatedPrice = number_format($formConfigArray['amount'], 2, '.', '');
+                $authTransaction["don-$feUserUid"] = '$'.$formConfigArray['amount'].' Donation';
+               /*
                 if (isset($feUserUid)) {
                     $this->payutil->createLineItem('don-'.$feUserUid,'$'.$formConfigArray['amount'].' Donation', $calculatedPrice, 'Donation given');
                 } else {
                     $this->payutil->createLineItem('don-'. time(),'$'.$formConfigArray['amount'].' Donation', $calculatedPrice, 'Donation given');
                 }
+                */
                 $emlBodyItems['don-'. time()] = [
                     'description' => '$'.$formConfigArray['amount'].' Donation',
                     'state' =>  '--',
@@ -222,41 +270,51 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                     ];
                 
             } else {
+                $formType = 'membership';
                 $item_description = '';
                 //Membership -- Calculate the total price ($calculatedPrice) and collect any new membership purchases or membership renewals:
                 $calculatedPrice = 0;
                 $donationAmount = (int)$formConfigArray['donate'];
+                
                 if ($donationAmount > 0) {
-                    
-                   $this->payutil->createLineItem('don-'.$feUserUid,'$'.$donationAmount.' Donation', number_format($donationAmount, 2), 'A donation made'); 
-                    $item_description .= '$'.$donationAmount.' Donation,';
+                    // $this->payutil->createLineItem('don-'.$feUserUid,'$'.$donationAmount.' Donation', number_format($donationAmount, 2, '.', ''), 'A donation made'); 
+                    // $item_description .= '$'.$donationAmount.' Donation,';
+                    $authTransaction["don-$feUserUid"] = '$'.$donationAmount.' Donation';
                     $emlBodyItems['don-'. $feUserUid] = [
                     'description' => '$'.$donationAmount.' Donation',
                     'state' =>  '--',
-                    'price' => number_format($donationAmount, 2),
+                    'price' => number_format($donationAmount, 2, '.', ''),
                     'renewal' => ''
                     ];
                 }
+                
                 $calculatedPrice += $donationAmount;
 
                 //Check which memberships have been submitted for renewal:
                 $aRenewals = [];
                 
-                
-                for ($i=1; $i <= 6; $i++){
+                for ($i=1; $i <= 6; $i++) {
+                    
                         if ((string)$formConfigArray["newmembership-$i"] != '0') {
+                            
                                 $membershipTemplateUid = (int)$formConfigArray["newmembership-$i"];
                                 $stateUid = (int)$formConfigArray["newmembershipstate-$i"];
+                                if ($stateUid == 0) {
+                                    $trxMessage = 'State information not available';
+                                    $this->addFlashMessage($trxMessage, '', \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR);
+                                    header("Location: /index.php?id=".$this->failedReturnPage."&paymentformerror=$trxMessage");
+                                    die($trxMessage);
+                                }
+                                $stateCode = $this->getState($stateUid);
                                
-                                if (isset($formConfigArray["renew_$membershipTemplateUid"]) && (int)$formConfigArray["renew_$membershipTemplateUid"] == 1){
-                                        $aRenewals[$membershipTemplateUid] = "formfield_newmembership-$i";
+                                if (isset($formConfigArray["renew_$membershipTemplateUid-$stateUid"]) && (int)$formConfigArray["renew_$membershipTemplateUid-$stateUid"] == 1){
+                                        $aRenewals["$membershipTemplateUid-$stateUid"] = "formfield_newmembership-$i";
                                         $renewMembershipTemplate = $this->membershipTemplateRepository->findByUid((int)$membershipTemplateUid);
                                         
                                         if ($renewMembershipTemplate instanceof \Netkyngs\Nkcadportal\Domain\Model\MembershipTemplate) {
-                                            $item_description .= $renewMembershipTemplate->getDescription().',';
-                                            $this->payutil->createLineItem('m'.$membershipTemplateUid,  substr($renewMembershipTemplate->getDescription(), 0, 30), number_format((float)$renewMembershipTemplate->getPrice(), "2"), $renewMembershipTemplate->getDescription().' [RENEWAL]');
-                                            
-                                            $emlBodyItems['m'.$membershipTemplateUid] = [
+                                            // $this->payutil->createLineItem('m'.$membershipTemplateUid,  substr($renewMembershipTemplate->getDescription(), 0, 30), number_format((float)$renewMembershipTemplate->getPrice(), 2, '.', ''), $renewMembershipTemplate->getDescription().' [RENEWAL]');
+                                            $authTransaction["m$membershipTemplateUid-$stateUid"] = $stateCode.' '.$renewMembershipTemplate->getDescription();
+                                            $emlBodyItems['m'.$membershipTemplateUid.'-'.$stateUid] = [
                                                 'description' => $renewMembershipTemplate->getDescription(),
                                                 'state' =>  $this->getState($stateUid),
                                                 'price' => $renewMembershipTemplate->getPrice(),
@@ -275,50 +333,66 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                         if (trim($fieldvalue) !== '' && (int)$fieldvalue != 0) {
                             
                             $membershipTemplate = $this->membershipTemplateRepository->findByUid((int)$fieldvalue);
-                            $calculatedPrice += $membershipTemplate->getPrice();
-                            $this->aNewPaidMemberships[(int)$fieldvalue] = [];
-                            $this->aNewPaidMemberships[(int)$fieldvalue]['uid'] = $membershipTemplate->getUid();
-                            $this->aNewPaidMemberships[(int)$fieldvalue]['description'] = $membershipTemplate->getDescription();
-                            $item_description .= $membershipTemplate->getDescription().',';
-                            
-                            $this->payutil->createLineItem('m'.$membershipTemplate->getUid(),  substr($membershipTemplate->getDescription(), 0, 30), number_format((float)$membershipTemplate->getPrice(), "2"), $membershipTemplate->getDescription());
-                            
-                            $this->aNewPaidMemberships[(int)$fieldvalue]['renewal'] = 0;
-                            $this->aNewPaidMemberships[(int)$fieldvalue]['type'] = $membershipTemplate->getMembershiptype();
                             list(,$newMembershipFieldItem) = explode("-", $fieldname);
-                            $this->aNewPaidMemberships[(int)$fieldvalue]['stateUid'] = $formConfigArray["newmembershipstate-$newMembershipFieldItem"];
+                            $stateUid = (int)$formConfigArray["newmembershipstate-$newMembershipFieldItem"];
+                            if ($stateUid == 0) {
+                                $trxMessage = 'State information not available';
+                                $this->addFlashMessage($trxMessage, '', \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR);
+                                header("Location: /index.php?id=".$this->failedReturnPage."&paymentformerror=$trxMessage");
+                                 die($trxMessage);
+                            }
+                            $stateCode = $this->getState($stateUid);
+                            $calculatedPrice += $membershipTemplate->getPrice();
+                            $this->aNewPaidMemberships["$fieldvalue-$stateUid"] = [];
+                            $this->aNewPaidMemberships["$fieldvalue-$stateUid"]['uid'] = $membershipTemplate->getUid();
+                            $this->aNewPaidMemberships["$fieldvalue-$stateUid"]['description'] = $stateCode.' '.$membershipTemplate->getDescription();
+                            $this->aNewPaidMemberships["$fieldvalue-$stateUid"]['term'] = $membershipTemplate->getTerm();
                             
-                            $emlBodyItems['m'.$membershipTemplate->getUid()] = [
+                           // $this->payutil->createLineItem('m'.$membershipTemplate->getUid(),  substr($membershipTemplate->getDescription(), 0, 30), number_format((float)$membershipTemplate->getPrice(), 2, '.', ''), $membershipTemplate->getDescription());
+                            $this->aNewPaidMemberships["$fieldvalue-$stateUid"]['renewal'] = 0;
+                            $this->aNewPaidMemberships["$fieldvalue-$stateUid"]['type'] = $membershipTemplate->getMembershiptype();
+                            $this->aNewPaidMemberships["$fieldvalue-$stateUid"]['stateUid'] = $stateUid;
+                           
+                           
+                            $membershipTemplateUid = $membershipTemplate->getUid();
+                            $authTransaction["m$membershipTemplateUid-$stateUid"] = $stateCode.' '.$membershipTemplate->getDescription();
+                            $emlBodyItems['m'.$membershipTemplateUid.'-'.$stateUid] = [
                                 'description' => $membershipTemplate->getDescription(),
-                                'state' =>  $this->getState((int)$formConfigArray["newmembershipstate-$newMembershipFieldItem"]),
-                                'price' => number_format((float)$membershipTemplate->getPrice(), "2"),
+                                'state' =>  $stateCode,
+                                'price' => number_format((float)$membershipTemplate->getPrice(), 2, '.', ''),
                                 'renewal' => ''
                                 ];
                             
-                            //Check whether this user already had this membership (which makes this a renewal)
-                            foreach ($this->frontendUser->getMemberships() as $feUsersMembership){
-                                
-                                if ($feUsersMembership->getMembershiptemplate()->getUid() == $membershipTemplate->getUid()){
-                                    
-                                    $this->aNewPaidMemberships[(int)$fieldvalue]['renewal'] = 1;
-                                    $this->aNewPaidMemberships[(int)$fieldvalue]['membership_uid_for_renewal'] = $feUsersMembership->getUid();
-                                    $this->aNewPaidMemberships[(int)$fieldvalue]['description'] = $this->aNewPaidMemberships[(int)$fieldvalue]['description']." (RENEWAL)";
-                                    $this->aNewPaidMemberships[(int)$fieldvalue]['type'] = $membershipTemplate->getMembershiptype();
-                                    
-                                    $emlBodyItems['m'.$membershipTemplate->getUid()] = [
-                                                'description' => $membershipTemplate->getDescription(),
-                                                'state' =>  $this->getState($formConfigArray["newmembershipstate-$newMembershipFieldItem"]),
-                                                'price' => $membershipTemplate->getPrice(),
-                                                'renewal' => 'yes'
-                                            ];
-                                } else {
-                                    
-                                     $emlBodyItems['m'.$membershipTemplate->getUid()] = [
-                                                'description' => $membershipTemplate->getDescription(),
-                                                'state' =>  $this->getState($formConfigArray["newmembershipstate-$newMembershipFieldItem"]),
-                                                'price' => $membershipTemplate->getPrice(),
-                                                'renewal' => ''
-                                            ];
+                            if ($this->frontendUser instanceof \TYPO3\CMS\Extbase\Domain\Model\FrontendUser) {
+                                //Check whether this user already had this membership (which makes this a renewal)
+                                foreach ($this->frontendUser->getMemberships() as $feUsersMembership){
+
+                                    if ($feUsersMembership->getMembershiptemplate() instanceof \Netkyngs\Nkcadportal\Domain\Model\MembershipTemplate) {
+
+                                        if ($feUsersMembership->getMembershiptemplate()->getUid() == $membershipTemplate->getUid() && $feUsersMembership->getState()->getUid() == $stateUid){
+
+                                            $this->aNewPaidMemberships["$fieldvalue-$stateUid"]['renewal'] = 1;
+                                            $this->aNewPaidMemberships["$fieldvalue-$stateUid"]['membership_uid_for_renewal'] = $feUsersMembership->getUid();
+                                            $this->aNewPaidMemberships["$fieldvalue-$stateUid"]['description'] = $stateCode.' '.$membershipTemplate->getDescription()." (RENEWAL)";
+                                            $this->aNewPaidMemberships["$fieldvalue-$stateUid"]['type'] = $membershipTemplate->getMembershiptype();
+                                            $this->aNewPaidMemberships["$fieldvalue-$stateUid"]['term'] = $membershipTemplate->getTerm();
+
+                                            $emlBodyItems['m'.$membershipTemplate->getUid().'-'.$stateUid] = [
+                                                        'description' => $membershipTemplate->getDescription(),
+                                                        'state' =>  $stateCode,
+                                                        'price' => $membershipTemplate->getPrice(),
+                                                        'renewal' => 'yes'
+                                                    ];
+                                        } else {
+
+                                             $emlBodyItems['m'.$membershipTemplate->getUid().'-'.$stateUid] = [
+                                                        'description' => $membershipTemplate->getDescription(),
+                                                        'state' =>  $stateCode,
+                                                        'price' => $membershipTemplate->getPrice(),
+                                                        'renewal' => ''
+                                                    ];
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -326,23 +400,25 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 }
                 $discount = 0;
                 // Consider the discount
-                $purchasetotal = $formConfigArray['purchasetotal'];
+                $purchasetotal = str_replace('$','', $formConfigArray['purchasetotal']);
                 
+
                 if ($purchasetotal != $calculatedPrice) {
                     //then discount might be possible
                     if (isset($formConfigArray['discountcode'])) {
+                        
                         $disCode = $formConfigArray['discountcode'];
                         //get the discount value for
                         $discountCodeObj = $this->discountcodeRepository->findByCode($disCode)->getFirst();
                         if ($discountCodeObj != null){
-                            $discount = number_format($discountCodeObj->getDiscount(), "2");
+                            $discount = number_format($discountCodeObj->getDiscount(), 2, '.', '');
                             $emlBodyItems['d'.$disCode] = [
                                                 'description' => 'Discount code '.$disCode,
                                                 'state' =>  '',
                                                 'price' => $discount,
                                                 'renewal' => ''
                                             ];
-                            $this->payutil->createLineItem('d'.$discountCodeObj->getUid(),$disCode, $discount, '$'. $discount. ' discount via code ['.$disCode.']');
+                           // $this->payutil->createLineItem('d'.$discountCodeObj->getUid(),$disCode, $discount, '$'. $discount. ' discount via code ['.$disCode.']');
                         }
                     }
                     
@@ -351,20 +427,21 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 
             }
             
-            if (strlen($item_description) > 1) {
-                $item_description = substr($item_description, 0, -1);
+            if (count($authTransaction)>0) {
+                $item_description = implode(',', $authTransaction);
             }
-            
-            
+
             if (($calculatedPrice * 1) < 1){
                 die("<strong>Fraudulent Price/Amount Detected... Processing of payment was cancelled.</strong>");
             }
             
-            $testmode = false; 
+            $testmode = false; //change this false when LIVE
             $ptype = 0;
             $pstatus = 0;
-
-            if ($this->selectedPaymentType == "creditcard"){
+            
+            if ($this->selectedPaymentType == "creditcard") {
+                
+                $card_holder_name = $formConfigArray['paymentForm']['Card_Name'];
                 //---------------------------------
                 //Mode is direct credit cad payment
                 //---------------------------------
@@ -385,8 +462,9 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             
                 //Process the payment:
                 $responseArr = $this->processCreditcardPayment($testmode, $calculatedPrice, $item_description, $formType);
-                
-                if ($GLOBALS['TSFE']->fe_user->user['authorize_customer_profile'] == '' && $GLOBALS['TSFE']->fe_user->user['authorize_payment_profile'] == '') {
+
+                /*
+                if ($GLOBALS['TSFE']->fe_user->user['authorize_customer_profile'] == '') {
                     
                     if ($responseArr['status'] == TRUE && $GLOBALS['TSFE']->fe_user->user['uid'] > 0) {
                         
@@ -395,14 +473,19 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                         
                         if ($profileResponseArr['status'] == TRUE) {
                             $GLOBALS['TSFE']->fe_user->user['authorize_customer_profile'] = $profileResponseArr['customerProfileId'];
-                            $GLOBALS['TSFE']->fe_user->user['authorize_payment_profile'] = $profileResponseArr['paymentProfileId'];
+                            
+                            $this->storePayProfile($GLOBALS['TSFE']->fe_user->user['uid'], $profileResponseArr['customerProfileId'], $_POST['paymentForm']['Card_Number'], $profileResponseArr['paymentProfileId']);
+                            
                             //update user
-                            $this->updateMemberAuthCustomerProfile($this->frontendUser->getUid(),$profileResponseArr['customerProfileId'],$profileResponseArr['paymentProfileId']);
+                            $this->updateMemberAuthCustomerProfile($this->frontendUser->getUid(),$profileResponseArr['customerProfileId']);
                         }
                     }
                 }
-
+                 * 
+                 */
+                
                 if ($responseArr['status'] == TRUE) {
+                    
                     $trxMessage = $responseArr['message'];
                     //Sale approved..
                     $pstatus = 1;
@@ -416,7 +499,10 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 } else {
                     $trxMessage = $responseArr['error'];
                     //Sale declined, redirect back to form..
-                    $pstatus = -1;
+                    
+                    //echo __LINE__.$trxMessage;
+                    //exit;
+                    $pstatus = 2;
                     $this->addFlashMessage($trxMessage, '', \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR);
                     header("Location: /index.php?id=".$this->failedReturnPage."&paymentformerror=$trxMessage");
                     die("forwarded");
@@ -432,9 +518,13 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 //Mode is send/print me an invoice/bill
                 //-------------------------------------
                 $trxID = date('Y')."00".$this->formresultRepository->findAll()->count();
+                
                 if ($formType == "membership"){
                     //Add (re)new(ed) memberships to the FE user:
-                    $this->enableNewMemberships();
+                    $this->enableNewMemberships(1);
+                    $card_holder_name = $this->frontendUser->getFirstName().' '.$this->frontendUser->getLastName();
+                } else {
+                    $card_holder_name = addSlashes($_POST['firstname'])." ".addSlashes($_POST['lastname']);
                 }
             }
             //Check email body
@@ -450,24 +540,34 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             unset($aFormData['paymentForm']['CCV_CVV_Code']);
             
             if ($formType == "membership"){
+                
                 $aSelectedMembershipsStringArray = [];
-                foreach($this->aNewPaidMemberships as $paidMembership){
-                        $aSelectedMembershipsStringArray[] = $paidMembership['description'];
+                if ($donationAmount > 0) {
+                     $aSelectedMembershipsStringArray[] = 'Donation of $'.number_format($donationAmount, 2, '.', '');
                 }
+                foreach ($this->aNewPaidMemberships as $paidMembership){
+                     $aSelectedMembershipsStringArray[] = $paidMembership['description'];
+                }
+                
                 $payDesc = $aFormData['Memberships_Paid_For'] = implode(", ", $aSelectedMembershipsStringArray);
+                
 
             }
             $implodedFormResults = "";
+            
             foreach($aFormData as $key => $val){
                 $implodedFormResults .= ($key." = ".$val."\n");
             }
 
             //Determine the user's email and the company name:
             if ($formType == "membership"){
+                
                 $userCompany = $this->frontendUser->getCompany();
                 $userName = $this->frontendUser->getFirstName().' '.$this->frontendUser->getLastName();
                 $userEmail = $this->frontendUser->getEmail();
+                
             } elseif($formType == "newDonation") {
+                
                 $userCompany = addSlashes($_POST['company']);
                 $userName = addSlashes($_POST['firstname'])." ".addSlashes($_POST['lastname']);
                 $userEmail = addSlashes($_POST['email']);
@@ -476,7 +576,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
 
             //Add a new formresult record:
             $newPaymentRecord = new \Netkyngs\Nkregularformstorage\Domain\Model\Formresult();
-            $newPaymentRecord->setName($userCompany." ".($userName));
+            $newPaymentRecord->setName($card_holder_name);
             $newPaymentRecord->setEmail($userEmail);
             $newPaymentRecord->setTrxid($trxID);
             $newPaymentRecord->setCardno($cardno);
@@ -500,20 +600,39 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             $fromName = $this->settings['adminname'];
             $fromEmail = $this->settings['fromemail'];
             $replyToEmail = $this->settings['adminemail'];
+            $toEmails = $this->settings['form_adminToemail'];
+            $toEmailArr = [];
+            
+            if (strlen($toEmails)) {
+                
+                $toEmailRawArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(',', $toEmails);
+
+                if (count($toEmailRawArr) > 0) {
+                    foreach ($toEmailRawArr as $emailstr) {
+                        $toEmlNameArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode('|', $emailstr);
+                        $toEmailArr["$toEmlNameArr[0]"] = $toEmlNameArr[1];
+                    }
+                }
+            }
 
             //Create and send the admin notification mail:
 
-            if($formType == "membership"){
+            if ($formType == "membership"){
+                
                     $bodyPre = "<h2>General Information</h2><br/><br/>";
                     $bodyPre .= "<b>Company: {$this->frontendUser->getCompany()}</b><br>";
-                    $bodyPre .= "<b>Contact: {$this->frontendUser->getName()}</b><br>";
+                    $bodyPre .= "<b>Contact: {$this->frontendUser->getFirstName()} {$this->frontendUser->getLastName()}</b><br>";
                     $bodyPre .= "<b>Email: {$this->frontendUser->getEmail()}</b><br>";
-                    $bodyPre .= "<b>Paid By: {$this->frontendUser->getName()}</b><br><br>";
+                    $bodyPre .= "<b>Paid By: {$this->frontendUser->getFirstName()} {$this->frontendUser->getLastName()}</b><br><br>";
                     $subject = "New DFW Purchase/Renewal";
-            } elseif($formType == "newDonation"){
+                    
+            } elseif ($formType == "newDonation"){
+                
                     $bodyPre = "<h2>A new donation was received</h2><br><br>A new donation was received from ".$_POST['firstname']." ".$_POST['lastname'].". The following information was provided:<br/>";
                     $subject = "New donation has been received";
+                    
             }
+            
             $body .= "<table style=\"font-family: Arial;\"><tbody>"; 
             $body .= '<tr><th style="background-color: #ccc;">Item</th><th style="background-color: #ccc;">State</th><th style="background-color: #ccc;">Amount</th><th style="background-color: #ccc;">Renewal</th></tr>';
            
@@ -522,56 +641,58 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             foreach ($emlBodyItems as $lineItem) {
                $negate *= -1;
                $backColor = ($negate < 1)?'#ffffff':'#e6e6e6';
-               $body .= '<tr><td style=" background-color: '.$backColor.';">'.$lineItem['description'].'</td><td style=" background-color: '.$backColor.';">'.$lineItem['state'].'</td><td style=" background-color: '.$backColor.';">$'.number_format($lineItem['price'],2).'</td><td style=" background-color: '.$backColor.';">'.$lineItem['renewal'].'</td></tr>';
+               $body .= '<tr><td style=" background-color: '.$backColor.';">'.$lineItem['description'].'</td><td style=" background-color: '.$backColor.';">'.$lineItem['state'].'</td><td style=" background-color: '.$backColor.';">$'.number_format($lineItem['price'],2, '.', '').'</td><td style=" background-color: '.$backColor.';">'.$lineItem['renewal'].'</td></tr>';
             }
             
             $body .= '<tr><td colspan="2" style="font-weight:700; text-align:right">Total amount</td><td>$'.number_format((float)$calculatedPrice, 2, '.', '').'</td><td></td></tr>';  
             $body .= "</tbody></table>";  
 
             //Add price to body:
-            $body .= "<br/><strong>Total Payment: $".number_format((float)$calculatedPrice, 2, '.', '')."</strong><br/>Payment method: ".$this->selectedPaymentType."<br/>";
+            $body .= "<br/><strong>Total Payment: $".number_format((float)$calculatedPrice, 2, '.', '')."</strong><br/>Payment method: ".$this->getPayMethod()."<br/>";
 
             //Add additional information:
             $adminAdditionalBody = "";
             
-            if($this->selectedPaymentType != "creditcard"){
-                    $adminAdditionalBody .= "<br/>AWAITING PAYMENT / PAYMENT STILL NEEDS TO BE CONFIRMED.<br/>";
+            if ($this->selectedPaymentType != "creditcard"){
+                $adminAdditionalBody .= "<br/>AWAITING PAYMENT / PAYMENT STILL NEEDS TO BE CONFIRMED.<br/>";
+            } else {
+                 $adminAdditionalBody .= "<br/>PAYMENT NEEDS MANUAL FOLLOW UP.<br/>";
             }
             
             //Define recipients:
             $recipientArray = [];
             $recipientArray[0] = []; $recipientArray[0]['toEmail'] = $replyToEmail;
             
-            
             // CC emails
             $ccEmails = $this->settings['form_CcEmails'];
             $ccEmailArr = [];
             if (strlen($ccEmails)) {
+                
                 $ccEmailRawArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(',', $ccEmails);
+                
                 if (count($ccEmailRawArr) > 0) {
                     foreach ($ccEmailRawArr as $emailstr) {
                         $emlNameArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode('|', $emailstr);
-                        $ccEmailArr[] = array('email'=>$emlNameArr[0], 'name' => $emlNameArr[1]);
+                        $ccEmailArr[] = array('email'=> $emlNameArr[0], 'name' => $emlNameArr[1]);
                     }
                 }
             }
             
             //Send mail to ADMIN(s):
-            foreach($recipientArray as $recipient) {
+            $mail = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Mail\\MailMessage');
+            $mail->setFrom(array($fromEmail => $fromName));
+            $mail->setReplyTo (array($replyToEmail => $fromName));
+            $mail->setTo($toEmailArr);
 
-                $mail = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Mail\\MailMessage');
-                $mail->setFrom(array($fromEmail => $fromName));
-                $mail->setReplyTo (array($replyToEmail => $fromName));
-                $mail->setTo(array($recipient['toEmail'] => $fromName));
-                if (count($ccEmailArr) > 0) {
-                    foreach ($ccEmailArr as $ccEml) {
-                        $mail->setCc($ccEml['email'], $ccEml['name']);
-                    }
+            if (count($ccEmailArr) > 0) {
+                foreach ($ccEmailArr as $ccEml) {
+                    $mail->setCc($ccEml['email'], $ccEml['name']);
                 }
-                $mail->setSubject($subject);
-                $mail->setBody($bodyPre.$body.$adminAdditionalBody, 'text/html');
-                $mail->send();
             }
+            $mail->setSubject($subject);
+            $mail->setBody($bodyPre.$body.$adminAdditionalBody, 'text/html');
+            $mail->send();
+
            
             //Send mail to new member:
             //Add Check payment information:
@@ -591,24 +712,50 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
 
             if ($this->selectedPaymentType == "creditcard"){
                     header("Location: /index.php?id=".$this->confirmationPage);
-            }else{
+            } else {
                 //Don't forward, just show custom (plugin) thank you / confirmation page and automatically open PDF for download/printing:
                 $this->view->assign('settings', $this->settings);
                 $this->view->assign('currenPage', $GLOBALS['TSFE']->id);
                 $this->view->assign('printInvoice', 1);
                 $this->view->assign('paymentUid', $newPaymentRecord->getUid());
+                // record this as invoice record
+                
+                if (strlen($this->membershipUids) > 0) {
+                    $this->membershipUids = substr($this->membershipUids, 0, -1);
+                }
+                
+                $newInvoiceRecord = new \Netkyngs\Nkcadportal\Domain\Model\Invoice();
+                $newInvoiceRecord->setCustomfrontenduser($GLOBALS['TSFE']->fe_user->user['uid']);
+                $newInvoiceRecord->setMembership($this->membershipUids);
+                $newInvoiceRecord->setPayment($newPaymentRecord->getUid());
+                $newInvoiceRecord->setPid($this->storagePage);
+                
+                $this->invoiceRepository->add($newInvoiceRecord);
+
+                //Permantently save all database (model) changes:
+                $persistenceManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance("TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager");
+                $persistenceManager->persistAll();
+
             }
-        }		
-        //Else, check for another requested action:
-        elseif(filter_input(INPUT_GET, "action", FILTER_SANITIZE_SPECIAL_CHARS)) {
-            if(filter_input(INPUT_GET, "action", FILTER_SANITIZE_SPECIAL_CHARS) == "printinvoice"){
+            
+        } elseif(filter_input(INPUT_GET, "action", FILTER_SANITIZE_SPECIAL_CHARS)) {
+            
+            if (filter_input(INPUT_GET, "action", FILTER_SANITIZE_SPECIAL_CHARS) == "printinvoice"){
                 //Print invoice (PDF) action:
                 $paymentUid = filter_input(INPUT_GET, "paymentuid", FILTER_SANITIZE_NUMBER_INT);
                 $this->printInvoice($paymentUid);
             }
         }
     }
-	
+
+    
+    public function initializePrintAction () {
+
+        unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_membership']['ctrl']['enablecolumns']['starttime']);
+        unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_membership']['ctrl']['enablecolumns']['endtime']);
+        unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_membership']['ctrl']['enablecolumns']['hidden']);
+    }
+    
     //Function that prints an invoice based on a provided array:
     public function printInvoice($paymentUid){
 
@@ -633,7 +780,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                     'discountcodetext'   	=> $aPaymentFormArray['discountcode'] != '' ? "Discount code {$aPaymentFormArray['discountcode']}" : '',
                     'discountamount'  		=> $aPaymentFormArray['discountcode'] != '' ? "$".$this->discountcodeRepository->findByCode($aPaymentFormArray['discountcode'])->getFirst()->getDiscount() : '',
                     'donationtext'   		=> $aPaymentFormArray['donate'] != '' ? 'Donation amount' : '',
-                    'donationamount'   		=> $aPaymentFormArray['donate'] != '' ? '$'.number_format($aPaymentFormArray['donate'], "2") : '',
+                    'donationamount'   		=> $aPaymentFormArray['donate'] != '' ? '$'.number_format($aPaymentFormArray['donate'], 2, '.', '') : '',
                     'invoiceamount'		=> $aPaymentFormArray['purchasetotal'],
                     'paymenttype'		=> ($aPaymentFormArray['payment-option'] == "printinvoice" ? "Check" : "Credit card"),
             );
@@ -648,13 +795,16 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             }
 
             //Process all membership rows:		
-            for($i=1; $i <= 6; $i++){
-                    if($aPaymentFormArray["newmembership-$i"] != 0){
+            for ($i=1; $i <= 6; $i++){
+                
+                    if ($aPaymentFormArray["newmembership-$i"] != 0){
+                        
                             $oNewsletters = $this->membershipTemplateRepository->findByUid($aPaymentFormArray["newmembership-$i"])->getIncludednewsletters();
                             $aNewsletters = [];
                             foreach($oNewsletters as $oNewsletter){
-                                    $aNewsletters[] = $oNewsletter->getName();
+                                $aNewsletters[] = $oNewsletter->getName();
                             }
+                            
                             if(isset($aRenewals[$aPaymentFormArray["newmembership-$i"]])){
                                     $aFields["membershipplan_$i"] = $this->membershipTemplateRepository->findByUid($aPaymentFormArray["newmembership-$i"])->getDescription()." (RENEWAL)";
                             }
@@ -687,16 +837,12 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
          */
 	public function processCreditcardPayment($testmode, $calculatedPrice, $item_description, $formType){
             
-            if ($this->frontendUser instanceof \Netkyngs\Nkcadportal\Domain\Model\CustomFrontendUser) {
-                $fname = $this->frontendUser->getFirstName();
-                $lname = $this->frontendUser->getLastName();
-            } else {
-                $name = $_POST['paymentForm']['Card_Name'];
-                $nameArr = explode(' ',$name);
-                $fname = $nameArr[0];
-                if (count($nameArr) > 1) {
-                    $lname = $nameArr[1];
-                }
+            $name = $_POST['paymentForm']['Card_Name'];
+            $nameArr = explode(' ',$name);
+            $fname = $nameArr[0];
+            
+            if (count($nameArr) > 1) {
+                $lname = $nameArr[1];
             }
             
             $billingaddress = $_POST['paymentForm']['Address'];
@@ -721,23 +867,26 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 
                 $userEmail = $this->frontendUser->getEmail();
                 $company = $this->frontendUser->getCompany();
+                $feuser = $this->frontendUser->getUid();
                 
             } elseif($formType == "newDonation"){
                 
                 $userEmail = addSlashes($_POST['email']);
                 $company = addSlashes($_POST['company']);
+                $feuser = 't'.time();
             }
             
+            $data['feuser'] = $GLOBALS['TSFE']->fe_user->user['uid'];
             $data['customerprofile'] = $GLOBALS['TSFE']->fe_user->user['authorize_customer_profile'];
-            $data['paymentprofile'] = $GLOBALS['TSFE']->fe_user->user['authorize_payment_profile'];
             $data['fname'] = $fname;
             $data['lname'] = $lname;
+            $data['recemail'] = $userEmail;
             $data['item_description'] = $item_description;
             $data['cardno'] = $cardnumber;
             $data['cvv'] = $securitycode;
             $data['expmn'] = $cc_exp_month;
             $data['expyr'] = $cc_exp_year;
-            $data['amount'] = number_format($calculatedPrice, 2);
+            $data['amount'] = number_format($calculatedPrice, 2, '.', '');
             $data['address'] = $billingaddress;
             $data['state'] = $state;
             $data['city'] = $city;
@@ -745,29 +894,118 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             $data['email'] = $userEmail;
             $data['phone'] = $phone;
             $data['company'] = $company;
-
+            
             return $this->makeTransaction($data, $testmode);
-		
 	}
-	
-	public function getDeviceInformation(){
-		return $_SERVER['HTTP_USER_AGENT'];
+        
+        /**
+         * 
+         * @param int $feuser
+         * @param int $cusprofile
+         * @param string $cardno
+         * @param string $email
+         * @return mixed
+         */
+        protected function getStoredPayProfile($feuser, $cusprofile, $cardno, $email=NULL) {
+            
+            if (isset($feuser) && isset($cusprofile) && isset($cardno)) {
+                
+                $payProf = $this->payprofileRepository->getProfile($feuser, $cusprofile, $cardno, $email);
+                
+                if ($payProf instanceof \Netkyngs\Nkregularformstorage\Domain\Model\Paymentprofile) {
+                    return $payProf->getPayprofile();
+                }
+            }
+            
+            return false;
+        }
+        
+        /**
+         * 
+         * @param int $feuser
+         * @param int $cusprofile
+         * @param string $card
+         * @param string $email
+         * @param int $profile
+         */
+        protected function storePayProfile($feuser, $cusprofile, $card, $email, $profile) {
+           
+            $partcard = substr($card, 0, 4).'-xxxx-'. substr($card, strlen($card)-4);
+            $persistenceManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance("TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager");
+            
+            if (!is_null($profile)) {
+                
+                $payProfObj = $this->payprofileRepository->getProfileByPay($profile);
+                
+                if ($payProfObj instanceof \Netkyngs\Nkregularformstorage\Domain\Model\Paymentprofile) {
+                    
+                    $payProfObj->setEmail($email);
+                    $payProfObj->setCard($partcard);
+                    $this->payprofileRepository->update($payProfObj);
+                    $persistenceManager->persistAll();
+                    
+                } else {
+                     
+                    $payProfile = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance("Netkyngs\\Nkregularformstorage\\Domain\\Model\\Paymentprofile");
+                    $payProfile->setFeuser($feuser);
+                    $payProfile->setCusprofile($cusprofile);
+                    $payProfile->setEmail($email);
+                    $payProfile->setCard($partcard);
+                    $payProfile->setPayprofile($profile);
+                    $payProfile->setPid($this->settings['paymentPID']);
+
+                    $this->payprofileRepository->add($payProfile);
+                    $persistenceManager->persistAll();
+                }
+                 
+            } else {
+                
+                $chkPayProf = $this->getStoredPayProfile($feuser, $cusprofile, $card, $email);
+                
+                if (!$chkPayProf) {
+                    
+                    $doubleChkProf = $this->payprofileRepository->getProfileByPay($profile);
+                    
+                    if (!$doubleChkProf instanceof \Netkyngs\Nkregularformstorage\Domain\Model\Paymentprofile) {
+                        
+                        $payProfile = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance("Netkyngs\\Nkregularformstorage\\Domain\\Model\\Paymentprofile");
+                        $payProfile->setFeuser($feuser);
+                        $payProfile->setCusprofile($cusprofile);
+                        $payProfile->setEmail($email);
+                        $payProfile->setCard(md5($card));
+                        $payProfile->setPayprofile($profile);
+                        $payProfile->setPid($this->settings['paymentPID']);
+
+                        $this->payprofileRepository->add($payProfile);
+                        $persistenceManager->persistAll();
+                    }
+                }
+            }
+        }
+
+        public function getDeviceInformation(){
+            return $_SERVER['HTTP_USER_AGENT'];
 	}
 	
         /**
          * Add memberships
          */
-	public function enableNewMemberships(){
+	public function enableNewMemberships($hidden=0){
 
-            foreach($this->aNewPaidMemberships as $aMembershipTemplate){
+            foreach ($this->aNewPaidMemberships as $aMembershipTemplate) {
                 //Get the current date and time object:
                 $currentDateTimeObject = $this->getDatetimeObjectNow();
                 //Distinguish DOT type (12 months membership duration) from DFT type (11 months membership duration):
-                if ($aMembershipTemplate['type'] == "DOT"){
+                if ($aMembershipTemplate['type'] == "DOT") {
                         $expirationDateTimeObject = $this->getDatetimeObjectNow()->modify('+12 months');
-                }
-                else{
+                } else {
+                    if ($aMembershipTemplate['term'] > 1) {
+                        $cmonths = (intval($aMembershipTemplate['term']) - 1)*12 + 11;
+                        $expirationDateTimeObject = $this->getDatetimeObjectNow()->modify("+$cmonths months");
+                        
+                    } else {
                         $expirationDateTimeObject = $this->getDatetimeObjectNow()->modify('+11 months');
+                    }
                 }
                 //Get the actual membershipTemplate record:
                 $oMembershipTemplateRecord = $this->membershipTemplateRepository->findByUid($aMembershipTemplate['uid']);
@@ -793,22 +1031,35 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                             $newMembership->setPrice($oMembershipTemplateRecord->getPrice());
                             $newMembership->setTerm($oMembershipTemplateRecord->getTerm());
                             $newMembership->setMembershiptype($oMembershipTemplateRecord->getMembershiptype());
+                            $newMembership->setHidden($hidden);
+                            
                             /*
                              * Check if expired
                              */
-                            if ($interval->format("%R%d") == '-') { 
+                            if ($interval->format("%R") == '-') { 
                                 // Add new subscription from today
+                                $renExpDate = clone $currentDateTimeObject;
+                                $renExmonths = (intval($renewalMembership->getTerm()) - 1)*12 + 11;
+                                $renExpDate->add(new \DateInterval("P".$renExmonths."M"));
                                 $newMembership->setStarttimecustom($currentDateTimeObject);
-                                $newMembership->setEndtimecustom($expirationDateTimeObject);
-
+                                $newMembership->setEndtimecustom($renExpDate);
                             } else {
                                 $newMembership->setStarttimecustom($expiryDate);
                                 $cpExpDate = clone $expiryDate;
                                 //Start date will be a day after the expiry date
                                 if ($aMembershipTemplate['type'] == "DOT"){
+                                    
                                    $cpExpDate->add(new \DateInterval('P12M'));
-                                } else{
-                                   $cpExpDate->add(new \DateInterval('P11M'));
+                                   
+                                } else {
+                                    
+                                    if ($aMembershipTemplate['term'] > 1) {
+                                        $c2months = (intval($aMembershipTemplate['term']) - 1)*12 + 11;
+                                        $cpExpDate->add(new \DateInterval("P".$c2months."M"));
+
+                                    } else {
+                                        $cpExpDate->add(new \DateInterval('P11M'));
+                                    }
                                 }
                                 $newMembership->setEndtimecustom($cpExpDate);
                             }
@@ -816,13 +1067,24 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                             $newMembership->setPid($this->settings['membersPID']);
                             $this->frontendUser->addMembership($newMembership);
                             $this->frontendUserRepository->update($this->frontendUser);
+                            //Permantently save all database (model) changes:
+                            $persistenceManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance("TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager");
+                            $persistenceManager->persistAll();
+                            $this->membershipUids .= $newMembership->getUid().',';
                         }
                         
                 } else {
                         //New
                         $newMembership = new \Netkyngs\Nkcadportal\Domain\Model\Membership();
                         $newMembership->setMembershiptemplate($oMembershipTemplateRecord);
-                        $newMembership->setState($this->stateRepository->findByUid($aMembershipTemplate['stateUid']));
+                        
+                        if (isset($aMembershipTemplate['stateUid'])) {
+                            if (intval($aMembershipTemplate['stateUid']) > 0) {
+                                $mmState = $this->stateRepository->findByUid(intval($aMembershipTemplate['stateUid']));
+                                $newMembership->setState($mmState);
+                            }
+                        }
+                        
                         $newMembership->setMtitle($oMembershipTemplateRecord->getDescription());
                         $newMembership->setPrice($oMembershipTemplateRecord->getPrice());
                         $newMembership->setTerm($oMembershipTemplateRecord->getTerm());
@@ -830,13 +1092,16 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                         $newMembership->setStarttimecustom($currentDateTimeObject);
                         $newMembership->setEndtimecustom($expirationDateTimeObject);
                         $newMembership->setPid($this->settings['membersPID']);
+                        $newMembership->setHidden($hidden);
+                        
                         $this->frontendUser->addMembership($newMembership);
+                       
                         $this->frontendUserRepository->update($this->frontendUser);
+                        //Permantently save all database (model) changes:
+                        $persistenceManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance("TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager");
+                        $persistenceManager->persistAll();
+                        $this->membershipUids .= $newMembership->getUid().',';
                 }
-
-                //Permantently save all database (model) changes:
-                $persistenceManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance("TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager");
-                $persistenceManager->persistAll();
             }
 	}
 	
@@ -858,9 +1123,11 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
          */
         protected function startTransaction()
         {
-            // echo $this->settings['APILogin'].'|||'. $this->settings['APITrxKey'];
             $this->payutil = new \ARM\Armauthorize\Util\AuthorizeUtil($this->settings['APILogin'], $this->settings['APITrxKey']);
             $this->payutil->initializeMerchant();
+            if ($this->settings['livemode'] == "1")  {
+                $this->payutil->makeLive();
+            }
         }
 
 
@@ -868,16 +1135,10 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
          * 
          * @param array $data
          * @param bool $testmode
-         * @param bool $profiletrn Description
          * @return string
          */
-        protected function makeTransaction($data, $testmode=true, $profiletrn=false)
+        protected function makeTransaction($data, $testmode=true)
         {
-            
-            if ($testmode==FALSE && $this->setting['livemode'] == "1") {
-                $this->payutil->makeLive();
-            }
-            
             $feuser = $data['feuser'];
             $cust_id = substr(md5($feuser), 0, 16);
             $calculatedPrice = $data['amount'];
@@ -893,30 +1154,201 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
             $city = $data['city'];
             $cardnumber = $data['cardno'];
             $securitycode = $data['cvv'];
-            $userEmail = $data['email'];
+            $userEmail = $data['recemail'];
+            $billEmail = $data['email'];
             $company = trim($data['company']);
             $item_description = $data['item_description'];
             
-            $this->payutil->addCreditCard($cardnumber, $cc_expiry, $securitycode);
-            $this->payutil->createOrder('INV-'.date("ymdHis"), $item_description);
-            $this->payutil->createBilling($userEmail, $fname, $lname, $phone, $company, $billingaddress, $city, $state, $zip);
-            $this->payutil->createCustomer($cust_id, $email);
+            //log the transaction
+            $partcard = substr($cardnumber, 0, 4).'-xxxx-'. substr($cardnumber, strlen($cardnumber)-4);
+            $logForm = $partcard.'|';
+            
+            foreach($data as $fld=>$vfld) {
+                if ($fld != 'cvv' & $fld != 'cardno') {
+                    $logForm .= $vfld.'|';
+                }
+            }
+            $logObj = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance("Netkyngs\\Nkregularformstorage\\Domain\\Model\\Log");
+            $logObj->setAmount($calculatedPrice);
+            $logObj->setCardno($partcard);
+            $logObj->setFeuser($feuser);
+            $logObj->setForm($logForm);
+            $logObj->setPid($this->settings['paymentPID']);
+            $this->logRepository->add($logObj);
+            
+            
+            if ($data['customerprofile'] != '') {
+                
+               //try to get this profile
+               $res = $this->payutil->getCustomerProfile($userEmail, $data['customerprofile']);
+               if ($res->getMessages()->getResultCode() == 'Ok') {
+                   
+                   if ($data['paymentprofile'] != '') {
+                       
+                       $payprofileid = $data['paymentprofile'];
+                   } else {
+                        /**
+                         * Check whether there is an entry with this card number
+                         */
+                        $payprofileid = $this->getStoredPayProfile($data['feuser'], $data['customerprofile'], $cardnumber, $billEmail);
+            
+                   }
+                    if ($payprofileid != FALSE) {
+                        
+                        $this->payutil->createOrder('INV-'.date("ymdHis"), $item_description);
+                        $trxnRes = $this->payutil->chargeCustomerProfile($data['customerprofile'], $payprofileid, $calculatedPrice);
+                        
+                    } else {
 
-            if ($profiletrn) {
-                //old customer
-                $this->payutil->makeTransaction($calculatedPrice, 'authCaptureTransaction', $data['customerprofile'], $data['paymentprofile']);
+                         $matchFound = FALSE;
+                        //check whether this customer has payment profiles
+                        $payProfiles = $res->getProfile()->getPaymentProfiles();
+                        
+                        if (is_array($payProfiles)) {
+                            
+                            if (count($payProfiles) > 0) {
+
+                                foreach ($payProfiles as $profObj) {
+
+                                    $lpPayProfId = $profObj->getCustomerPaymentProfileId();
+                                    $lpPayObj = $profObj->getPayment();
+                                    $creditCard = $lpPayObj->getCreditCard();
+                                    $maskedCreditCardNo = $creditCard->getCardNumber();
+
+                                    $match = $this->matchCreditCard($cardnumber,$maskedCreditCardNo);
+
+                                    if ($match) {
+                                        $matchFound = TRUE;
+                                        $this->storePayProfile($data['feuser'], $data['customerprofile'], $cardnumber, $billEmail, $lpPayProfId);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (!$matchFound) {
+                            
+                            $this->payutil->addCreditCard($cardnumber, $cc_expiry, $securitycode);
+                            $this->payutil->createBilling($userEmail, $fname, $lname, $phone, $company, $billingaddress, $city, $state, $zip);
+                            $this->payutil->createPaymentProfile();
+
+                            $resProf = $this->payutil->createPaymentProfileToCustomer($data['customerprofile']);
+
+                            if ($resProf->getMessages()->getResultCode() == 'Ok') {
+
+                                $paymentProfileId   = $resProf->getCustomerPaymentProfileId();
+
+                                //store this payment profile
+                                $this->storePayProfile($data['feuser'], $data['customerprofile'], $cardnumber, $billEmail, $paymentProfileId);
+
+                                $this->payutil->createOrder('INV-'.date("ymdHis"), $item_description);
+                                $trxnRes = $this->payutil->chargeCustomerProfile($data['customerprofile'], $paymentProfileId, $calculatedPrice);
+                                
+                            } else {
+                                
+                                $errorMessages = $resProf->getMessages()->getMessage();
+                                echo __LINE__.": ERROR - " . $errorMessages[0]->getCode() . "  " .$errorMessages[0]->getText() . "<br>";
+                            }
+                        } else {
+                            //continue payment with the profile found
+                            $this->payutil->createOrder('INV-'.date("ymdHis"), $item_description);
+                            $trxnRes = $this->payutil->chargeCustomerProfile($data['customerprofile'], $lpPayProfId, $calculatedPrice);
+                        }
+                    }
+            
+                } else {
+                    
+                   //create profile & transact
+                    $this->payutil->addCreditCard($cardnumber, $cc_expiry, $securitycode);
+                    $this->payutil->createBilling($billEmail, $fname, $lname, $phone, $company, $billingaddress, $city, $state, $zip);
+                    $this->payutil->createPaymentProfile();
+                    $this->payutil->createCustomerProfileType($userEmail, $company, $cust_id);
+                    $res = $this->payutil->createProfileTransRequest();
+                    
+                    if ($res->getMessages()->getResultCode() == 'Ok') {
+
+                        $cusProfArr = $this->payutil->processProfileCreateResponse($res);
+
+                        if ($cusProfArr['status']) {
+                            //update the record
+                            $authCustId = $cusProfArr['customerProfileId'];
+                            $authPayId = $cusProfArr['paymentProfileId'];
+                            
+                            $this->storePayProfile($data['feuser'], $authCustId, $cardnumber, $billEmail, $authPayId);
+
+                            $this->updateMemberAuthCustomerProfile($feuser, $authCustId);
+                            $this->payutil->createOrder('INV-'.date("ymdHis"), $item_description);
+                            $trxnRes = $this->payutil->chargeCustomerProfile($authCustId, $authPayId, $calculatedPrice);
+                        }
+                        
+                    } else {
+                        $errorMessages = $res->getMessages()->getMessage();
+                        echo __LINE__.": ERROR - " . $errorMessages[0]->getCode() . "  " .$errorMessages[0]->getText() . "<br>";
+                    }
+                }
                 
             } else {
                 
-                $this->payutil->makeTransaction($calculatedPrice, 'authCaptureTransaction');
-            }
-            
-            $processRet = $this->payutil->processResponse();
-            
-            return $processRet;
+                //create profile & transact
+                $this->payutil->addCreditCard($cardnumber, $cc_expiry, $securitycode);
+                $this->payutil->createBilling($billEmail, $fname, $lname, $phone, $company, $billingaddress, $city, $state, $zip);
+                $this->payutil->createPaymentProfile();
+                $this->payutil->createCustomerProfileType($userEmail, $company, $cust_id);
+                $res = $this->payutil->createProfileTransRequest();
+                
+                if (is_object($res)) {
+                    
+                    if ($res->getMessages()->getResultCode() == 'Ok') {
 
+                        $cusProfArr = $this->payutil->processProfileCreateResponse($res);
+
+                        if ($cusProfArr['status']) {
+                            //update the record
+                            $authCustId = $cusProfArr['customerProfileId'];
+                            $authPayId = $cusProfArr['paymentProfileId'];
+
+                            $this->updateMemberAuthCustomerProfile($feuser, $authCustId);
+                            $this->payutil->createOrder('INV-'.date("ymdHis"), $item_description);
+                            $trxnRes = $this->payutil->chargeCustomerProfile($authCustId, $authPayId, $calculatedPrice);
+
+                        } else {
+                            echo __LINE__.": ERROR - Profile creation<br>";
+                        }
+
+                    } else {
+
+                        $errorMessages = $res->getMessages()->getMessage();
+                        echo __LINE__.": ERROR - " . $errorMessages[0]->getCode() . "  " .$errorMessages[0]->getText() . "<br>";
+                    }
+                }
+            }
+
+            $processRet = $this->payutil->processResponse();
+
+            return $processRet;
         }
 
+        /**
+         * 
+         * @param string $cardno
+         * @param string $maskcard
+         * @return  bool Description
+         */
+        protected function matchCreditCard($cardno, $maskcard) {
+            
+            $cardLastFour = substr($cardno, strlen($cardno)-4);
+            $maskLastFour = substr($maskcard, strlen($maskcard)-4);
+            return ($cardLastFour == $maskLastFour)? TRUE : FALSE;
+        }
+        
+        
+        public function initializeTxnlistAction () {
+
+           unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_membership']['ctrl']['enablecolumns']['starttime']);
+           unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_membership']['ctrl']['enablecolumns']['endtime']);
+           unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_membership']['ctrl']['enablecolumns']['hidden']);
+        }
+        
         /**
          * List all the payments in BE
          */
@@ -924,6 +1356,7 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
         {
             $payments = $this->formresultRepository->findAll();
             $this->view->assign('payments', $payments);
+            $this->view->assign('paypaging', $this->pagingStr(count($payments)));
             
         }
         
@@ -934,32 +1367,98 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
           
         }
         
+        public function fetchdetailAction() {
+            
+            $msg = '';
+
+            $arguments = $this->request->getArguments();
+            
+            if (trim($arguments['username']) == '' && isset($arguments['username'])) {
+                
+                $msg .= "Please enter Login ID\n";
+                $this->addFlashMessage($msg,'Validation Error', 
+                        \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR, FALSE);
+                $this->forward('chargecard');
+                
+            } else {
+                
+                 $users = $this->frontendUserRepository->findByUsername($arguments['username']);
+                
+                if ($users->count() > 0) {
+                    
+                    $user = $users->getFirst(); 
+                    
+                    if ($user instanceof \Netkyngs\Nkcadportal\Domain\Model\CustomFrontendUser) {
+                        //check the payment profiles
+                        $payprofiles = $this->payprofileRepository->findByFeuser ($user);
+                        
+                        $this->view->assign('payprofiles', $payprofiles);
+                        $this->view->assign('feuser', $user);
+                    }
+                    
+                } else {
+                    $msg .= "Username cannot be located!\n";
+                    $this->addFlashMessage($msg,'Validation Error', 
+                            \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR, FALSE);
+                    $this->forward('chargecard');
+                }
+                
+            }
+        }
+        
         /**
          * BE processing to charge credit card
          */
         public function capturepayAction() {
-            
+             
             //Validate the form
             $msg = '';
 
             $arguments = $this->request->getArguments();
             if (trim($arguments['name']) == '' && isset($arguments['name'])) {
-                $msg .= "Please enter Name on Card\n";
+                $msg .= "Please enter Name on card\n";
+            }
+            if (trim($arguments['email']) == '' && isset($arguments['email'])) {
+                $msg .= "Please enter email address (credit card)\n";
             }
             if (trim($arguments['amount']) == '' && isset($arguments['amount'])) {
-                $msg .= "Please enter Amount\n";
+                $msg .= "Please enter amount\n";
+            }
+            if (trim($arguments['phone']) == '' && isset($arguments['phone'])) {
+                $msg .= "Please enter phone number (credit card account)\n";
+            }
+            if (trim($arguments['address']) == '' && isset($arguments['address'])) {
+                $msg .= "Please enter billing address (credit card account)\n";
+            }
+            if (trim($arguments['city']) == '' && isset($arguments['city'])) {
+                $msg .= "Please enter city (credit card account)\n";
+            }
+            if (trim($arguments['state']) == '' && isset($arguments['state'])) {
+                $msg .= "Please enter state (credit card account)\n";
+            }
+            if (trim($arguments['zip']) == '' && isset($arguments['zip'])) {
+                $msg .= "Please enter zip (credit card account)\n";
             }
             if (trim($arguments['cardno']) == '' && isset($arguments['cardno'])) {
-                $msg .= "Please enter Credit Card number\n";
+                $msg .= "Please enter credit card number\n";
             }
+            if (trim($arguments['expmn']) == '' && isset($arguments['expmn'])) {
+                $msg .= "Please enter month of expiry\n";
+            }
+            if (trim($arguments['expyr']) == '' && isset($arguments['expyr'])) {
+                $msg .= "Please enter year of expiry\n";
+            }
+            /*
             if (trim($arguments['expdate']) == '' && isset($arguments['expdate'])) {
                 $msg .= "Please enter Card Expiry date\n";
                 
             } else {
                 
+               
+                
                 $dtArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode('/', $arguments['expdate']);
                 
-                if(count($dtArr) != 2) {
+                if (count($dtArr) != 2) {
                      $msg .= "Please enter Card Expiry date in MM/YYYY format\n";
                 } else {
                     $cc_exp_month = $dtArr[0];
@@ -973,6 +1472,8 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                     }
                 }
             }
+             * 
+             */
             if (trim($arguments['code']) == '' && isset($arguments['code'])) {
                 $msg .= "Please enter Card security code (CVV)\n";
             }
@@ -989,109 +1490,110 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
                 unset($formData['cardno']);
                 unset($formData['code']);
                 unset($formData['btnsub']);
-                unset($formData['expdate']);
+                unset($formData['expmn']);
+                unset($formData['expyr']);
                 
                 foreach($formData as $elem=>$val) {
                     $form .= $elem .": ".$val."\n";
                 }
                 
                 //Get the userid by email
-                $users = $this->frontendUserRepository->findByEmail($arguments['email']);
+                $user = $this->frontendUserRepository->findByUid($arguments['fuid']);
                 
-                if ($users->count() > 0) {
+                if ($user instanceof \Netkyngs\Nkcadportal\Domain\Model\CustomFrontendUser) {
+
+                    $nameArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(' ', $arguments['name']);
+
+                    $data['feuser'] = $user->getUid();
+                    $data['fname'] = $nameArr[0];
+                    $data['lname'] = (isset($nameArr[1])?$nameArr[1]:'');
+                    $data['company'] = $arguments['company'];
+                    $data['cardno'] = $arguments['cardno'];
+                    $data['cvv'] = $arguments['code'];
+                    $data['expmn'] = $arguments['expmn'];
+                    $data['expyr'] = $arguments['expyr'];
+                    $data['amount'] = $arguments['amount'];
+                    $data['address'] = $arguments['address'];
+                    $data['city'] = $arguments['city'];
+                    $data['phone'] = $arguments['phone'];
+                    $data['zip'] = $arguments['zip'];
+                    $data['state'] = $arguments['state'];
+                    $data['email'] = $arguments['email'];
+                    $data['recemail'] = $user->getEmail();
+                    $data['item_description'] = $arguments['description'];
                     
-                    $user = $users->getFirst(); 
+                    if ($arguments['pprof'] == 'new') {
                     
-                    if ($user instanceof \Netkyngs\Nkcadportal\Domain\Model\CustomFrontendUser) {
-            
-                        $data['feuser'] = $user->getUid();
-                        $data['fname'] = $user->getFirstName();
-                        $data['lname'] = $user->getLastName();
-                        $data['company'] = $arguments['company'];
-                        $data['cardno'] = $arguments['cardno'];
-                        $data['cvv'] = $arguments['code'];
-                        $data['expmn'] = $cc_exp_month;
-                        $data['expyr'] = $cc_exp_year;
-                        $data['amount'] = $arguments['amount'];
-                        $data['address'] = $arguments['address'];
-                        $data['city'] = $arguments['city'];
-                        $data['phone'] = $arguments['phone'];
-                        $data['zip'] = $arguments['zip'];
-                        $data['state'] = $arguments['state'];
-                        $data['email'] = $arguments['email'];
-                        $data['item_description'] = $arguments['description'];
-                        
-                        if ($arguments['name'] == "Testmode123"){
-                            $testmode = true;
-                        }
+                        $authProfile = $this->getAuthProfile($data['feuser']);
 
-                        $this->startTransaction();
-                        $this->payutil->createLineItem('adm'.$user->getUid(), substr($data['item_description'],0,30), number_format($data['amount'], 2), substr($data['item_description'],0,255));
-                        
-                        $responseArr = $this->makeTransaction($data, $testmode);
-
-                        if ($responseArr['status'] == TRUE) {
-                            
-                            $cusProfRes = $this->payutil->createCustomerProfileFromTransaction($responseArr['trnId'], $data['email'], $data['company'], substr(md5($data['feuser']), 0, 16));
-                            $profileResponseArr = $this->payutil->processProfileCreateResponse($cusProfRes);
-
-                            if ($profileResponseArr['status'] == TRUE) {
-                                //update user
-                                $this->updateMemberAuthCustomerProfile($data['feuser'],$profileResponseArr['customerProfileId'],$profileResponseArr['paymentProfileId']);                       
-                            }
+                        if ($authProfile > 0) {
+                            $data['customerprofile'] = $authProfile;
                         }
                         
-                        if ($responseArr['status'] == TRUE){
-                            //Sale approved..
-                            $pstatus = 1;
-                            //$trxID = date('Y')."00".$this->formresultRepository->findAll()->count();
-                            $trxID = $responseArr['trnId'];
-                            $this->addFlashMessage('Credit card payment successful','Transaction', 
-                            \TYPO3\CMS\Core\Messaging\AbstractMessage::OK, FALSE);
-
-                        } else {
-                            //Sale declined, redirect back to form..
-                            $pstatus = -1;
-                            $this->addFlashMessage($responseArr['error'],'Transaction', 
-                            \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR, FALSE);
-                        }
-
-                         //Add a new formresult record:
-                        $newPaymentRecord = new \Netkyngs\Nkregularformstorage\Domain\Model\Formresult();
-                        $newPaymentRecord->setName($user->getCompany()." ".$data['fname'].' '.$data['lname']);
-                        $newPaymentRecord->setEmail($data['email']);
-                        $newPaymentRecord->setTrxid($trxID);
-                        $newPaymentRecord->setCardno($data['cardno']);
-                        $newPaymentRecord->setInvoiceid($trxID);
-                        $newPaymentRecord->setTrxamount(number_format((float)$data['amount'], 2, '.', ''));
-                        $newPaymentRecord->setPstatus($pstatus);
-                        $newPaymentRecord->setPtype(0);
-                        $newPaymentRecord->setDescription($arguments['description']);
-                        $newPaymentRecord->setForm($form);
-                        $newPaymentRecord->setFormserialized(serialize($form));
-                        $newPaymentRecord->setCustomtstamp(time());
-                        $newPaymentRecord->setFeuseruid($user->getUid());
-                        $newPaymentRecord->setPid($this->storagePage);
-
-                        $this->formresultRepository->add($newPaymentRecord);
-                        
-                        $this->addFlashMessage('Card successfuly charged','Transaction Status', 
-                        \TYPO3\CMS\Core\Messaging\AbstractMessage::OK, FALSE);
-                        
-                        $this->redirect('txnlist');
-                    
                     } else {
-                        $this->addFlashMessage('Member data could be determined','Validation Error', 
-                        \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR, FALSE);
-                        $this->forward('chargecard');
+                        
+                        $payprofObj = $this->payprofileRepository->findByUid($arguments['pprof']);
+                        
+                        if ($payprofObj instanceof \Netkyngs\Nkregularformstorage\Domain\Model\Paymentprofile) {
+                            $data['customerprofile'] = $payprofObj->getCusprofile();
+                            $data['paymentprofile'] = $payprofObj->getPayprofile();
+                        }
                     }
-                
-                } else {
-                     $this->addFlashMessage('User could be detected with email provided','Validation Error', 
+                    
+                    if ($arguments['name'] == "Testmode123"){
+                        $testmode = true;
+                    }
+
+                    $this->startTransaction();
+                    //$this->payutil->createLineItem('adm'.$user->getUid(), substr($data['item_description'],0,30), number_format($data['amount'], 2), '');
+
+                    $responseArr = $this->makeTransaction($data, $testmode);
+
+                    if ($responseArr['status'] == TRUE) {
+                        //Sale approved..
+                        $pstatus = 1;
+                        //$trxID = date('Y')."00".$this->formresultRepository->findAll()->count();
+                        $trxID = $responseArr['trnId'];
+                        $this->addFlashMessage('Credit card payment successful','Transaction', 
+                        \TYPO3\CMS\Core\Messaging\AbstractMessage::OK, FALSE);
+
+                    } else {
+                        //Sale declined, redirect back to form..
+                        $pstatus = 2;
+                        $this->addFlashMessage($responseArr['error'],'Transaction', 
                         \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR, FALSE);
-                        $this->forward('chargecard');
+                    }
+
+                    $cardno = substr($data['cardno'], 0,4).'xxxxxxxx'.substr($data['cardno'], -4);
+                     //Add a new formresult record:
+                    $newPaymentRecord = new \Netkyngs\Nkregularformstorage\Domain\Model\Formresult();
+                    $newPaymentRecord->setName($data['fname'].' '.$data['lname']);
+                    $newPaymentRecord->setEmail($data['email']);
+                    $newPaymentRecord->setTrxid($trxID);
+                    $newPaymentRecord->setCardno($cardno);
+                    $newPaymentRecord->setInvoiceid($trxID);
+                    $newPaymentRecord->setTrxamount(number_format((float)$data['amount'], 2, '.', ''));
+                    $newPaymentRecord->setPstatus($pstatus);
+                    $newPaymentRecord->setPtype(0);
+                    $newPaymentRecord->setDescription($arguments['description']);
+                    $newPaymentRecord->setForm($form);
+                    $newPaymentRecord->setFormserialized(serialize($form));
+                    $newPaymentRecord->setCustomtstamp(time());
+                    $newPaymentRecord->setFeuseruid($user->getUid());
+                    $newPaymentRecord->setPid($this->storagePage);
+
+                    $this->formresultRepository->add($newPaymentRecord);
+
+                    $this->addFlashMessage('Card successfuly charged','Transaction Status', 
+                    \TYPO3\CMS\Core\Messaging\AbstractMessage::OK, FALSE);
+
+                    $this->redirect('txnlist');
+
+                } else {
+                    $this->addFlashMessage('Member data could not be determined','Validation Error', 
+                    \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR, FALSE);
+                    $this->forward('chargecard');
                 }
-               
             }
         }
         
@@ -1099,15 +1601,13 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
          * 
          * @param int $feuser
          * @param string $customerProfile
-         * @param string $payProfile
          */
-        protected function updateMemberAuthCustomerProfile($feuser, $customerProfile, $payProfile) {
+        protected function updateMemberAuthCustomerProfile($feuser, $customerProfile) {
             
             $feuserObj = $this->storageFeuserRepository->findByUid($feuser);
             
             if ($feuserObj instanceof \Netkyngs\Nkregularformstorage\Domain\Model\CustomFrontendUser) {
                 $feuserObj->setAuthorizeCustomerProfile($customerProfile);
-                $feuserObj->setAuthorizePaymentProfile($payProfile);
                 
                 $this->storageFeuserRepository->update($feuserObj);
                 $persistenceManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance("TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager");
@@ -1121,8 +1621,494 @@ class FormresultController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionContr
          * @return  string
          */
         protected function getState($uid) {
+            
             $state = $this->stateRepository->findByUid($uid);
-            return $state->getStateshort();
+            
+            if ($state instanceof \Netkyngs\Nkcadportal\Domain\Model\State) {
+                return $state->getStateshort();
+            } else {
+                return '--';
+            }
+        }
+        
+        /**
+         * 
+         * @param int $count
+         * @param int $act
+         */
+        protected function pagingStr($count, $act = 1) {
+           $i = 1;
+           $ret = '';
+           if (intval($count) > $this->limit) {
+               $pageNo = ceil($count/$this->limit);
+                while ($i <= $pageNo) {
+                   $ret .= '<a class="nkpg'. ($i==$act?" act":"") .'" href="javascript:void(0);" onclick="_getPayPage('. ($i-1) .');" data-num="'. ($i-1) .'">'.$i++.'</a>';
+               }
+           }
+
+           return $ret;
+        }
+        
+        /**
+         * 
+         * @param \Psr\Http\Message\ServerRequestInterface $request
+         * @param \Psr\Http\Message\ResponseInterface $response
+         */
+        public function getPaymentAction(\Psr\Http\Message\ServerRequestInterface $request,
+            \Psr\Http\Message\ResponseInterface $response) {
+            
+            $params = $request->getParsedBody();
+        
+            $pageNo = GeneralUtility::_GP('pageNo');
+            $pageStart = ($pageNo > 0)?($pageNo * $this->limit + 1):0;
+
+            $option = GeneralUtility::_GP('option');
+
+            $local = 'tx_nkregularformstorage_domain_model_formresult';
+
+
+            $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($local);
+            $queryBuilderCnt = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($local);
+            
+            $expr = $queryBuilder->expr();
+            $exprCnt = $queryBuilderCnt->expr();
+            
+            $andCond = $queryBuilder->expr()->andx();
+            $andCondCnt = $queryBuilderCnt->expr()->andx();
+            
+            $andCond->add($expr->eq('local.deleted', 0));
+            $andCondCnt->add($expr->eq('local.deleted', 0));
+            
+            switch ($option) {
+            
+                case 'creditcard': 
+                    $andCond->add($expr->eq('local.ptype', 0));
+                    $andCondCnt->add($exprCnt->eq('local.ptype', 0));
+                    break;
+                
+                case 'invoice': 
+                    $andCond->add($expr->eq('local.ptype', 1));
+                    $andCondCnt->add($exprCnt->eq('local.ptype', 1));
+                    break;
+                
+                case 'paid': 
+                    $andCond->add($expr->eq('local.pstatus', 1));
+                    $andCondCnt->add($exprCnt->eq('local.pstatus', 1));
+                    break;
+                
+                case 'pending': 
+                    $andCond->add($expr->eq('local.pstatus', 0));
+                    $andCondCnt->add($exprCnt->eq('local.pstatus', 0));
+                    break;
+                
+                case 'failed': 
+                    $andCond->add($expr->eq('local.pstatus', 2));
+                    $andCondCnt->add($exprCnt->eq('local.pstatus', 2));
+                    break;
+                
+                default:
+            }
+            
+            $queryBuilder->select('local.*')
+                         ->from($local, 'local')
+                         ->andWhere($andCond);
+                
+            $queryBuilderCnt->count('local.uid')
+                        ->from($local, 'local')
+                        ->andWhere($andCondCnt);
+                
+            $rows = $queryBuilder->orderBy('local.uid', 'DESC')
+                        ->setFirstResult($pageStart)
+                            ->setMaxResults($this->limit)
+                            ->execute()
+                            ->fetchAll();
+            $rows = array_map("unserialize", array_unique(array_map("serialize", $rows)));
+            $count = $queryBuilderCnt->execute()->fetchColumn(0);
+            
+            $payHtml = '';
+        
+                if (count($rows) > 0) {
+
+                    foreach ($rows as $data) {
+
+                        $payHtml .= '<tr data-row-id="'.$data['uid'].'" class="data">'
+                                .'<td>'.$this->getPayEditUrl($data['uid']).'<i class="fa fa-dollar"></i></a></td>'
+                                .'<td>'.$this->getPayEditUrl($data['uid']).' '.$data['uid'].'</a></td>'
+                                .'<td>'.$this->getPayEditUrl($data['uid']).' '.$data['trxid'].'</a></td>'
+                                .'<td>'.date('m/d/Y H:i a', $data['customtstamp']) .'</td>'
+                                .'<td>'. (($data['ptype'] == 1) ? 'Invoice': 'Credit Card').'</td>';
+                                if ($data['pstatus'] == 2) {
+                                     $payHtml .= '<td>ERROR</td>';
+                                } elseif ($data['pstatus'] == 1) {
+                                    $payHtml .= '<td>OK</td>';
+                                } else {
+                                    $payHtml .= '<td>Pending</td>';
+                                }
+                        $payHtml .= '<td>'.$data['trxamount'].'</td>'
+                                .'<td>'.$data['description'].'</td>'
+                                .'<td>'.$data['invoiceid'].'</td>'
+                                .'<td>'.$data['cardno'].'</td>'
+                                .'<td>'.$data['name'].'</td>'
+                                .'<td><a href="javascript:void(0);" onclick="_printInv('.$data['uid'].')"><i class="fa fa-download"></i></a></td>'
+                                . '</tr>';
+                    }
+
+                }
+
+                $arr['payments'] = $payHtml;
+                $arr['paging'] = $this->pagingStr($count, $pageNo+1);
+
+                $json = $this->array2Json($arr);
+                $response->getBody()->write($json);
+
+                $response->withHeader('Cache-Control', 'no-cache, must-revalidate');
+                $response->withHeader('Content-Type', 'application/json;charset=utf-8');
+
+                //echo $json;
+
+                return $response;
+        }
+        
+        /**
+         * 
+         * @param int $uid
+         * @return string
+         */
+        protected function getPayEditUrl($uid)
+        {
+           $editPayUrl = BackendUtility::getModuleUrl('record_edit', array('edit[tx_nkregularformstorage_domain_model_formresult][' . $uid . ']' => 'edit', 'returnUrl' => BackendUtility::getModuleUrl('web_NkregularformstorageNkregularformstoragebe')));
+
+           return '<a href="'.$editPayUrl.'">';
+        }
+        
+        public function initializePrintInvoiceBeAction () {
+
+           unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_newslettertype']['ctrl']['enablecolumns']['starttime']);
+           unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_newslettertype']['ctrl']['enablecolumns']['endtime']);
+           unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_membershiptemplate']['ctrl']['enablecolumns']['starttime']);
+           unset($GLOBALS['TCA']['tx_nkcadportal_domain_model_membershiptemplate']['ctrl']['enablecolumns']['endtime']);
+
+        }
+        
+        
+        /**
+         * 
+         * @param \Psr\Http\Message\ServerRequestInterface $request
+         * @param \Psr\Http\Message\ResponseInterface $response
+         */
+        public function printInvoiceBeAction(\Psr\Http\Message\ServerRequestInterface $request,
+            \Psr\Http\Message\ResponseInterface $response) {
+            
+            $params = $request->getParsedBody();
+            $payUid = (int)GeneralUtility::_GP('payment');
+            
+            
+            $payTbl = 'tx_nkregularformstorage_domain_model_formresult';
+            $userTbl = 'fe_users';
+            $grpTbl = 'fe_groups';
+            $mshipTbl = 'tx_nkcadportal_domain_model_membershiptemplate';
+            $mm = 'tx_nkcadportal_membershiptemplate_newslettertype_mm';
+            $nlTbl = 'tx_nkcadportal_domain_model_newslettertype';
+            $stateTbl = 'tx_nkcadportal_domain_model_state';
+            $disTbl = 'tx_nkcadportal_domain_model_discountcode';
+           
+
+            $qbPay = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($payTbl);
+            $qbUser = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($userTbl);
+            $qbGrp = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($grpTbl);
+            $qbMship = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($mshipTbl);
+            $qbMship2 = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($mshipTbl);
+            $qbDisc = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($disTbl);
+            $qbNl = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($nlTbl);
+            $qbState = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($stateTbl);
+            
+            $qbPay->getRestrictions()->removeAll();
+            $rowsPay = $qbPay->select('*')
+                ->from($payTbl)
+                ->where(
+                    $qbPay->expr()->eq('deleted', 0),
+                    $qbPay->expr()->eq('uid', $payUid)
+                )
+                ->execute()
+                ->fetchAll();
+            
+            if (count($rowsPay) > 0) {
+                $payRec = $rowsPay[0];
+                $feuser = $payRec['feuseruid'];
+                $aPaymentFormArray = unserialize($payRec['formserialized']);
+                
+                if (is_array($aPaymentFormArray)) {
+                    
+                    $discount = '';
+                    
+                    if ($aPaymentFormArray['discountcode'] != '') {
+                        $disRw = $qbDisc->select('discount')
+                                    ->from($disTbl)
+                                    ->where(
+                                        $qbDisc->expr()->eq('deleted', 0),
+                                        $qbDisc->expr()->eq('code', $qbDisc->createNamedParameter($aPaymentFormArray['discountcode']))
+                                    )
+                            ->execute()
+                            ->fetchAll();
+                        if (count($disRw) > 0) {
+                            $discount = $disRw[0]['discount'];
+                        }
+                    }
+
+                    if ($feuser > 0) {
+                        $rowsUser = $qbUser->select('*')
+                            ->from($userTbl)
+                            ->where(
+                                $qbUser->expr()->eq('deleted', 0),
+                                $qbUser->expr()->eq('uid', $feuser)
+                            )
+                            ->execute()
+                            ->fetchAll();
+
+                        if (count($rowsUser) > 0) {
+                            $userRec = $rowsUser[0];
+
+                            $aFields = array(
+                                    'date'              => date('m/d/Y', $payRec['customtstamp']),
+                                    'ordernumber'       => $payRec['invoiceid'],
+                                    'invoicename'       => $userRec['first_name'].", ".$userRec['last_name'],
+                                    'invoicecompany'    => $userRec['company'],
+                                    'invoiceaddress'    => $userRec['address'],
+                                    'invoiceaddress2'   => $userRec['additionaladdress'],
+                                    'invoicecitystatezip' => $userRec['city'].", ".$userRec['state'].". ".$userRec['zip'],
+                                    'discountcodetext'   => $aPaymentFormArray['discountcode'] != '' ? "Discount code {$aPaymentFormArray['discountcode']}" : '',
+                                    'discountamount'    => $aPaymentFormArray['discountcode'] != '' ? "$".$discount : '',
+                                    'donationtext'      => $aPaymentFormArray['donate'] != '' ? 'Donation amount' : '',
+                                    'donationamount'    => $aPaymentFormArray['donate'] != '' ? '$'.number_format($aPaymentFormArray['donate'], 2, '.', '') : '',
+                                    'invoiceamount'     => $aPaymentFormArray['purchasetotal'],
+                                    'paymenttype'       => ($aPaymentFormArray['payment-option'] == "printinvoice" ? "Check" : "Credit card"),
+                            );
+
+                            //Calculate/determine the renewals array:
+                            $aRenewals = [];
+                            foreach ($aPaymentFormArray as $inputField => $inputValue){
+                                if(strpos($inputField, "renew_") !== FALSE){
+                                        $aInputTemp = explode("_", $inputField);
+                                        $aRenewals[$aInputTemp[1]] = $aInputTemp[1];
+                                }
+                            }
+
+                            //Process all membership rows:		
+                            for ($i=1; $i <= 6; $i++){
+
+                                if ($aPaymentFormArray["newmembership-$i"] != 0) {
+
+                                    $mShipUid = intval($aPaymentFormArray["newmembership-$i"]);
+
+    //                                echo $qbMship->select('foreign.name as fname')
+    //                                        ->from($nlTbl, 'foreign')
+    //                                        ->innerJoin('foreign', $mm, 'mm', $qbMship->expr()->eq('foreign.uid','mm.uid_foreign'))
+    //                                        ->innerJoin('mm', $mshipTbl, 'local', $qbMship->expr()->eq('mm.uid_local', 'local.uid'))
+    //                                        ->where(
+    //                                            $qbMship->expr()->eq('local.uid', $mShipUid)
+    //                                        )->getSQL();
+    //                                exit;
+                                    $rowsMshipNl = $qbMship->select('foreign.name as fname')
+                                            ->from($nlTbl, 'foreign')
+                                            ->innerJoin('foreign', $mm, 'mm', $qbMship->expr()->eq('foreign.uid','mm.uid_foreign'))
+                                            ->innerJoin('mm', $mshipTbl, 'local', $qbMship->expr()->eq('mm.uid_local', 'local.uid'))
+                                            ->where(
+                                                $qbMship->expr()->eq('local.uid', $mShipUid)
+                                            )
+                                            ->execute()
+                                            ->fetchAll();
+
+                                    $aNewsletters = [];
+                                    if (count($rowsMshipNl) > 0) {
+                                        foreach ($rowsMshipNl as $ndata) {
+                                            $aNewsletters[] = $ndata['fname'];
+                                        }
+                                    }
+
+                                    $aFields["membershipnewsletters_$i"]    = implode(", ", $aNewsletters);
+
+                                    $rowsMships = $qbMship2->select('*')
+                                            ->from($mshipTbl)
+                                            ->where(
+                                                $qbMship2->expr()->eq('deleted', 0),
+                                                $qbMship2->expr()->eq('uid', $mShipUid)
+                                            )
+                                            ->execute()
+                                            ->fetchAll();
+
+                                    if (count($rowsMships) > 0) {
+
+                                        $mShipData = $rowsMships[0];
+                                        if (isset($aRenewals[$aPaymentFormArray["newmembership-$i"]])){
+                                            $aFields["membershipplan_$i"] = $mShipData['description']." (RENEWAL)";
+                                        } else {
+                                            $aFields["membershipplan_$i"] = $mShipData['description'];
+                                        }
+
+                                        $aFields["membershipprice_$i"] = "$".$mShipData['price'];
+
+                                        $rowsGrp = $qbGrp->select('title')
+                                            ->from($grpTbl)
+                                            ->where(
+                                                $qbGrp->expr()->eq('deleted', 0),
+                                                $qbGrp->expr()->eq('uid', intval($mShipData['membershiptype']))
+                                            )
+                                            ->execute()
+                                            ->fetchAll();
+                                        if (count($rowsGrp) > 0) {
+                                             $aFields["membershiptype_$i"] = $rowsGrp[0]['title'];
+                                        }
+
+                                    }
+
+                                    $rowSate = $qbState->select('stateshort')
+                                                        ->from($stateTbl)
+                                                        ->where(
+                                                              $qbState->expr()->eq('deleted', 0),
+                                                              $qbState->expr()->eq('uid', intval($aPaymentFormArray["newmembershipstate-$i"]))
+                                                        )
+                                                        ->execute()
+                                                        ->fetchAll();
+                                    if (count($rowSate) > 0) {
+                                        $aFields["membershipstate_$i"] = $rowSate[0]['stateshort'];
+                                    }
+
+                                }
+                            }
+
+                                        //Generate and server the PDF:
+                            require($_SERVER['DOCUMENT_ROOT'].'/fpdm-pdf/fpdm.php');
+                            $pdf = new \FPDM($_SERVER['DOCUMENT_ROOT']."/typo3conf/ext/nkcadportal/Resources/Public/Assets/cad_invoice_template.pdf");
+                            $pdf->Load($aFields, false); // second parameter: false if field values are in ISO-8859-1, true if UTF-8
+                            $pdf->Merge();
+                            $invPath = GeneralUtility::getIndpEnv('TYPO3_DOCUMENT_ROOT') . GeneralUtility::getIndpEnv('TYPO3_SITE_PATH') . '/typo3temp/var/invoice_'.$userRec['uid'].'.pdf';
+                            $invPath = strtolower($invPath);
+                            $pdf->Output("F", $invPath);
+
+                            $arr['file'] = $invPath;
+                            $arr['success'] = true;
+                        }
+                    } else {
+                        $arr['success'] = false;
+                    }
+                } else {
+                    $arr['success'] = false;
+                }
+            } else {
+                $arr['success'] = false;
+            }
+            
+            $json = $this->array2Json($arr);
+            $response->getBody()->write($json);
+
+            $response->withHeader('Cache-Control', 'no-cache, must-revalidate');
+            $response->withHeader('Content-Type', 'application/json;charset=utf-8');
+
+            return $response;
+                
+        }
+        
+        /**
+         * 
+         * @param int $uid
+         */
+        public function getAuthProfile($uid) {
+            
+            $userTbl = 'fe_users';
+            $qbUser = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($userTbl);            
+            $qbUser->getRestrictions()->removeAll();
+            $row = $qbUser->select('authorize_customer_profile')
+                ->from($userTbl)
+                ->where(
+                    $qbUser->expr()->eq('uid', $uid)
+                )->execute()->fetchAll();
+            
+            if (count($row) > 0) {
+                return $row[0]['authorize_customer_profile'];
+            }
+        }
+        
+        public function downloadFileAction(\Psr\Http\Message\ServerRequestInterface $request,
+            \Psr\Http\Message\ResponseInterface $response) {
+            
+            $params = $request->getParsedBody();
+        
+            $file = GeneralUtility::_GP('file');
+            $name = basename($file, '.pdf');
+
+            header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+            header('Content-Type: application/pdf');
+            header('Content-Transfer-Encoding: binary');
+            header('Content-Length: ' . filesize($file));
+            header('Content-Disposition: attachment; filename="' . $name . '.pdf"');
+            readfile($file);
+            unlink($file);
+            die();
+        }
+        
+        /**
+         * Form to remove invalid credit card profile
+         */
+        public function deleteAuthorizeProfileAction() {
+            
+        }
+        
+        public function confirmDeleteAction() {
+            if ($this->request->hasArgument('customerid')) {
+                $customerid = $this->request->getArgument('customerid');
+            }
+            if ($this->request->hasArgument('payprofile')) {
+                $payprofile = $this->request->getArgument('payprofile');
+            }
+            
+            if ($payprofile != '' && $customerid != '') {
+                $this->view->assign('customerid', $customerid);
+                $this->view->assign('payprofile', $payprofile);
+            } else {
+                 $this->addFlashMessage('Both Customer ID and Payment profile ID must be filled','Validation Error', 
+                        \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR);
+                $this->redirect("deleteAuthorizeProfile");
+            }
+        }
+        
+        public function deleteProfileAction() {
+            if ($this->request->hasArgument('customerid')) {
+                $customerid = $this->request->getArgument('customerid');
+            }
+            if ($this->request->hasArgument('payprofile')) {
+                $payprofile = $this->request->getArgument('payprofile');
+            }
+            
+            if (intval($customerid) != 0 && intval($payprofile)!= 0) {
+                $this->startTransaction();
+                $this->payutil->testMode = ($this->settings['livemode'] == 1) ? FALSE: TRUE;
+                 
+                $res = $this->payutil->deletePaymentProfile($customerid, $payprofile);
+                if (($res != null) && ($res->getMessages()->getResultCode() == "Ok") )
+                {
+                    $payObj = $this->payprofileRepository->getProfileByPay($payprofile);
+                    if ($payObj instanceof \Netkyngs\Nkregularformstorage\Domain\Model\Paymentprofile) {
+                        $this->payprofileRepository->remove($payObj);
+                    }
+                    $this->addFlashMessage('Payment profile removed','Profile', 
+                        \TYPO3\CMS\Core\Messaging\AbstractMessage::INFO);
+                    
+                } else {
+                    $this->addFlashMessage('Failed to remove Payment profile ID','Process Error', 
+                        \TYPO3\CMS\Core\Messaging\AbstractMessage::ERROR);
+                }
+            }
+            
+            $this->redirect("deleteAuthorizeProfile");
         }
 
+        /**
+         * 
+         * @param array $arr
+         * @return string
+         */
+         protected function array2Json($arr)
+         {
+           return json_encode($arr);
+         }
 }

@@ -55,6 +55,10 @@ if (TYPO3_MODE === 'BE') {
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addLLrefForTCAdescr('tx_nkcadportal_domain_model_newsletter', 'EXT:nkcadportal/Resources/Private/Language/locallang_csh_tx_nkcadportal_domain_model_newsletter.xlf');
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::allowTableOnStandardPages('tx_nkcadportal_domain_model_newsletter');
 
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addLLrefForTCAdescr('tx_nkcadportal_domain_model_newsletterlog', 'EXT:nkcadportal/Resources/Private/Language/locallang_csh_tx_nkcadportal_domain_model_newsletterlog.xlf');
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::allowTableOnStandardPages('tx_nkcadportal_domain_model_newsletterlog');
+
+
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addLLrefForTCAdescr('tx_nkcadportal_domain_model_contact', 'EXT:nkcadportal/Resources/Private/Language/locallang_csh_tx_nkcadportal_domain_model_contact.xlf');
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::allowTableOnStandardPages('tx_nkcadportal_domain_model_contact');
 
@@ -72,6 +76,10 @@ if (TYPO3_MODE === 'BE') {
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addLLrefForTCAdescr('tx_nkcadportal_domain_model_discountcode', 'EXT:nkcadportal/Resources/Private/Language/locallang_csh_tx_nkcadportal_domain_model_discountcode.xlf');
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::allowTableOnStandardPages('tx_nkcadportal_domain_model_discountcode');
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addLLrefForTCAdescr('tx_nkcadportal_domain_model_invoice', 'EXT:nkcadportal/Resources/Private/Language/locallang_csh_tx_nkcadportal_domain_model_invoice.xlf');
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::allowTableOnStandardPages('tx_nkcadportal_domain_model_invoice');
+
 
 $pluginSignature = str_replace('_', '', $_EXTKEY) . '_nkcadportalfe';
 $TCA['tt_content']['types']['list']['subtypes_addlist'][$pluginSignature] = 'pi_flexform';

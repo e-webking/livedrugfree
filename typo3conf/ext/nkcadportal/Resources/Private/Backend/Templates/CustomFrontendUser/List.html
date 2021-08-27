@@ -18,25 +18,12 @@
 
 <!-- MEMBERS -->
 <div class="beoverlay" id="nkloader"><img src="{f:uri.resource(path:'images/bx_loader.gif')}" /></div>
-<table class="cad-portal-be-table table-members active" id="table-members" style="width:100%">
+<div class="table-responsive">
+<table class="cad-portal-be-table table-members active table" id="table-members" style="width:100%">
 	<caption>Members</caption>
 	<thead>
-		<tr>
-			<th class="sorting_disabled">
-				<nk:be.editLink table="fe_users" uid="18" action="new">
-					<i class="fa fa-plus-circle"></i>
-				</nk:be.editLink>
-			</th>
-			<th class="sorting_disabled">Options</th>
-			<th>Company name</th>
-			<th>FEIN</th>
-			<th class="sorting_disabled">Address</th>
-			<th class="sorting_disabled">Primary Contact</th>
-			<th class="sorting_disabled">Primary Phone</th>
-			<th class="sorting_disabled">Email</th>
-		</tr>
-                <tr>
-                    <td colspan="2">
+            <tr>
+                <td colspan="3">
                         <select name="memseloption" id="memseloption" style="height:30px">
                                 <option value="all">All members</option>
                                 <option value="current">Current members</option>
@@ -46,35 +33,54 @@
                                 <option value="expired">Expired members</option>
                                 <option value="suspendedandnew">Suspended and New</option>
                         </select>
-                    </td>
-                    <td><input name="cname" id="cname" /></td>
-                    <td><input name="fein" id="fein" style="width:100px;" /></td>
-                    <td><input name="address" id="address" /></td>
-                    <td><input name="pcontact" id="pcontact" /></td>
-                    <td><input name="pphone" id="pphone" style="width:110px;" /></td>
-                    <td><input name="email" id="email" /></td>
+                </td>
+                <td colspan="2">&nbsp;&nbsp;Filter records: </td>
+                <td colspan="6">
+                    <input name="qsearch" id="qsearch" style="width:300px;" placeholder="Type in minimum 3 characters to filter results" />
+                </td>
                 </tr>
+		<tr>
+                    <th class="sorting_disabled">
+                            <nk:be.editLink table="fe_users" uid="18" action="new">
+                                    <i class="fa fa-plus-circle"></i>
+                            </nk:be.editLink>
+                    </th>
+                    <th class="sorting_disabled">Options</th>
+                    <th>Company name</th>
+                    <th>FEIN</th>
+                    <th class="sorting_disabled">Address</th>
+                    <th class="sorting_disabled">Primary Contact</th>
+                    <th class="sorting_disabled">Primary Phone</th>
+                    <th class="sorting_disabled">Email</th>
+                    <th class="sorting_disabled">Addnl Contact</th>
+                    <th class="sorting_disabled">Addnl Phone</th>
+                    <th class="sorting_disabled">Addnl Email</th>
+		</tr>
 	</thead>
         <tbody id="memberList">
             <f:for each="{members}" as="member">
                 <tr>
                     <td><i class="fa fa-user"></i></td>
-                    <td><nk:be.editLink table="fe_users" uid="{member.uid}" action="edit"><i class="fa fa-pencil"></i></nk:be.editLink> <i class="fa fa-eye-slash" onclick="performAjaxAction('36', 'hide-member',{member.uid}, true);"></i> <i class="fa fa-trash" onclick="performAjaxAction('36', 'delete-member', {member.uid}, true);"></i></td>
+                    <td style="white-space: nowrap"><nk:be.editLink table="fe_users" uid="{member.uid}" action="edit"><i class="fa fa-pencil"></i></nk:be.editLink> <i class="fa fa-eye-slash" onclick="performAjaxAction('36', 'hide-member',{member.uid}, true);"></i> <i class="fa fa-trash" onclick="performAjaxAction('36', 'delete-member', {member.uid}, true);"></i></td>
                     <td>{member.company}</td>
                     <td>{member.fein}</td>
                     <td>{member.address}</td>
                     <td>{member.first_name} {member.last_name}</td>
                     <td>{member.telephone}</td>
                     <td>{member.email}</td>
+                    <td>{member.firstname} {member.lastname}</td>
+                    <td>{member.cphone}</td>
+                    <td>{member.cemail}</td>
                 </tr>
             </f:for>
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="8" style="text-align: center" id="memPg"><f:format.raw>{mempaging}</f:format.raw></td>
+                <td colspan="11" style="text-align: center" id="memPg"><f:format.raw>{mempaging}</f:format.raw></td>
             </tr>
         </tfoot>
 </table>
+</div>
 </f:section>
 
 </html>

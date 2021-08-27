@@ -107,6 +107,12 @@ class Membership extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     protected $statestarttimecustom;
     
     /**
+     *
+     * @var int
+     */
+    protected $hidden = 0;
+    
+    /**
      * Returns the membershiptemplate
      * 
      * @return \Netkyngs\Nkcadportal\Domain\Model\MembershipTemplate $membershiptemplate
@@ -356,6 +362,17 @@ class Membership extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     public function setStatestarttimecustom($statestarttimecustom)
     {
         $this->statestarttimecustom = $statestarttimecustom;
+    }
+    
+    /**
+     * Sets the hidden
+     * 
+     * @param int $hidden
+     * @return void
+     */
+    public function setHidden($hidden)
+    {
+        $this->hidden = $hidden;
     }
 
 }

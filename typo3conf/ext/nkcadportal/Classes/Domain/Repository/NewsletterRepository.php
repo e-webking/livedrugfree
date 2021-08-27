@@ -1,6 +1,9 @@
 <?php
 namespace Netkyngs\Nkcadportal\Domain\Repository;
 
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+
 /***************************************************************
  *
  *  Copyright notice
@@ -31,7 +34,29 @@ namespace Netkyngs\Nkcadportal\Domain\Repository;
  */
 class NewsletterRepository extends \TYPO3\CMS\Extbase\Persistence\Repository
 {
+    
+    /**
+     * @var array
+     */
+    protected $defaultOrderings = array(
+        'starttime' => \TYPO3\CMS\Extbase\Persistence\QueryInterface::ORDER_DESCENDING
+    );
+    
+    /**
+     * Ignore storage pid
+     */
+    public function initializeObject() {
 
+        /**
+         * @var $querySettings \TYPO3\CMS\Extbase\Persistence\Generic\Typo3QuerySettings
+         */
+        $querySettings = $this->objectManager->get('TYPO3\\CMS\\Extbase\\Persistence\\Generic\\Typo3QuerySettings');
+        $querySettings->setRespectStoragePage(FALSE);
+        $querySettings->setIgnoreEnableFields(TRUE);
+        $this->setDefaultQuerySettings($querySettings);
+    }
+
+    
     public function findByNewslettertypes ($aNewslettertypes){
 
 		//Set query:

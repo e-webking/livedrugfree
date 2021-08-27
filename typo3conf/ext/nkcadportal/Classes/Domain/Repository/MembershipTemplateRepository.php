@@ -39,4 +39,17 @@ class MembershipTemplateRepository extends \TYPO3\CMS\Extbase\Persistence\Reposi
         'sorting' => \TYPO3\CMS\Extbase\Persistence\QueryInterface::ORDER_ASCENDING
     );
 
+    /**
+     * Ignore storage pid
+     */
+    public function initializeObject() {
+
+        /**
+         * @var $querySettings \TYPO3\CMS\Extbase\Persistence\Generic\Typo3QuerySettings
+         */
+        $querySettings = $this->objectManager->get('TYPO3\\CMS\\Extbase\\Persistence\\Generic\\Typo3QuerySettings');
+        $querySettings->setRespectStoragePage(FALSE);
+        $querySettings->setIgnoreEnableFields(TRUE);
+        $this->setDefaultQuerySettings($querySettings);
+    }
 }

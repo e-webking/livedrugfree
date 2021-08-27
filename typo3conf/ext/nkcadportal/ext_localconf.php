@@ -7,7 +7,7 @@ if (!defined('TYPO3_MODE')) {
 	'Netkyngs.' . $_EXTKEY,
 	'Nkcadportalfe',
 	array(
-		'CustomFrontendUser' => 'list, show, new, create, edit, update, delete, ajaxbe, certdwn',
+		'CustomFrontendUser' => 'list, show, ajaxbe, certdwn',
 		'MembershipTemplate' => 'list, show, new, create, edit, update, delete',
 		'Membership' => 'list, show, new, create, edit, update, delete',
 		'Newslettertype' => 'list',
@@ -22,7 +22,7 @@ if (!defined('TYPO3_MODE')) {
 	),
 	// non-cacheable actions
 	array(
-		'CustomFrontendUser' => 'create, update, delete, ajaxbe, certdwn',
+		'CustomFrontendUser' => 'ajaxbe, certdwn',
 		'MembershipTemplate' => 'create, update, delete',
 		'Membership' => 'create, update, delete',
 		'Newslettertype' => '',
@@ -46,4 +46,9 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1581921537] = [
 if (TYPO3_MODE === 'BE') {
     $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['extbase']['commandControllers'][$_EXTKEY.'_reminder'] =
         \Netkyngs\Nkcadportal\Command\ReminderCommandController::class;
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['extbase']['commandControllers'][$_EXTKEY.'_mtitle'] =
+        \Netkyngs\Nkcadportal\Command\MembershipCommandController::class;
 }
+
+$GLOBALS ['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processDatamapClass']['nkcadportal'] = \Netkyngs\Nkcadportal\Hook\TCEmainHook::class;
+$GLOBALS ['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processCmdmapClass']['nkcadportal'] = \Netkyngs\Nkcadportal\Hook\TCEmainHook::class;

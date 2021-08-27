@@ -34,15 +34,6 @@ $tmp_nkauthorize_columns = array(
 			'eval' => 'trim'
 		),
 	),
-	'authorize_payment_profile' => array(
-		'exclude' => 0,
-		'label' => 'Authorize.net Payment Profile',
-		'config' => array(
-			'type' => 'input',
-			'size' => 20,
-			'eval' => 'trim'
-		)
-	),
 );
 
 
@@ -56,4 +47,13 @@ $tmp_nkauthorize_columns = array(
         ''
 );
 
+	'authorize_payment_profile' => array(
+		'exclude' => 0,
+		'label' => 'Authorize.net Payment Profile',
+		'config' => array(
+			'type' => 'input',
+			'size' => 20,
+			'eval' => 'trim'
+		)
+	),
  */

@@ -1,17 +1,22 @@
 
 plugin.tx_nkregularformstorage_nkregularformstoragefe {
-	view {
-		templateRootPaths.0 = {$plugin.tx_nkregularformstorage_nkregularformstoragefe.view.templateRootPath}
-		partialRootPaths.0 = {$plugin.tx_nkregularformstorage_nkregularformstoragefe.view.partialRootPath}
-		layoutRootPaths.0 = {$plugin.tx_nkregularformstorage_nkregularformstoragefe.view.layoutRootPath}
-	}
-	persistence {
-		storagePid = {$plugin.tx_nkregularformstorage_nkregularformstoragefe.persistence.storagePid}
-	}
-        settings {
-            form_CcEmails = {$plugin.tx_nkregularformstorage_nkregularformstoragefe.settings.form_CcEmails}
-            livemode = {$plugin.tx_nkregularformstorage_nkregularformstoragefe.settings.livemode}
-	}
+    view {
+            templateRootPaths.0 = {$plugin.tx_nkregularformstorage_nkregularformstoragefe.view.templateRootPath}
+            partialRootPaths.0 = {$plugin.tx_nkregularformstorage_nkregularformstoragefe.view.partialRootPath}
+            layoutRootPaths.0 = {$plugin.tx_nkregularformstorage_nkregularformstoragefe.view.layoutRootPath}
+    }
+    persistence {
+            storagePid = {$plugin.tx_nkregularformstorage_nkregularformstoragefe.persistence.storagePid}
+    }
+    settings {
+        adminname = {$plugin.tx_nkregularformstorage_nkregularformstoragefe.settings.adminname}
+        fromemail = {$plugin.tx_nkregularformstorage_nkregularformstoragefe.settings.fromemail}
+        adminemail = {$plugin.tx_nkregularformstorage_nkregularformstoragefe.settings.adminemail}
+        form_adminToemail = {$plugin.tx_nkregularformstorage_nkregularformstoragefe.settings.form_adminToemail}
+        form_CcEmails = {$plugin.tx_nkregularformstorage_nkregularformstoragefe.settings.form_CcEmails}
+        livemode = {$plugin.tx_nkregularformstorage_nkregularformstoragefe.settings.livemode}
+        paymentPID = {$plugin.tx_nkregularformstorage_nkregularformstoragefe.settings.paymentPID}
+    }
 }
 
  # Module configuration

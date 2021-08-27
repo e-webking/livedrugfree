@@ -1,11 +1,7 @@
 var pgStart = '0';
+var qsearch = '';
 var moption = '';
-var cname = '';
-var fein = '';
-var address = '';
-var pcontact = '';
-var pphone = '';
-var email = '';
+var poption = '';
 
 function rePolMember() {
     var ajaxMemberUrl = TYPO3.settings.ajaxUrls['nkcadportal_members'];
@@ -13,7 +9,7 @@ function rePolMember() {
     $.ajax({
             url: ajaxMemberUrl,
             type: "POST",
-            data: 'pageNo='+pgStart+'&option='+moption+'&company='+cname+'&fein='+fein+'&address='+address+'&name='+pcontact+'&phone='+pphone+'&email='+email,
+            data: 'pageNo='+pgStart+'&option='+moption+'&qsearch='+ encodeURIComponent(qsearch),
             cache:false,
             success: function (response) {
                 $('#nkloader').hide();
@@ -27,17 +23,71 @@ function rePolMember() {
             }
     });
 }
-        
+
+function rePolPayment() {
+    var ajaxPayUrl = TYPO3.settings.ajaxUrls['nkregularformstorage_payments'];
+    $('#nkloader').show();
+    $.ajax({
+            url: ajaxPayUrl,
+            type: "POST",
+            data: 'pageNo='+pgStart+'&option='+poption,
+            cache:false,
+            success: function (response) {
+                $('#nkloader').hide();
+                $('#paymentList').html(response.payments);
+                $('#payPg').html(response.paging)
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $('#nkloader').hide();
+                //Give an alert:
+                alert('Error occured:\n'+textStatus);
+            }
+    });
+}
+
+function _printInv(payid) {
+    
+    var ajaxPrintUrl = TYPO3.settings.ajaxUrls['nkregularformstorage_printinv'];
+    var ajaxDwnUrl = TYPO3.settings.ajaxUrls['nkregularformstorage_download'];
+    
+    $('#nkloader').show();
+    $.ajax({
+            url: ajaxPrintUrl,
+            type: "POST",
+            data: 'payment='+payid,
+            cache:false,
+            success: function (response) {
+                $('#nkloader').hide();
+                if (response.success) {
+                    window.location.href = ajaxDwnUrl + '&file=' + response.file;
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $('#nkloader').hide();
+                //Give an alert:
+                alert('Error occured:\n'+textStatus);
+            }
+    });
+}
+
 $(document).ready(function(){
-        
+    
     $('#memseloption').on('change', function(){
+        console.log('changed');
         pgStart = 0;
         moption = $('#memseloption').val()?$('#memseloption').val():'';
         rePolMember();
     });
-
-    $('#cname').on('keyup', function (e){
-        cname = $('#cname').val();
+    
+    $('#payseloption').on('change', function(){
+        console.log('changed');
+        pgStart = 0;
+        poption = $('#payseloption').val()?$('#payseloption').val():'';
+        rePolPayment();
+    });
+    
+    $('#qsearch').on('keyup', function (e){
+        qsearch = $('#qsearch').val();
         if ($(this).val().length > 2) {
             pgStart = 0;         
             rePolMember();
@@ -48,81 +98,21 @@ $(document).ready(function(){
             }
         }
     });
-    
-    $('#fein').on('keyup', function (e){
-        fein = $('#fein').val();
-        if ($(this).val().length > 0) {
-            pgStart = 0;
-            rePolMember();
-        } else {
-            if (e.keyCode == 8) {
-                pgStart = 0;
-                rePolMember();
-            }
-        }
-    });
-    
-    $('#address').on('keyup', function (e){
-        address = $('#address').val();
-        if ($(this).val().length > 2) {
-            pgStart = 0;         
-            rePolMember();
-        } else {
-            if (e.keyCode == 8) {
-                pgStart = 0;
-                rePolMember();
-            }
-        }
-    });
-    
-    $('#pcontact').on('keyup', function (e){
-        pcontact = $('#pcontact').val();
-        if ($(this).val().length > 2) {
-            pgStart = 0;         
-            rePolMember();
-        } else {
-            if (e.keyCode == 8) {
-                pgStart = 0;
-                rePolMember();
-            }
-        }
-    });
-    
-    $('#pphone').on('keyup', function (e){
-        pphone = $('#pphone').val();
-        if ($(this).val().length > 2) {
-            pgStart = 0;         
-            rePolMember();
-        } else {
-            if (e.keyCode == 8) {
-                pgStart = 0;
-                rePolMember();
-            }
-        }
-    });
-    
-    $('#email').on('keyup', function (e){
-        email = $('#email').val();
-        if ($(this).val().length > 2) {
-            pgStart = 0;         
-            rePolMember();
-        } else {
-            if (e.keyCode == 8) {
-                pgStart = 0;
-                rePolMember();
-            }
-        }
-    });
-        
 });
 
 function _getPage(no) {
     pgStart = no;
     rePolMember();
 }
+
+function _getPayPage(no) {
+    pgStart = no;
+    rePolPayment();
+}
+
 function insertTypeDropDownIntoDataTables(){
-        $('.temp-dropdown-holder').show();
-        $('.beoverlay').hide();
+    $('.temp-dropdown-holder').show();
+    $('.beoverlay').hide();
 }
 
 function performAjaxAction($ajaxPID, $action, $uid, $needsConfirmation){

@@ -47,9 +47,15 @@ class ReminderCommandController
 	 * @inject
 	 */
 	protected $configurationManager;
+        
+        /**
+         *
+         * @var array
+         */
+        protected $nameArr;
 
 
-	/**
+        /**
 	 * @param \TYPO3\CMS\Extbase\Mvc\Cli\CommandManager $commandManager
 	 * @return void
 	 */
@@ -126,12 +132,18 @@ class ReminderCommandController
                         foreach ($nlTypeArr as $nltypuid) {
                             
                             //Check whether there is newsletter for this date
-                            $flag = $this->checkNewsLetter($nltypuid, $date);
+                            $flagArr = $this->checkNewsLetter($nltypuid, $date);
                             
-                            if ($flag) {   
-                                $this->macroProcessNewsletter($data, $mType, $mtpluid, $activeTimestampArr);
+                            if ($flagArr[0] == TRUE) {   
+                                $this->macroProcessNewsletter($data, $mType, $mtpluid, $activeTimestampArr, $flagArr[1]);
                             }
                         }
+                    }
+                }
+                
+                if (count($this->nameArr) > 0) {
+                    foreach ($this->nameArr as $eml => $name) {
+                        $this->sendMail($eml, $name, $data['subject'], $data['message']);
                     }
                 }
             }
@@ -145,7 +157,7 @@ class ReminderCommandController
          * @param int $mtpluid
          * @param array $activeTimestampArr
          */
-        protected function macroProcessNewsletter($data, $grpuid, $mtpluid, $activeTimestampArr)
+        protected function macroProcessNewsletter($data, $grpuid, $mtpluid, $activeTimestampArr, $nluid)
         {
             //Get all the active members of this membership
             //Check the states where the newsletter goes out
@@ -181,26 +193,86 @@ class ReminderCommandController
             //echo __LINE__.':DEBUG:' . $queryBuilder->getSQL().'<br>';
 
             $rows = $qbReady->execute()->fetchAll();
-
+            $nameArr = array();
+            
+            
             if (count($rows) > 0) {
 
                 foreach ($rows as $row) {
+                    //now check the newsletter log
+                    if ($this->checkLog($nluid, $row['email'])) {
+                        $email = strtolower(trim($row['email']));
+                        $this->nameArr["$email"] = $row['first_name'].' '.$row['last_name'];
+                        
+                       // $this->sendMail($row['email'], $row['first_name'].' '.$row['last_name'], $data['subject'], $data['message']);
+                        $this->logEmail($nluid, $row['email']);
+                    }
+                    
                     //get all the contact
-                    $this->sendMail($row['email'], $row['first_name'].' '.$row['last_name'], $data['subject'], $data['message']);
                     $contacts = $this->getContactRecords($row['uid'], $grpuid);
 
                     if (is_array($contacts) && isset($contacts)) {
+                        
                         if (count($contacts) > 0) {
+                            
                             foreach ($contacts as $contact) {
-                                 $this->sendMail($contact['email'], $contact['firstname'].' '.$contact['lastname'], $data['subject'], $data['message']);
+                                
+                                if ($this->checkLog($nluid, $contact['email'])) {
+                                    $email = strtolower(trim($contact['email']));
+                                    $this->nameArr["$email"] = $contact['firstname'].' '.$contact['lastname'];
+                                    //$this->sendMail($contact['email'], $contact['firstname'].' '.$contact['lastname'], $data['subject'], $data['message']);
+                                    $this->logEmail($nluid, $contact['email']);
+                                }
                             }
                         }
                     }
-                }           
-
+                }
             }
         }
 
+        /**
+         * 
+         * @param int $nluid
+         * @param string $email
+         * @return bool
+         */
+        protected function checkLog($nluid, $email) {
+            
+            $table = 'tx_nkcadportal_domain_model_newsletterlog';
+            $logQb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($table);
+            $logQb->getRestrictions()->removeAll();
+            $expr = $logQb->expr();
+            $andCond = $expr->andx();
+            $andCond->add($expr->eq('deleted', 0));
+            $andCond->add($expr->eq('newsletter',  $nluid));
+            $andCond->add($expr->like('email', $logQb->createNamedParameter($email)));
+            
+            $qbReady = $logQb->select('email')
+                            ->from($table)
+                            ->andWhere($andCond);
+            $rows = $qbReady->execute()->fetchAll();
+            
+            return (count($rows) > 0) ? FALSE: TRUE;
+        }
+        
+        /**
+         * 
+         * @param int $nluid
+         * @param string $email
+         */
+        protected function logEmail($nluid, $email) {
+            $table = 'tx_nkcadportal_domain_model_newsletterlog';
+            $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($table);
+            $affectedRows = $queryBuilder->insert($table)
+                                ->values([
+                                   'pid' => 22,
+                                   'newsletter' => $nluid,
+                                   'sdate' => time(),
+                                   'email' => $email
+                                ])
+                                ->execute();
+        }
+        
         /**
          * 
          * @param array $data
@@ -219,7 +291,7 @@ class ReminderCommandController
             //echo "Membership templates: ";
             //var_dump($memTplArr);
             //echo "States: ";
-            if ($data['states'] !=  "-2") {
+            if ($data['states'] !=  "1") {
                 $statesUidArr = $this->getStatesUid($data['uid']);
             }
             //var_dump($statesUidArr);
@@ -290,7 +362,7 @@ class ReminderCommandController
             //echo "Membership templates: ";
             //var_dump($memTplArr);
             //echo "States: ";
-            if ($data['states'] !=  "-2") {
+            if ($data['states'] !=  "1") {
                 $statesUidArr = $this->getStatesUid($data['uid']);
             }
             //var_dump($statesUidArr);
@@ -308,8 +380,8 @@ class ReminderCommandController
                 $andCond->add($expr->eq('local.deleted', 0));
                 $andCond->add($expr->eq('local.hidden', 0));
                 $andCond->add($expr->in('local.membershiptemplate',  $memTplArr));
-                $andCond->add($expr->gt('local.endtimecustom', $timestampArr[0]));
-                $andCond->add($expr->lt('local.endtimecustom', $timestampArr[1]));
+                $andCond->add($expr->gte('local.endtimecustom', $timestampArr[0]));
+                $andCond->add($expr->lte('local.endtimecustom', $timestampArr[1]));
                 
                 if ($statesUidArr > 0) {
                     $andCond->add($expr->in('local.state',  $statesUidArr));
@@ -347,11 +419,11 @@ class ReminderCommandController
          * 
          * @param int $nltype
          * @param string $date
-         * @return bool
+         * @return array
          */
         protected function checkNewsLetter($nltype, $date) {
-            
             $flag = FALSE;
+            $nluid = null;
             $timestampArr = $this->convertDate($date);
             $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tx_nkcadportal_domain_model_newsletter');
             $queryBuilder->getRestrictions()->removeAll();
@@ -361,15 +433,16 @@ class ReminderCommandController
                             $expr->eq('deleted', 0),
                             $expr->eq('hidden', 0),
                             $expr->eq('newslettertype', $nltype),
-                            $expr->gt('starttime', $timestampArr[0]),
-                            $expr->lt('starttime', $timestampArr[1])
+                            $expr->gte('starttime', $timestampArr[0]),
+                            $expr->lte('starttime', $timestampArr[1])
                         )->execute()->fetchAll();
             
             if (count($rows) > 0) {
                 $flag = TRUE;
+                $nluid = $rows[0]['uid'];
             }
             
-            return $flag;
+            return [$flag, $nluid];
         }
         
         /**
@@ -573,24 +646,15 @@ class ReminderCommandController
             $senderMail = 'system@livedrugfree.org';
             $senderName = 'LiveDrugFree';
             
-            /*
-            // TESTING
-            $mail->setFrom(array($senderMail => $senderName))
-                 //->setTo(array('staci@livedrugfree.org' => $name))
-				 ->setTo(array('sbwcdfwp@gmail.com' => $name))
-                 ->setCc(array('roelkrottje@gmail.com' => 'DFW Test'))
-                 ->setSubject($subject .' for '.$to.' ['.$name.']')
-                 ->setBody($body, 'text/html')
-                 ->send();
-            */
-            
-            // PRODUCTION system
-            $mail->setFrom(array($senderMail => $senderName))
-                 ->setTo(array($to => $name))
-                 ->setBcc(array('sbwcdfwp@gmail.com' => $name, 'roelkrottje@gmail.com' => 'DFW New System'))
-                 ->setSubject($subject)
-                 ->setBody($body, 'text/html')
-                 ->send();
+            if (GeneralUtility::validEmail($to)) {
+                // PRODUCTION system
+                $mail->setFrom(array($senderMail => $senderName))
+                     ->setTo(array($to => $name))
+                     ->setBcc(array('sbwcdfwp@gmail.com' => $name, 'roelkrottje@gmail.com' => 'DFW New System'))
+                     ->setSubject($subject)
+                     ->setBody($body, 'text/html')
+                     ->send();
+            }
             
         }
 }

@@ -2,7 +2,9 @@
 return array(
 	'ctrl' => array(
 		'title'	=> 'LLL:EXT:nkcadportal/Resources/Private/Language/locallang_db.xlf:tx_nkcadportal_domain_model_newsletter',
-		'label' => 'title',
+		'label' => 'forperiod',
+                'label_alt' => 'newslettertype,title',
+                'label_alt_force' => true,
 		'tstamp' => 'tstamp',
 		'crdate' => 'crdate',
 		'cruser_id' => 'cruser_id',

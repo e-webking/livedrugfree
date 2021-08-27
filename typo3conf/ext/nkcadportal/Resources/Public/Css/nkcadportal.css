@@ -31,6 +31,7 @@
     margin-bottom: 5px;
     padding: 10px 15px;
 }
+.buttonleft {padding: 16px; float: right; color: blue;}
 .tx-nkcadportal ul.typo3-messages {
 	list-style: none;
 	padding-left: 0;
@@ -166,4 +167,15 @@ table.newsletter-table {
 /* Documents table */
 table.documents-table {
 	
+}
+
+.edit-contact-form {
+    display: none;
+}
+
+.preventclick {
+    margin-top: -48px;
+    height: 50px;
+    padding: 5px 30px;
+    display: none;
 }

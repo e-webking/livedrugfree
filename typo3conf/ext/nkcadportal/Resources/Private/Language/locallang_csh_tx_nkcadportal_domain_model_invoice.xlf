@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2020-06-25T11:15:14Z" product-name="nkcadportal">
+		<header/>
+		<body>
+			<trans-unit id="customfrontenduser.description">
+				<source>Member</source>
+			</trans-unit>
+			<trans-unit id="membership.description">
+				<source>Membership Record</source>
+			</trans-unit>
+			<trans-unit id="payment.description">
+				<source>Payment UID</source>
+			</trans-unit>
+			<trans-unit id="invoicenum.description">
+				<source>Invoice No</source>
+			</trans-unit>
+                        <trans-unit id="invoicedata.description">
+				<source>Serialized invoice data</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

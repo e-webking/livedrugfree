@@ -54,6 +54,12 @@ class ContactController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControll
 
     //Global vars:
     protected $aFormErrors = [];
+    
+    /**
+     *
+     * @var string 
+     */
+    protected $googleCaptchaUrl = 'https://www.google.com/recaptcha/api/siteverify';
 
     /**
      * initialize action
@@ -64,10 +70,10 @@ class ContactController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControll
 		//Init query/storage settings:
         $querySettings = $this->objectManager->get('TYPO3\\CMS\\Extbase\\Persistence\\Generic\\Typo3QuerySettings');
         $querySettings->setRespectStoragePage(FALSE);
-		$this->frontendUserGroupRepository->setDefaultQuerySettings($querySettings);
-		$this->customFrontendUserRepository->setDefaultQuerySettings($querySettings);
-		$this->contactRepository->setDefaultQuerySettings($querySettings);
-	}
+        $this->frontendUserGroupRepository->setDefaultQuerySettings($querySettings);
+        $this->customFrontendUserRepository->setDefaultQuerySettings($querySettings);
+        $this->contactRepository->setDefaultQuerySettings($querySettings);
+    }
 	
 	
 	/**
@@ -76,50 +82,81 @@ class ContactController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControll
      * @return void
      */
     public function dwfregistrationformAction()
-    {		
-	
-		//Check for submitted form action:
-		if(isset($_GET['addusergrouptonewuser']) && (int)$_GET['addusergrouptonewuser'] == "1"){
-			//Add the usergroup to the new user:
-			$newUserUid = (int)$_GET['useruid'];
-			$newUserGroupUid = (int)$_GET['usergroupuid'];
-			$this->customFrontendUserRepository->findByUid($newUserUid)->addUsergroup($this->frontendUserGroupRepository->findByUid($newUserGroupUid));
-			$this->customFrontendUserRepository->update($this->customFrontendUserRepository->findByUid($newUserUid));
-			
-			//Permantently save all database (model) changes:
-			$persistenceManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance("TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager");
-			$persistenceManager->persistAll();
-			
-			//Forward to registration page:
-			$registrationPagePid = $this->settings['registrationcomfirmationpid'];
-			header("Location: /index.php?id=$registrationPagePid");die();
-		}
-		
-		elseif ($action = filter_input(INPUT_POST, "formAction", FILTER_SANITIZE_SPECIAL_CHARS)) {
-					
-			if($action == "new_DFW_Registration"){
-				if($newUserUid = $this->createNewUser("DFW")){
-					//Send required emails:
-					$this->sendEmailsAfterAccountCreation("DFW");
-					
-					//Reload page and store usergroup (required to reload page!):
-					$newUserGroupUid = $this->frontendUserGroupRepository->findByTitle("DFW")->getFirst()->getUid();
-					$formpid = $this->settings['formpid'];
-					header("Location: /index.php?id=$formpid&addusergrouptonewuser=1&useruid=$newUserUid&usergroupuid=$newUserGroupUid");
-				}
-				else{
-					//There was an input error ($this->aFormErrors) - Load page (form) as normal, include error array and filled out values:
-					$this->view->assign('formErrors', $this->aFormErrors);
-					$this->view->assign('formValues', $_POST);
-				}
-			}
-		}
-		
+    {
         //Add CSS and JS:
-		$this->addCssAndJsToFE();
-		
-		//Add ReCaptcha JS To page:
-		$this->addReCaptchaToFE();
+        $this->addCssAndJsToFE();
+
+        //Add ReCaptcha JS To page:
+        $this->addReCaptchaToFE();
+	
+            //Check for submitted form action:
+            if (isset($_GET['addusergrouptonewuser']) && (int)$_GET['addusergrouptonewuser'] == "1"){
+                    //Add the usergroup to the new user:
+                    $newUserUid = (int)$_GET['useruid'];
+                    $newUserGroupUid = (int)$_GET['usergroupuid'];
+                    $this->customFrontendUserRepository->findByUid($newUserUid)->addUsergroup($this->frontendUserGroupRepository->findByUid($newUserGroupUid));
+                    $this->customFrontendUserRepository->update($this->customFrontendUserRepository->findByUid($newUserUid));
+
+                    //Permantently save all database (model) changes:
+                    $persistenceManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance("TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager");
+                    $persistenceManager->persistAll();
+
+                    //Forward to registration page:
+                    $registrationPagePid = $this->settings['registrationcomfirmationpid'];
+                    header("Location: /index.php?id=$registrationPagePid");die();
+                    
+            } elseif ($action = filter_input(INPUT_POST, "formAction", FILTER_SANITIZE_SPECIAL_CHARS)) {
+
+                    if ($action == "new_DFW_Registration"){
+                        
+                        $gRecaptchaResponse = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('g-recaptcha-response');
+                
+                        if (isset($gRecaptchaResponse)) {
+                            //make the request to google
+                            $secret = $this->settings['recaptcha_server_key'];
+                            $apiResponse = json_decode(\TYPO3\CMS\Core\Utility\GeneralUtility::getUrl($this->googleCaptchaUrl.'?secret='.$secret.'&response='.$gRecaptchaResponse), true);
+
+                            if ($apiResponse['success'] != FALSE) {
+                                if ($newUserUid = $this->createNewUser("DFW")){
+                                        //Send required emails:
+                                        $this->sendEmailsAfterAccountCreation("DFW");
+
+                                        //Reload page and store usergroup (required to reload page!):
+                                        $newUserGroupUid = $this->frontendUserGroupRepository->findByTitle("DFW")->getFirst()->getUid();
+                                        $formpid = $this->settings['formpid'];
+                                        header("Location: /index.php?id=$formpid&addusergrouptonewuser=1&useruid=$newUserUid&usergroupuid=$newUserGroupUid");
+                                } else{
+                                        //There was an input error ($this->aFormErrors) - Load page (form) as normal, include error array and filled out values:
+                                        $this->view->assign('formErrors', $this->aFormErrors);
+                                        $this->view->assign('formValues', $_POST);
+                                }
+                            }
+                        }           
+
+                
+                        /*
+                        $gresponse = $this->request->getArgument('recaptcha_response');
+                        $verify = $this->validateRecapcha($gresponse);
+
+                        if ($verify == true) {
+                            if ($newUserUid = $this->createNewUser("DFW")){
+                                    //Send required emails:
+                                    $this->sendEmailsAfterAccountCreation("DFW");
+
+                                    //Reload page and store usergroup (required to reload page!):
+                                    $newUserGroupUid = $this->frontendUserGroupRepository->findByTitle("DFW")->getFirst()->getUid();
+                                    $formpid = $this->settings['formpid'];
+                                    header("Location: /index.php?id=$formpid&addusergrouptonewuser=1&useruid=$newUserUid&usergroupuid=$newUserGroupUid");
+                            } else{
+                                    //There was an input error ($this->aFormErrors) - Load page (form) as normal, include error array and filled out values:
+                                    $this->view->assign('formErrors', $this->aFormErrors);
+                                    $this->view->assign('formValues', $_POST);
+                            }
+                        }
+                         * 
+                         */
+                    }
+            }
     }
 	
 	/**
@@ -236,7 +273,7 @@ class ContactController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControll
                     if (count($ccEmailRawArr) > 0) {
                         foreach ($ccEmailRawArr as $emailstr) {
                             $emlNameArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode('|', $emailstr);
-                            $ccEmailArr[] = [$emlNameArr[0]=>$emlNameArr[1]];
+                            $ccEmailArr["$emlNameArr[0]"] = $emlNameArr[1];
                         }
                     }
                 }
@@ -252,23 +289,32 @@ class ContactController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControll
 		$subject = "$memberName created a new \"$type\" membership";
 		$bodyPre = "<h3>$memberName created a new \"$type\" account with username \"$requestedUsername\".</h3><br/>The following details were submitted:</p><br/>";
 		$bodyPost = "<p>Note: the member's password has been stored in the 'Staff Comments' field in the member's backend user record.</p>";
-		$recipientArray = [];
-		$recipientArray[0] = []; $recipientArray[0]['toEmail'] = $adminToEmail;
-                
 		
-		foreach($recipientArray as $recipient){
-			$mail = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Mail\\MailMessage');
-			$mail->setFrom(array($adminFromEmail => $adminName));
-			$mail->setReplyTo (array($adminToEmail => $adminName));
-			$mail->setTo(array($recipient['toEmail'] => $adminName));
-                        
-                        if(count($ccEmailArr) > 0) {
-                           $mail->setCc($ccEmailArr);
+                $toEmails = $this->settings['form_adminToemail'];
+                $toEmailArr = [];
+                if (strlen($toEmails)) {
+                    $toEmailRawArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(',', $toEmails);
+
+                    if (count($toEmailRawArr) > 0) {
+                        foreach ($toEmailRawArr as $emailstr) {
+                            $toEmlNameArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode('|', $emailstr);
+                            $toEmailArr["$toEmlNameArr[0]"] = $toEmlNameArr[1];
                         }
-			$mail->setSubject($subject);
-			$mail->setBody($bodyPre.$body.$bodyPost.$emailSignature, 'text/html');
-			$mail->send();
-		}
+                    }
+                }
+               
+                $mail = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Mail\\MailMessage');
+                $mail->setFrom(array($adminFromEmail => $adminName));
+                $mail->setReplyTo (array($adminFromEmail => $adminName));
+                $mail->setTo($toEmailArr);
+                if (count($ccEmailArr) > 0) {
+                   $mail->setCc($ccEmailArr);
+                }
+                
+                $mail->setSubject($subject);
+                $mail->setBody($bodyPre.$body.$bodyPost.$emailSignature, 'text/html');
+                $mail->send();  
+		
 		//**********************************************
 		
 		//**********************************************
@@ -280,7 +326,7 @@ class ContactController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControll
 
 		$mail = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Mail\\MailMessage');
 		$mail->setFrom(array($adminFromEmail => $adminName));
-		$mail->setReplyTo (array($adminToEmail => $adminName));
+		$mail->setReplyTo (array($adminFromEmail => $adminName));
 		$mail->setTo(array($memberEmail => $$memberName));
 		$mail->setSubject($subject);
 		$mail->setBody($bodyPre.$emailSignature, 'text/html');
@@ -293,6 +339,7 @@ class ContactController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControll
 		//Check for input errors / duplicate database entries:
 		/* Fein */
 		$inputFein = filter_input(INPUT_POST, "fein", FILTER_SANITIZE_SPECIAL_CHARS);
+                $inputFein = str_replace("-", "", $inputFein);
 		if($this->customFrontendUserRepository->findForTesting("fein", $inputFein)->count() > 0) {
 			$aTempError = [];
 			$aTempError['field'] = "fein";
@@ -315,8 +362,16 @@ class ContactController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControll
 			$aTempError['error'] = "This username already exists in our database.";
 			$this->aFormErrors['username'] = $aTempError;
 		}
+                $honeyPot = filter_input(INPUT_POST, "secretcode", FILTER_SANITIZE_SPECIAL_CHARS);
+                if ($honeyPot != '') {
+                    $aTempError = [];
+                    $aTempError['field'] = "secretcode";
+                    $aTempError['error'] = "Unauthorized form submission detected!";
+                    $this->aFormErrors['secretcode'] = $aTempError;
+                }
+                
 		//Return false if already existing entry found:
-		if(!empty($this->aFormErrors)){
+		if (!empty($this->aFormErrors)){
 			return false;
 		}
 
@@ -348,7 +403,7 @@ class ContactController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControll
 		$newFrontendUser->setNumberofcdldrivers(filter_input(INPUT_POST, "number_of_CDL_drivers", FILTER_SANITIZE_NUMBER_INT));
 		$newFrontendUser->setState(filter_input(INPUT_POST, "state", FILTER_SANITIZE_SPECIAL_CHARS));
 		$newFrontendUser->setCellphone(filter_input(INPUT_POST, "cell-phone", FILTER_SANITIZE_SPECIAL_CHARS));
-		$newFrontendUser->setFein(filter_input(INPUT_POST, "fein", FILTER_SANITIZE_SPECIAL_CHARS));
+		$newFrontendUser->setFein($inputFein);
 		$newFrontendUser->setBusinesstype(filter_input(INPUT_POST, "business_type", FILTER_SANITIZE_SPECIAL_CHARS));
 		$newFrontendUser->setInsurancecarrier(filter_input(INPUT_POST, "Workers_Comp_Insurance_Carrier", FILTER_SANITIZE_SPECIAL_CHARS));
 		$newFrontendUser->setInsuranceagent(filter_input(INPUT_POST, "Insurance_Agent", FILTER_SANITIZE_SPECIAL_CHARS));
@@ -363,10 +418,9 @@ class ContactController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControll
 		$persistenceManager->persistAll();
 		
 		//Return the new user's uid:
-		if((int)$newFrontendUser->getUid() == 0){
+		if ((int)$newFrontendUser->getUid() == 0){
 			die("User could not be saved -- Permanent error. Please consult IT support.");
-		}
-		else{
+		} else{
 			return $newFrontendUser->getUid();
 		}
 	}
@@ -414,5 +468,28 @@ class ContactController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControll
 		return $password;
 	}
 
-
+        /**
+         * 
+         * @param string $gresponse
+         * @return bool
+         */
+        protected function validateRecapcha($gresponse) {
+            
+            $post_data = [
+                'secret' => '6Leuc70UAAAAAHk_YSFxyVefaQck-lRFNmf-tkb4', 
+                'response' => $gresponse
+            ];
+            
+            $curlx = curl_init();
+            curl_setopt($curlx, CURLOPT_URL, "https://www.google.com/recaptcha/api/siteverify");
+            curl_setopt($curlx, CURLOPT_HEADER, 0);
+            
+            curl_setopt($curlx, CURLOPT_POST, 1);
+            curl_setopt($curlx, CURLOPT_POSTFIELDS, http_build_query($post_data));
+            curl_setopt($curlx, CURLOPT_RETURNTRANSFER, 1); 
+            $resp = json_decode(curl_exec($curlx));
+            curl_close($curlx);
+    
+            return $resp->success;
+        }
 }

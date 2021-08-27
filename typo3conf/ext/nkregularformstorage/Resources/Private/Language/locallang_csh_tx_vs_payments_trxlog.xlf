@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2020-06-24T08:16:14Z" product-name="nkregularformstorage">
+		<header/>
+		<body>
+			<trans-unit id="success.description">
+				<source>success</source>
+			</trans-unit>
+			<trans-unit id="trxtype.description">
+				<source>trxtype</source>
+			</trans-unit>
+			<trans-unit id="status.description">
+				<source>status</source>
+			</trans-unit>
+                        <trans-unit id="success.description">
+				<source>success</source>
+			</trans-unit>
+                        <trans-unit id="refid.description">
+				<source>refid</source>
+			</trans-unit>
+                        <trans-unit id="authcode.description">
+				<source>authcode</source>
+			</trans-unit>
+                        <trans-unit id="profileid.description">
+				<source>profileid</source>
+			</trans-unit>
+                        <trans-unit id="message.description">
+				<source>message</source>
+			</trans-unit>
+                        <trans-unit id="rawresult.description">
+				<source>rawresult</source>
+			</trans-unit>
+                        <trans-unit id="amount.description">
+				<source>amount</source>
+			</trans-unit>
+                        <trans-unit id="cardno.description">
+				<source>cardno</source>
+			</trans-unit>
+                        <trans-unit id="expires.description">
+				<source>expires</source>
+			</trans-unit>
+                        <trans-unit id="csc.description">
+				<source>csc</source>
+			</trans-unit>
+                        <trans-unit id="description.description">
+				<source>description</source>
+			</trans-unit>
+                        <trans-unit id="invoiceno.description">
+				<source>invoiceno</source>
+			</trans-unit>
+                        <trans-unit id="cardholder.description">
+				<source>cardholder</source>
+			</trans-unit>
+                        <trans-unit id="address.description">
+				<source>address</source>
+			</trans-unit>
+                        <trans-unit id="city.description">
+				<source>city</source>
+			</trans-unit>
+                         <trans-unit id="state.description">
+				<source>state</source>
+			</trans-unit>
+                        <trans-unit id="zip.description">
+				<source>zip</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

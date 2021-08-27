@@ -1,61 +1,59 @@
-<label for="firstname">First name <span class="required">*</span></label>
-<f:form.textfield property="firstname" value="{frontendUser.firstname}" required="rquired"/>
+<label for="firstname">First Name <span class="required">*</span></label>
+<f:form.textfield property="firstname" value="{frontendUser.firstname->f:format.htmlentitiesDecode()}" required="required" />
 
-<label for="lastname">Last name <span class="required">*</span></label>
-<f:form.textfield property="lastname" value="{frontendUser.lastname}" required="rquired"/>
+<label for="lastname">Last Name <span class="required">*</span></label>
+<f:form.textfield property="lastname" value="{frontendUser.lastname->f:format.htmlentitiesDecode()}" required="required" />
 
-<label for="title">Title <span class="required">*</span></label>
-<f:form.textfield property="title" value="{frontendUser.title}" required="rquired"/>
+<label for="title">Title</label>
+<f:form.textfield property="title" value="{frontendUser.title->f:format.htmlentitiesDecode()}" />
 
 <label for="company">Company <span class="required">*</span></label>
-<f:form.textfield property="company" value="{frontendUser.company}" required="rquired"/>
+<f:form.textfield property="company" value="{frontendUser.company->f:format.htmlentitiesDecode()}" required="required" />
 
 <label for="numberofemployees"><f:translate key="tx_nkcadportal_domain_model_customfrontenduser.numberofemployees" /></label>
-<f:form.textfield property="numberofemployees" value="{frontendUser.numberofemployees}"/>
+<f:form.textfield property="numberofemployees" value="{frontendUser.numberofemployees}" />
 
 <label for="numberofcdldrivers"><f:translate key="tx_nkcadportal_domain_model_customfrontenduser.numberofcdldrivers" /></label>
-<f:form.textfield property="numberofcdldrivers" value="{frontendUser.numberofcdldrivers}"/>
+<f:form.textfield property="numberofcdldrivers" value="{frontendUser.numberofcdldrivers}" />
 
 <label for="address">Mailing Address <span class="required">*</span></label>
-<f:form.textfield property="address" value="{frontendUser.address}" required="rquired"/>
+<f:form.textfield property="address" value="{frontendUser.address->f:format.htmlentitiesDecode()}" required="required" />
 
 <label for="address">Billing Address </label>
-<f:form.textfield property="additionaladdress" value="{frontendUser.additionaladdress}" />
+<f:form.textfield property="additionaladdress" value="{frontendUser.additionaladdress->f:format.htmlentitiesDecode()}" />
 
 <label for="city">City <span class="required">*</span></label>
-<f:form.textfield property="city" value="{frontendUser.city}" required="rquired"/>
+<f:form.textfield property="city" value="{frontendUser.city->f:format.htmlentitiesDecode()}" required="required" />
 
 <label for="state"><f:translate key="tx_nkcadportal_domain_model_customfrontenduser.state" /> <span class="required">*</span></label>
-<f:form.textfield property="state" value="{frontendUser.state}" required="rquired"/>
+<f:form.textfield property="state" value="{frontendUser.state}" required="required" />
 
 <label for="zip">ZIP <span class="required">*</span></label>
-<f:form.textfield property="zip" value="{frontendUser.zip}" required="rquired"/>
+<f:form.textfield property="zip" value="{frontendUser.zip}" required="required" />
 
 <label for="phone">Phone <span class="required">*</span></label>
-<f:form.textfield property="phone" value="{frontendUser.telephone}" required="rquired"/>
+<f:form.textfield property="phone" value="{frontendUser.telephone}" required="required" />
 
 <label for="cellphone"><f:translate key="tx_nkcadportal_domain_model_customfrontenduser.cellphone" /> </label>
 <f:form.textfield property="cellphone" value="{frontendUser.cellphone}"/>
 
 <label for="fax">Fax</label>
-<f:form.textfield property="fax" value="{frontendUser.fax}"/>
+<f:form.textfield property="fax" value="{frontendUser.fax}" />
 
-<label for="fein"><f:translate key="tx_nkcadportal_domain_model_customfrontenduser.fein" /> <span class="required">*</span></label>
-<f:form.textfield property="fein" value="{frontendUser.fein}" required="rquired"/>
+<label for="fein"><f:translate key="tx_nkcadportal_domain_model_customfrontenduser.fein" /></label>
+<f:form.textfield property="fein" value="{frontendUser.fein}" />
 
 <label for="businesstype"><f:translate key="tx_nkcadportal_domain_model_customfrontenduser.businesstype" /></label>
-<f:form.textfield property="businesstype" value="{frontendUser.businesstype}"/>
+<f:form.textfield property="businesstype" value="{frontendUser.businesstype->f:format.htmlentitiesDecode()}" />
 
 <label for="insurancecarrier"><f:translate key="tx_nkcadportal_domain_model_customfrontenduser.insurancecarrier" /></label>
-<f:form.textfield property="insurancecarrier" value="{frontendUser.insurancecarrier}"/>
+<f:form.textfield property="insurancecarrier" value="{frontendUser.insurancecarrier->f:format.htmlentitiesDecode()}" />
 
 <label for="insuranceagent"><f:translate key="tx_nkcadportal_domain_model_customfrontenduser.insuranceagent" /></label>
-<f:form.textfield property="insuranceagent" value="{frontendUser.insuranceagent}"/>
+<f:form.textfield property="insuranceagent" value="{frontendUser.insuranceagent->f:format.htmlentitiesDecode()}" />
 
 <label for="hearaboutus"><f:translate key="tx_nkcadportal_domain_model_customfrontenduser.hearaboutus" /></label>
-<f:form.select property="hearaboutus" options="{formdata.hearaboutusoptions}" value="{frontendUser.hearaboutus}"/>
-
-
+<f:form.select property="hearaboutus" options="{formdata.hearaboutusoptions}" value="{frontendUser.hearaboutus->f:format.htmlentitiesDecode()}" />
 
 
 <label for="email">Email <span class="required">*</span></label>

@@ -18,6 +18,7 @@ $(function(){
 	$("#renewexistingform input[type='checkbox']").on("change", function(){
 		$inputName = $(this).attr("name");
 		$aInputNameTemp = $inputName.split("_");
+                $mtName =  $(this).attr("data-name");
 		$stateUid = $(this).parent().parent().find(".existing-state").attr("data-uid");
 		if($(this).prop("checked")){
 			//Enable renewing this existing membership:
@@ -26,7 +27,7 @@ $(function(){
 			$("select.purchaserenewmembership").each(function(){
 				if($(this).val() == '0'){
 					//Select the correct membership to renew:
-					$(this).val($aInputNameTemp);
+					$(this).val($mtName);
 					//Select the correct state:
 					$(this).parent().parent().find(".newmembership-state").val($stateUid);
 					//Mark this membership row as containing a renewed membership:
@@ -37,8 +38,7 @@ $(function(){
 					return false;
 				}
 			});
-		}
-		else{
+		} else {
 			//Disable renewing this existing membership:
 			$("#purchaserenewform input[name='"+$inputName+"']").val('0');
 			//Remove the marking for the membership row:
@@ -47,6 +47,7 @@ $(function(){
 			$("#purchaserenewform tr[data-renewed-membership='"+$inputName+"'] select.purchaserenewmembership").trigger("change");
 			$("#purchaserenewform tr[data-renewed-membership='"+$inputName+"']").attr("data-renewed-membership", "");
 		}
+                
 		//Update the total price:
 		updatePurchaseTotal();		
 	});
@@ -74,6 +75,27 @@ $(function(){
 			$(".new_passw_wrapper").slideUp();
 		}
 	});
+        
+        $('.nldown').on('click', function(){
+            //Get the page uid to call:
+            $ajaxUrl = $(this).attr("data-href");
+            $.ajax({
+                    url: $ajaxUrl,
+                    type: "POST",
+                    success: function () {
+                         location.href = $ajaxUrl;
+                    },
+                    error: function () {
+                        //Give an alert:
+                        alert('There was an error getting the requested file.\n');
+                    }
+            });
+        });
+        
+        $('#fepay').on('click', function(){
+           $(".preventclick").show();
+           disableFiveSec(); 
+        });
 });
 
 function checkProfileForm(){
@@ -163,8 +185,32 @@ function performAjaxCall($requestType, $requestValue){
 	return returnValue;
 }
 
-function editContact($contactUid){
-	
+
+
+function editContact(uid,fname,lname,title,email,phn,ct){
+    $('#cuid').val(uid);
+    $('#cfname').val(fname);
+    $('#clname').val(lname);
+    $('#ctitle').val(title);
+    $('#cemail').val(email);
+    $('#cphone').val(phn);
+    $('#ctype').val(ct);
+    $('#ctformaction').val('updatecontact');
+    $('.add-contact-form').hide();
+    $('.edit-contact-form').show();
+}
+
+function cancelAcForm() {
+    $('#ctformaction').val('createcontact');
+    $('#cuid').val('');
+    $('#cfname').val('');
+    $('#clname').val('');
+    $('#ctitle').val('');
+    $('#cemail').val('');
+    $('#cphone').val('');
+    $('#ctype').val('');
+    $('.edit-contact-form').hide();
+    $('.add-contact-form').show();
 }
 
 function removeContact($contactUid){
@@ -219,4 +265,11 @@ function checkMembershipPaymentForm(){
 			return true;
 		}	
 	}
+}
+
+function disableFiveSec()
+{
+    setTimeout(function(){
+        $(".preventclick").hide();
+    }, 5000);
 }

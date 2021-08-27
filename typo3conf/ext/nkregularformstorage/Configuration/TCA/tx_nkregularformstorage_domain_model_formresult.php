@@ -9,7 +9,7 @@ return array(
 		'dividers2tabs' => TRUE,
 		'versioningWS' => 2,
 		'versioning_followPages' => TRUE,
-
+                'default_sortby' => 'uid DESC',
 		'languageField' => 'sys_language_uid',
 		'transOrigPointerField' => 'l10n_parent',
 		'transOrigDiffSourceField' => 'l10n_diffsource',
@@ -191,7 +191,7 @@ return array(
 				'items' => array(
 					array('Pending', 0),
                                         array('Paid', 1),
-                                        array('Failed', -1),
+                                        array('Failed', 2),
 				),
 			),
 		),

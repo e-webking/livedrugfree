@@ -49,11 +49,92 @@ CREATE TABLE tx_nkregularformstorage_domain_model_formresult (
 
 );
 
+
 #
 # Table structure for table 'fe_users'
 #
 CREATE TABLE fe_users (
 
 	authorize_customer_profile varchar(50) DEFAULT '' NOT NULL,
-	authorize_payment_profile varchar(50) DEFAULT '' NOT NULL,
+);
+
+CREATE TABLE tx_nkregularformstorage_domain_model_paymentprofile
+(
+    uid int(11) NOT NULL auto_increment,
+    pid int(11) NOT NULL DEFAULT '0',
+
+    tstamp int(11) NOT NULL DEFAULT '0',
+    crdate int(11) NOT NULL DEFAULT '0',
+    cruser_id int(11) NOT NULL DEFAULT '0',
+    deleted tinyint(4) NOT NULL DEFAULT '0',
+    hidden tinyint(4) NOT NULL DEFAULT '0',
+
+    feuser int(11) NOT NULL DEFAULT '0',
+    cusprofile int(11) NOT NULL DEFAULT '0',
+    payprofile int(11) NOT NULL DEFAULT '0',
+    card varchar(250) NOT NULL DEFAULT '',
+    email varchar(250) NOT NULL DEFAULT '',
+
+    PRIMARY KEY (uid),
+    KEY parent (pid)
+);
+
+CREATE TABLE tx_nkregularformstorage_domain_model_log (
+
+    uid int(11) NOT NULL auto_increment,
+    pid int(11) DEFAULT '0' NOT NULL,
+
+    feuser int(11) DEFAULT '0' NOT NULL,
+    cardno varchar(25) NOT NULL DEFAULT '',
+    amount varchar(10) DEFAULT '' NOT NULL,
+    form text NOT NULL,
+
+    tstamp int(11) unsigned DEFAULT '0' NOT NULL,
+    crdate int(11) unsigned DEFAULT '0' NOT NULL,
+    cruser_id int(11) unsigned DEFAULT '0' NOT NULL,
+    deleted tinyint(4) unsigned DEFAULT '0' NOT NULL,
+    hidden tinyint(4) unsigned DEFAULT '0' NOT NULL,
+
+    PRIMARY KEY (uid),
+    KEY parent (pid)
+
+);
+
+--
+-- Table structure for table `tx_vs_payments_trxlog`
+--
+
+CREATE TABLE tx_vs_payments_trxlog (
+
+    uid int(11) NOT NULL auto_increment,
+    pid int(11) NOT NULL DEFAULT '0',
+
+    tstamp int(11) NOT NULL DEFAULT '0',
+    crdate int(11) NOT NULL DEFAULT '0',
+    cruser_id int(11) NOT NULL DEFAULT '0',
+    deleted tinyint(4) NOT NULL DEFAULT '0',
+    hidden tinyint(4) NOT NULL DEFAULT '0',
+
+    success tinyint(3) NOT NULL DEFAULT '0',
+    trxtype varchar(20) NOT NULL DEFAULT '',
+    status varchar(15) NOT NULL DEFAULT '',
+    refid varchar(50) DEFAULT '',
+    authcode varchar(15) NOT NULL DEFAULT '',
+    profileid varchar(20) NOT NULL DEFAULT '',
+    message text,
+    rawresult text,
+    amount varchar(10) NOT NULL DEFAULT '0.00',
+    cardno varchar(30) NOT NULL DEFAULT '',
+    expires varchar(5) NOT NULL DEFAULT '',
+    csc varchar(4) NOT NULL DEFAULT '',
+    description text,
+    invoiceno varchar(20) NOT NULL DEFAULT '',
+    cardholder varchar(50) NOT NULL DEFAULT '',
+    address varchar(50) NOT NULL DEFAULT '',
+    city varchar(50) NOT NULL DEFAULT '',
+    state char(2) NOT NULL DEFAULT '',
+    zip varchar(10) NOT NULL DEFAULT '',
+
+    PRIMARY KEY (uid),
+    KEY parent (pid)
 );
