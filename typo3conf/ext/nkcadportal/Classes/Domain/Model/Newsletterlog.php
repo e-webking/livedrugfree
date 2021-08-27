@@ -27,150 +27,91 @@ namespace Netkyngs\Nkcadportal\Domain\Model;
  ***************************************************************/
 
 /**
- * Newsletter
+ * Newsletterlog
  */
-class Newsletter extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
+class Newsletterlog extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
 {
+    
+    /**
+     * 
+     * @var \DateTime
+     */
+    protected $sdate;
 
     /**
-     * Title
-     * 
+     *
      * @var string
      */
-    protected $title = '';
+    protected $email;
     
     /**
-     * File
+     * Newsletter
      * 
-     * @var \TYPO3\CMS\Extbase\Domain\Model\FileReference
-     * @validate NotEmpty
+     * @var \Netkyngs\Nkcadportal\Domain\Model\Newsletter
      */
-    protected $file = null;
+    protected $newsletter;
     
     /**
-     * For Month/Year
+     * Returns the newsletter
      * 
-     * @var string
-     * @validate NotEmpty
+     * @return \Netkyngs\Nkcadportal\Domain\Model\Newsletter
      */
-    protected $forperiod = '';
-	
-	/**
-	* @var \DateTime
-	*/
-	protected $tstamp;
-    
-    /**
-     * Newsletter Type
-     * 
-     * @var \Netkyngs\Nkcadportal\Domain\Model\Newslettertype
-     * @lazy
-     */
-    protected $newslettertype = null;
-    
-    /**
-     * Returns the newslettertype
-     * 
-     * @return \Netkyngs\Nkcadportal\Domain\Model\Newslettertype $newslettertype
-     */
-    public function getNewslettertype()
+    public function getNewsletter()
     {
-        return $this->newslettertype;
+        return $this->newsletter;
     }
     
     /**
-     * Sets the newslettertype
+     * Sets the newsletter
      * 
-     * @param \Netkyngs\Nkcadportal\Domain\Model\Newslettertype $newslettertype
+     * @param \Netkyngs\Nkcadportal\Domain\Model\Newsletter $newsletter
      * @return void
      */
-    public function setNewslettertype(\Netkyngs\Nkcadportal\Domain\Model\Newslettertype $newslettertype)
+    public function setNewsletter(\Netkyngs\Nkcadportal\Domain\Model\Newsletter $newsletter)
     {
-        $this->newslettertype = $newslettertype;
+        $this->newsletter = $newsletter;
     }
     
     /**
-     * Returns the title
+     * Returns the email
      * 
-     * @return string $title
+     * @return string $email
      */
-    public function getTitle()
+    public function getEmail()
     {
-        return $this->title;
+        return $this->email;
     }
     
     /**
-     * Sets the title
+     * Sets the email
      * 
-     * @param string $title
+     * @param string $email
      * @return void
      */
-    public function setTitle($title)
+    public function setEmail($email)
     {
-        $this->title = $title;
+        $this->email = $email;
     }
     
     /**
-     * Returns the file
+     * Returns the sdate
      * 
-     * @return \TYPO3\CMS\Extbase\Domain\Model\FileReference $file
+     * @return \DateTime $sdate
      */
-    public function getFile()
+    public function getSdate()
     {
-        return $this->file;
+        return $this->sdate;
     }
     
     /**
-     * Sets the file
+     * Sets the sdate
      * 
-     * @param \TYPO3\CMS\Extbase\Domain\Model\FileReference $file
+     * @param \DateTime $sdate
      * @return void
      */
-    public function setFile(\TYPO3\CMS\Extbase\Domain\Model\FileReference $file)
+    public function setSdate($sdate)
     {
-        $this->file = $file;
-    }
-    
-    /**
-     * Returns the forperiod
-     * 
-     * @return string $forperiod
-     */
-    public function getForperiod()
-    {
-        return $this->forperiod;
-    }
-    
-    /**
-     * Sets the forperiod
-     * 
-     * @param string $forperiod
-     * @return void
-     */
-    public function setForperiod($forperiod)
-    {
-        $this->forperiod = $forperiod;
-    }
-	
-	/**
-     * Returns the tstamp
-     * 
-     * @return \DateTime $tstamp
-     */
-    public function getTstamp()
-    {
-        return $this->tstamp;
-    }
-    
-    /**
-     * Sets the tstamp
-     * 
-     * @param \DateTime $tstamp
-     * @return void
-     */
-    public function setTstamp($tstamp)
-    {
-        $this->tstamp = $tstamp;
+        $this->sdate = $sdate;
     }
 
 }

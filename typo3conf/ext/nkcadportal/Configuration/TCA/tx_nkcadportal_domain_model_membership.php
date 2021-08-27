@@ -214,7 +214,7 @@ return array(
 				'type' => 'input',
                                 /*'renderType' => 'hidden',*/
 				'size' => 50,
-				'eval' => 'trim,required',
+				'eval' => 'trim',
                                 'readOnly' => true
 			),
 		),

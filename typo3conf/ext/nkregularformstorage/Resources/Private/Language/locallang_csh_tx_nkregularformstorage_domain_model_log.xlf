@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2020-06-24T08:16:14Z" product-name="nkregularformstorage">
+		<header/>
+		<body>
+			<trans-unit id="feuser.description">
+				<source>Member</source>
+			</trans-unit>
+			<trans-unit id="amount.description">
+				<source>Amount</source>
+			</trans-unit>
+			<trans-unit id="form.description">
+				<source>Form data</source>
+			</trans-unit>
+                        <trans-unit id="cardno.description">
+				<source>Hashed card</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

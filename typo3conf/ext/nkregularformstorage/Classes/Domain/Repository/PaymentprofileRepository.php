@@ -48,9 +48,13 @@ class PaymentprofileRepository extends \TYPO3\CMS\Extbase\Persistence\Repository
         $constraints = array();
         $constraints[] = $query->equals('feuser', $feuser);
         $constraints[] = $query->equals('cusprofile', $cusprofile);
-        $constraints[] = $query->equals('card', md5($card));
+        
         if (!is_null($email)) {
-             $constraints[] = $query->equals('email', $email);
+            $constraints[] = $query->equals('email', $email);
+        }
+        if (!is_null($card)) {
+            $partcard = substr($card, 0, 4).'-xxxx-'. substr($card, strlen($card)-4);
+            $constraints[] = $query->equals('card', $partcard);
         }
         
         $query->matching(
@@ -65,9 +69,10 @@ class PaymentprofileRepository extends \TYPO3\CMS\Extbase\Persistence\Repository
      * @param int $paymentprof
      */
     public function getProfileByPay($paymentprof) {
+        
         $query = $this->createQuery();
         $query->matching(
-            $query->logicalAnd($query->equals('payprofile', $paymentprof))
+            $query->equals('payprofile', $paymentprof)
         );
         
         return $query->execute()->getFirst();

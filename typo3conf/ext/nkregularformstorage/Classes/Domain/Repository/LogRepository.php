@@ -1,11 +1,12 @@
 <?php
-namespace Netkyngs\Nkcadportal\Domain\Repository;
+namespace Netkyngs\Nkregularformstorage\Domain\Repository;
+
 
 /***************************************************************
  *
  *  Copyright notice
  *
- *  (c) 2018 Roel Krottje <roel@netkyngs.com>, Netkyngs
+ *  (c) 2017 Roel Krottje <roel@netkyngs.com>, Netkyngs
  *
  *  All rights reserved
  *
@@ -27,29 +28,16 @@ namespace Netkyngs\Nkcadportal\Domain\Repository;
  ***************************************************************/
 
 /**
- * The repository for MembershipTemplates
+ * The repository for Formresults
  */
-class MembershipTemplateRepository extends \TYPO3\CMS\Extbase\Persistence\Repository
+class LogRepository extends \TYPO3\CMS\Extbase\Persistence\Repository
 {
 
     /**
+     * defaultOrderings
+     *
      * @var array
      */
-    protected $defaultOrderings = array(
-        'sorting' => \TYPO3\CMS\Extbase\Persistence\QueryInterface::ORDER_ASCENDING
-    );
-
-    /**
-     * Ignore storage pid
-     */
-    public function initializeObject() {
-
-        /**
-         * @var $querySettings \TYPO3\CMS\Extbase\Persistence\Generic\Typo3QuerySettings
-         */
-        $querySettings = $this->objectManager->get('TYPO3\\CMS\\Extbase\\Persistence\\Generic\\Typo3QuerySettings');
-        $querySettings->setRespectStoragePage(FALSE);
-        $querySettings->setIgnoreEnableFields(TRUE);
-        $this->setDefaultQuerySettings($querySettings);
-    }
+    protected $defaultOrderings = array("uid"=> \TYPO3\CMS\Extbase\Persistence\QueryInterface::ORDER_DESCENDING);
+    
 }

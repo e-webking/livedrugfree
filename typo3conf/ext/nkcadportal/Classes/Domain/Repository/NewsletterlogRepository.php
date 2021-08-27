@@ -1,9 +1,6 @@
 <?php
 namespace Netkyngs\Nkcadportal\Domain\Repository;
 
-use TYPO3\CMS\Core\Database\ConnectionPool;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-
 /***************************************************************
  *
  *  Copyright notice
@@ -30,52 +27,9 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  ***************************************************************/
 
 /**
- * The repository for Newsletters
+ * The repository for Newsletterlog
  */
-class NewsletterRepository extends \TYPO3\CMS\Extbase\Persistence\Repository
+class NewsletterlogRepository extends \TYPO3\CMS\Extbase\Persistence\Repository
 {
-    
-    /**
-     * @var array
-     */
-    protected $defaultOrderings = array(
-        'starttime' => \TYPO3\CMS\Extbase\Persistence\QueryInterface::ORDER_DESCENDING
-    );
-    
-    /**
-     * Ignore storage pid
-     */
-    public function initializeObject() {
-
-        /**
-         * @var $querySettings \TYPO3\CMS\Extbase\Persistence\Generic\Typo3QuerySettings
-         */
-        $querySettings = $this->objectManager->get('TYPO3\\CMS\\Extbase\\Persistence\\Generic\\Typo3QuerySettings');
-        $querySettings->setRespectStoragePage(FALSE);
-        $querySettings->setIgnoreEnableFields(TRUE);
-        $this->setDefaultQuerySettings($querySettings);
-    }
-
-    
-    public function findByNewslettertypes ($aNewslettertypes){
-
-		//Set query:
-        $query = $this->createQuery();
-		
-		//Create usergroup constraints:
-		$constraints = [];
-		foreach($aNewslettertypes as $newslettertype){
-			$constraints[] = $query->equals('newslettertype', $newslettertype);
-		}
-		
-        //Apply filtering
-		$query->matching(
-			$query->logicalOr(
-				$constraints
-			)
-		);
-
-        //Execute and return query:
-        return $query->execute();
-	}
+  
 }

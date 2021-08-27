@@ -18,6 +18,12 @@ plugin.tx_nkcadportal_nkcadportalfe {
             form_adminToemail = swade@livedrugfree.org|Staci Wade,syost@livedrugfree.org|Scott Yost,ktinker@livedrugfree.org|Karen Tinker,dholloway@livedrugfree.org|Denise Holloway
             form_CcEmails = lwilson@livedrugfree.org|Wilson
             paymentconfirmationpid = 30
+
+            # cat=plugin.tx_nkcadportal_nkcadportalfe.recaptcha_site_key;type=string;label=Google V2 Recaptcha Site Key
+            recaptcha_site_key = 6LfRWooaAAAAAOfiFwCE-dM6YQcvuRPT1KSTQAcW
+            
+            # cat=plugin.tx_nkcadportal_nkcadportalfe.recaptcha_server_key;type=string;label=Google V2 Recaptcha Secret Key
+            recaptcha_server_key = 6LfRWooaAAAAALlDTRBNUXnNymJ03JeIwpXK4an9
         }
 }
 

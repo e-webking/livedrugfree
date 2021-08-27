@@ -215,6 +215,19 @@
                         <trans-unit id="tx_nkcadportal_domain_model_invoice.invoicedata">
 				<source>Invoice data (serialized)</source>
 			</trans-unit>
+                        
+                        <trans-unit id="tx_nkcadportal_domain_model_newsletterlog">
+				<source>Newsletter Log</source>
+			</trans-unit>
+			<trans-unit id="tx_nkcadportal_domain_model_newsletterlog.newsletter">
+				<source>Newsletter</source>
+			</trans-unit>
+			<trans-unit id="tx_nkcadportal_domain_model_newsletter.sdate">
+				<source>Sent date</source>
+			</trans-unit>
+			<trans-unit id="tx_nkcadportal_domain_model_newsletter.email">
+				<source>Email sent to</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

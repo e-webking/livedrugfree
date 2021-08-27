@@ -79,6 +79,27 @@ CREATE TABLE tx_nkregularformstorage_domain_model_paymentprofile
     KEY parent (pid)
 );
 
+CREATE TABLE tx_nkregularformstorage_domain_model_log (
+
+    uid int(11) NOT NULL auto_increment,
+    pid int(11) DEFAULT '0' NOT NULL,
+
+    feuser int(11) DEFAULT '0' NOT NULL,
+    cardno varchar(25) NOT NULL DEFAULT '',
+    amount varchar(10) DEFAULT '' NOT NULL,
+    form text NOT NULL,
+
+    tstamp int(11) unsigned DEFAULT '0' NOT NULL,
+    crdate int(11) unsigned DEFAULT '0' NOT NULL,
+    cruser_id int(11) unsigned DEFAULT '0' NOT NULL,
+    deleted tinyint(4) unsigned DEFAULT '0' NOT NULL,
+    hidden tinyint(4) unsigned DEFAULT '0' NOT NULL,
+
+    PRIMARY KEY (uid),
+    KEY parent (pid)
+
+);
+
 --
 -- Table structure for table `tx_vs_payments_trxlog`
 --

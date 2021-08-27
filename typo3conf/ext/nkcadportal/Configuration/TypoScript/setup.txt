@@ -14,6 +14,8 @@ plugin.tx_nkcadportal_nkcadportalfe {
             form_adminToemail = {$plugin.tx_nkcadportal_nkcadportalfe.settings.form_adminToemail}
             form_CcEmails = {$plugin.tx_nkcadportal_nkcadportalfe.settings.form_CcEmails}
             paymentconfirmationpid = {$plugin.tx_nkcadportal_nkcadportalfe.settings.paymentconfirmationpid}
+            recaptcha_site_key = {$plugin.tx_nkcadportal_nkcadportalfe.settings.recaptcha_site_key}
+            recaptcha_server_key = {$plugin.tx_nkcadportal_nkcadportalfe.settings.recaptcha_server_key}
 	}
 }
 

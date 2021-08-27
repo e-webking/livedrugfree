@@ -1210,7 +1210,7 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
                                     die();
                                 } else {
                                     http_response_code(404);
-                                        die();
+                                    die();
                                 }
                                 break;
                             
@@ -1288,27 +1288,29 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         }
         //Check if a form was submitted:
         if (isset($_POST['tx_nkcadportal_nkcadportalfe'])){
-                if(isset($_POST['tx_nkcadportal_nkcadportalfe']['formaction'])){
-                        switch($_POST['tx_nkcadportal_nkcadportalfe']['formaction']){
+            
+            if (isset($_POST['tx_nkcadportal_nkcadportalfe']['formaction'])){
+                
+                switch($_POST['tx_nkcadportal_nkcadportalfe']['formaction']){
 
-                                case "createcontact":
-                                        $this->createContact();
-                                        break;
-                                case "updatecontact":
-                                        $this->updateContact();
-                                        break;
-                                    
-                                case "updatefrontenduser":
-                                        $this->updateFrontendUser();
-                                        break;
-                        }
+                    case "createcontact":
+                            $this->createContact();
+                            break;
+                    case "updatecontact":
+                            $this->updateContact();
+                            break;
+
+                    case "updatefrontenduser":
+                            $this->updateFrontendUser();
+                            break;
                 }
+            }
         }
 
         //Check if an AJAX request was made:
         if ($action = filter_input(INPUT_GET, "action", FILTER_SANITIZE_SPECIAL_CHARS)) {
-                $this->performAjaxRequest($action);
-                die();
+            $this->performAjaxRequest($action);
+            die();
         }
 
         //Add CSS and JS:
@@ -1327,37 +1329,68 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
         }
         // get contact details of the user
         //$addContacts = $this->contactRepository->findByCustomfrontenduser($feUserUid);
-        //Add the accessible documents to the $frontendUser object:
-        $frontendUser = $this->addDocumentsToUser($frontendUser);
+        
+        //check is user is active or expired
+        $hasActiveMembership = false;
+        $memberShips = $frontendUser->getMemberships();
+        
+        if ($memberShips->count() > 0) {
+        
+            foreach ($memberShips as $usermship) {
 
-        try {
-            //Add download path data to the documents:
-             if (is_array($frontendUser->documents)) {
-                foreach($frontendUser->documents as $document){
-                    $docFile = $document->getFile();
-                    if(is_object($docFile)) {
-                        $publicUrl = $docFile->getOriginalResource()->getPublicUrl();
-                        $aPublicUrlTmp = explode("/", $publicUrl);
-                        $document->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+                $starttime = $usermship->getStarttime();
+                $customStart = $usermship->getStarttimecustom();
+                $endTime = $usermship->getEndtime();
+                $customEnd = $usermship->getEndtimecustom();
+                
+                if ($starttime instanceof \DateTime && $endTime instanceof \DateTime) {
+                    if ($starttime->getTimestamp() <= time() && $endTime->getTimestamp() >= time()) {
+                        $hasActiveMembership = TRUE;
+                        break;
                     }
                 }
-             }
-
-            //Add the accessible newsletters to the $frontendUser object:
-            $frontendUser = $this->addNewslettersToUser($frontendUser);
-
-            //Add download path data to the newsletters:
-            if (is_array($frontendUser->newsletters)) {
-                foreach($frontendUser->newsletters as $newsletter){
-                    $nlFile =  $newsletter->getFile();
-                    if(is_object($nlFile)) {
-                        $publicUrl = $nlFile->getOriginalResource()->getPublicUrl();
-                        $aPublicUrlTmp = explode("/", $publicUrl);
-                        $newsletter->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+                if ($customStart instanceof \DateTime && $customEnd instanceof \DateTime) {
+                    if ($customStart->getTimestamp() <= time() && $customEnd->getTimestamp() >= time()) {
+                        $hasActiveMembership = TRUE;
+                        break;
                     }
                 }
             }
-        } catch (\Exception $e){}
+        }
+        if ($hasActiveMembership) {
+            
+            try {
+                //Add the accessible documents to the $frontendUser object:
+                $frontendUser = $this->addDocumentsToUser($frontendUser);
+            
+                //Add download path data to the documents:
+                 if (is_array($frontendUser->documents)) {
+                    foreach($frontendUser->documents as $document){
+                        $docFile = $document->getFile();
+                        if(is_object($docFile)) {
+                            $publicUrl = $docFile->getOriginalResource()->getPublicUrl();
+                            $aPublicUrlTmp = explode("/", $publicUrl);
+                            $document->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+                        }
+                    }
+                 }
+
+                //Add the accessible newsletters to the $frontendUser object:
+                $frontendUser = $this->addNewslettersToUser($frontendUser);
+
+                //Add download path data to the newsletters:
+                if (is_array($frontendUser->newsletters)) {
+                    foreach($frontendUser->newsletters as $newsletter){
+                        $nlFile =  $newsletter->getFile();
+                        if(is_object($nlFile)) {
+                            $publicUrl = $nlFile->getOriginalResource()->getPublicUrl();
+                            $aPublicUrlTmp = explode("/", $publicUrl);
+                            $newsletter->fileName = $aPublicUrlTmp[count($aPublicUrlTmp)-1];
+                        }
+                    }
+                }
+            } catch (\Exception $e){}
+        }
 
         //Prepare profile form hearboutusoptions array:
         $aHearaboutusoptions = array(
@@ -1464,9 +1497,18 @@ class CustomFrontendUserController extends \TYPO3\CMS\Extbase\Mvc\Controller\Act
             }
             //Get all states this user has a membership for:
             $aUserStates = [];
+            
             foreach($frontendUser->getMemberships() as $membership){
-                $aUserStates[$membership->getState()->getUid()] = $membership->getState();
+                
+                if ($membership instanceof  \Netkyngs\Nkcadportal\Domain\Model\Membership) {
+                    $tState = $membership->getState();
+                    if ($tState instanceof \TYPO3\CMS\Extbase\Persistence\Generic\LazyLoadingProxy) {
+                        $aUserStates[$tState->getUid()] = $tState;
+                    }
+                }
             }
+   
+            
             //Get the single $oAllStates state object:
             $oAllStates = $this->stateRepository->findByUid(1);
 

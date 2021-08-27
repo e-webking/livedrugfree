@@ -19,7 +19,7 @@ if (TYPO3_MODE === 'BE') {
         'nkregularformstoragebe', // Submodule key
         '',	// Position
         array(
-            'Formresult' => 'txnlist, chargecard, capturepay, deleteAuthorizeProfile, confirmDelete, deleteProfile'
+            'Formresult' => 'txnlist, chargecard, fetchdetail, capturepay, deleteAuthorizeProfile, confirmDelete, deleteProfile'
         ),
         array(
             'access' => 'user,group',
@@ -40,3 +40,6 @@ if (TYPO3_MODE === 'BE') {
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addLLrefForTCAdescr('tx_nkregularformstorage_domain_model_paymentprofile', 'EXT:nkregularformstorage/Resources/Private/Language/locallang_csh_tx_nkregularformstorage_domain_model_paymentprofile.xlf');
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::allowTableOnStandardPages('tx_nkregularformstorage_domain_model_paymentprofile');
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addLLrefForTCAdescr('tx_nkregularformstorage_domain_model_log', 'EXT:nkregularformstorage/Resources/Private/Language/locallang_csh_tx_nkregularformstorage_domain_model_log.xlf');
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::allowTableOnStandardPages('tx_nkregularformstorage_domain_model_log');

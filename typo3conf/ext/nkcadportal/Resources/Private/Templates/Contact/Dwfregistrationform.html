@@ -12,29 +12,21 @@
 	<f:form action="" enctype="multipart/form-data"  name="new_DFW_Registration">
 		
 		<f:render partial="Contact/Registrationfields" arguments="{formValues: formValues, formErrors: formErrors}"/>
-		
-		<!-- RECAPTCHA SCRIPT -->
-		<script src="https://www.google.com/recaptcha/api.js?render=6Leuc70UAAAAADXY6N7W31w9ls4Aisqce2UHCnJ8"></script>
-		<script>
-		grecaptcha.ready(function() {
-		  grecaptcha.execute('6Leuc70UAAAAADXY6N7W31w9ls4Aisqce2UHCnJ8', {action: 'homepage'}).then(function(token) {
-			 var recaptchaResponse = document.getElementById('recaptchaResponse');
-			 recaptchaResponse.value = token;
-		  });
-		});
-		</script>
-		<f:form.hidden name="recaptcha_response" id="recaptchaResponse" value="" />
-		<!-- RECAPTCHA SCRIPT End -->
-		
+	
 		<div class="form-row">
 			<div class="form-left">&nbsp;</div>
-			<div class="form-right"><input type="submit" name="submit" id="submit" value="Create account"/></div>
+			<div class="form-right"><div class="g-recaptcha" data-sitekey="{settings.recaptcha_site_key}"></div></div>
+			<div class="clearfix"></div>
+		</div>
+		<div class="form-row">
+			<div class="form-left">&nbsp;</div>
+			<div class="form-right"><input type="submit" name="submit" id="submit" value="Create account" /></div>
 			<div class="clearfix"></div>
 		</div>
 		
 		<!-- hidden fields -->
 		<input type="hidden" name="formAction" id="formAction" value="new_DFW_Registration"/>
-		<input type="hidden" name="hasCaptcha" id="hasCaptcha" value="1"/>
+                <input type="hidden" name="secretcode" id="secretcode" value=""/>
 		
 	</f:form>
 	

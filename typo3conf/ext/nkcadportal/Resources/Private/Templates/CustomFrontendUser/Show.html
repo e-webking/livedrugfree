@@ -114,6 +114,7 @@
 						<option value="mastercard">Mastercard</option>
 						<option value="visa">Visa</option>
 						<option value="discover">Discover</option>
+                                                <option value="amex">AMEX</option>
 					</select>
 					<label for="cardname">Name on card:</label><input type="text" name="paymentForm[Card_Name]" id="cardname" value="{frontendUser.firstName} {frontendUser.lastName}" placeholder="Name on card"/>
 					<label for="address">Address:</label><input type="text" name="paymentForm[Address]" id="address" value="{frontendUser.address}" placeholder="Address"/>
@@ -130,8 +131,8 @@
 						Member Agreement: Members agree upon payment, not to share their username, password or documents with anyone outside their respective company, including consultants, insurance agents, attorneys, service providers and others. All documents are write- protected. Thank you for your cooperation with this important policy.
 					</div>					
 					
-					<input type="submit" name="submit" value="Pay now"/>
-					
+                                        <input type="submit" name="submit" value="Pay now" id="fepay" /> &nbsp;&nbsp;&nbsp;&nbsp; <strong>Click once to avoid multiple charges</strong>
+                                        <div class="preventclick"><f:image src="EXT:nkcadportal/Resources/Public/images/bx_loader.gif" alt="Loader" /></div>
 					<div class="clearfix"></div>
 
 				</div>
@@ -216,8 +217,7 @@
                             <f:form.submit class="edit-contact-form" value="Update contact" />  <a class="edit-contact-form buttonleft" href="javascript:void(0);" onclick="cancelAcForm()">Cancel</a> &nbsp;&nbsp; 
                             <div class="clearfix"></div>
                     </f:form>
-                </div>
-	</div>
+        </div>
 	
 	<!-- NEWSLETTERS TAB -->
 	<div id="femenu4" class="tab-pane fade">
@@ -229,8 +229,7 @@
 				<thead>
 					<tr>
 						<th>Description</th>
-						<th>Period</th>
-						<th>Added</th>
+						<th>Period</th>						
 						<th>Download</th>
 					</tr>
 				</thead>
@@ -239,7 +238,6 @@
                                         <tr>
                                             <td><a href="/index.php?id=36&action=serve-download&filepath={newsletter.file.originalResource.publicUrl}&friendlyfilename={newsletter.fileName}">{newsletter.title}</a></td>
                                             <td><f:format.date format="F Y">{newsletter.forperiod}</f:format.date></td>
-                                            <td><f:format.date format="m/d/Y">{newsletter.tstamp}</f:format.date></td>
                                             <td>                                          
                                                 <a class="nldown" href="javascript:void(0);" data-href="/index.php?id=36&action=serve-download&filepath={newsletter.file.originalResource.publicUrl}&friendlyfilename={newsletter.file.originalResource.originalFile.name}">
                                                     <i class="fa fa-pdf fa-file"></i>
@@ -266,7 +264,6 @@
 				<thead>
 					<tr>
 						<th>Description</th>
-						<th>Updated</th>
 						<th>Download</th>
 					</tr>
 				</thead>
@@ -274,7 +271,6 @@
 					<f:for each="{frontendUser.documents}" as="document">
 						<tr>
 							<td><a href="/index.php?id=36&action=serve-download&filepath={document.file.originalResource.publicUrl}&friendlyfilename={document.fileName}">{document.title}</a></td>
-							<td><f:format.date format="m/d/Y">{document.tstamp}</f:format.date></td>
 							<td>
 								<a href="/index.php?id=36&action=serve-download&filepath={document.file.originalResource.publicUrl}&friendlyfilename={document.fileName}">
 									<i class="fa fa-pdf fa-file"></i>
@@ -335,10 +331,10 @@
 			<!-- Addition by Roel (DEC/2019) Hide DOT-Membership renewals / prevent these from renewing -->
 			<f:if condition="{membership.membershiptype} == 2">
 				<f:then>
-					<input disabled="disabled" type="checkbox" value="true" name="renew_{membershipTemplateUid}" id="renew_{membershipTemplateUid}"/>
+					<input disabled="disabled" type="checkbox" value="true" data-name="{membership.membershiptemplate.uid}" data-state="{membership.state.uid}" name="renew_{membership.membershiptemplate.uid}-{membership.state.uid}" id="renew_{membershipTemplateUid}-{membership.state.uid}"/>
 				</f:then>
 				<f:else>
-					<input type="checkbox" value="true" name="renew_{membershipTemplateUid}" id="renew_{membershipTemplateUid}"/>
+					<input type="checkbox" value="true" data-name="{membership.membershiptemplate.uid}" data-state="{membership.state.uid}" name="renew_{membership.membershiptemplate.uid}-{membership.state.uid}" id="renew_{membershipTemplateUid}-{membership.state.uid}"/>
 				</f:else>
 			</f:if>
 			<!-- Addition by Roel (DEC/2019) End -->
